@@ -55,6 +55,21 @@ See the full design in `/.claude/plans/…` (architecture, phases, effect catalo
 **Full pipeline:** upload (+prompt) → ingest → Gemini EDL + Whisper → FFmpeg cut
 → Remotion final render → downloadable B2B-styled MP4.
 
+### Phase 4 — fully-automatic pipeline ✅
+- Ingest **auto-starts** the pipeline (`analyze → cut → final render`) — no button
+  clicks. `POST /api/projects/:id/pipeline` (202, fire-and-forget); the client
+  polls `GET /api/projects/:id` for a live stepper.
+- Shared step functions (`pipeline/steps.ts`) back both the manual routes and the
+  orchestrator, so there's one code path per step. In-memory guard prevents
+  duplicate concurrent runs (swap for Redis/BullMQ for multi-instance scale).
+- Unified **PipelinePanel** hero: step progress, final video + download, and the
+  persisted **decision log** (every edit with Gemini's reason). Manual per-step
+  controls remain under "Advanced".
+- Re-edit anytime with new instructions (re-runs the whole pipeline).
+
+Runs in-process on the long-lived Node server (Railway/Render). Verified live:
+fresh upload → `autostarted: true` → `done` with a final render, no interaction.
+
 ## Deployment notes
 The render worker needs these system deps (already handled on Railway/Render via
 a Docker base image):

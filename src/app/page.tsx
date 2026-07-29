@@ -43,7 +43,7 @@ export default function UploadPage() {
       await putWithProgress(uploadUrl, file, setProgress);
 
       setPhase('ingesting');
-      setMessage('Analyzing media (ffprobe)…');
+      setMessage('Analyzing media & starting the AI edit…');
       const ingestRes = await fetch(`/api/projects/${pid}/ingest`, { method: 'POST' });
       if (!ingestRes.ok) {
         const err = await ingestRes.json().catch(() => ({}));
@@ -68,8 +68,8 @@ export default function UploadPage() {
     <>
       <h1>Upload a video</h1>
       <p className="subtitle">
-        Drop a raw B2B talking-head video. We store it, then probe it with ffprobe. Editing
-        comes in later phases.
+        Drop a raw B2B talking-head video. The AI edits it automatically — tight cuts,
+        captions, punch-in zooms, lower thirds &amp; b-roll — then gives you the finished cut.
       </p>
 
       <div className="card">

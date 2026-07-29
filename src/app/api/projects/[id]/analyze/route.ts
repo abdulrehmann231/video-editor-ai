@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProject, saveProject } from '@/lib/projects';
-import { analyzeVideo } from '@/lib/analyze/analyzeVideo';
+import { getProject } from '@/lib/projects';
+import { runAnalyze } from '@/lib/pipeline/steps';
 
 export const runtime = 'nodejs';
 // Analysis (download + silence + whisper + Gemini File API) is slow.
@@ -8,18 +8,13 @@ export const maxDuration = 300;
 
 /**
  * Run the editorial analysis for a project and store the resulting EDL +
- * decision log. Idempotent-ish: refuses to start if already analyzing.
+ * decision log. Thin wrapper over the shared runAnalyze step.
  */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const project = await getProject(params.id);
-  if (!project) {
-    return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-  }
+  if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
   if (!project.media) {
-    return NextResponse.json(
-      { error: 'Project is not ingested yet — run ingest first.' },
-      { status: 409 },
-    );
+    return NextResponse.json({ error: 'Project is not ingested yet.' }, { status: 409 });
   }
   if (project.analysisStatus === 'analyzing') {
     return NextResponse.json({ error: 'Analysis already in progress' }, { status: 409 });
@@ -36,49 +31,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   } catch {
     /* no body — fine */
   }
-  const effectivePrompt = promptOverride !== undefined ? promptOverride : project.prompt;
-
-  await saveProject({
-    ...project,
-    prompt: effectivePrompt || undefined,
-    analysisStatus: 'analyzing',
-    analysisError: undefined,
-  });
 
   try {
-    const result = await analyzeVideo({
-      sourceKey: project.sourceKey,
-      contentType: project.contentType,
-      filename: project.filename,
-      media: project.media,
-      userPrompt: effectivePrompt,
+    const saved = await runAnalyze(params.id, {
+      prompt: promptOverride,
       transcribe: !noTranscribe,
     });
-
-    const saved = await saveProject({
-      ...project,
-      prompt: effectivePrompt || undefined,
-      analysisStatus: 'analyzed',
-      analysisError: undefined,
-      edl: result.edl,
-      analysisMeta: result.meta,
-      transcript: result.transcript,
-    });
-
     return NextResponse.json({
       project: saved,
-      warnings: result.warnings,
-      opCount: result.edl.ops.length,
+      opCount: saved.edl?.ops.length ?? 0,
     });
   } catch (err) {
-    const saved = await saveProject({
-      ...project,
-      prompt: effectivePrompt || undefined,
-      analysisStatus: 'error',
-      analysisError: (err as Error).message,
-    });
     return NextResponse.json(
-      { error: 'Analysis failed', detail: saved.analysisError },
+      { error: 'Analysis failed', detail: (err as Error).message },
       { status: 500 },
     );
   }

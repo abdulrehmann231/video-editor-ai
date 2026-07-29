@@ -17,6 +17,8 @@ export type ProjectStatus = 'uploading' | 'uploaded' | 'ingested' | 'error';
 export type AnalysisStatus = 'idle' | 'analyzing' | 'analyzed' | 'error';
 export type RenderStatus = 'idle' | 'rendering' | 'rendered' | 'error';
 export type FinalStatus = 'idle' | 'rendering' | 'rendered' | 'error';
+export type PipelineStatus = 'idle' | 'running' | 'done' | 'error';
+export type PipelineStep = 'analyze' | 'render' | 'done';
 
 export interface Project {
   id: string;
@@ -56,6 +58,13 @@ export interface Project {
   finalMeta?: FinalRenderMeta;
   /** Non-fatal render warnings (e.g. b-roll not found). */
   finalWarnings?: string[];
+
+  // ---- Phase 4: automatic pipeline ----
+  pipelineStatus?: PipelineStatus;
+  pipelineStep?: PipelineStep;
+  pipelineError?: string;
+  pipelineStartedAt?: string;
+  pipelineFinishedAt?: string;
 }
 
 const INDEX_KEY = 'projects/_index.json';
@@ -73,6 +82,13 @@ export async function saveProject(p: Project): Promise<Project> {
   await putObject(recordKey(p.id), JSON.stringify(next, null, 2), 'application/json');
   await addToIndex(p.id);
   return next;
+}
+
+/** Load the latest project, merge a partial patch, and persist. */
+export async function patchProject(id: string, patch: Partial<Project>): Promise<Project> {
+  const current = await getProject(id);
+  if (!current) throw new Error(`Project not found: ${id}`);
+  return saveProject({ ...current, ...patch });
 }
 
 export async function getProject(id: string): Promise<Project | null> {

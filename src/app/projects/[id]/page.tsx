@@ -4,6 +4,7 @@ import type { MediaInfo } from '@/lib/ingest';
 import AnalysisPanel from './AnalysisPanel';
 import RenderPanel from './RenderPanel';
 import FinalPanel from './FinalPanel';
+import PipelinePanel from './PipelinePanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,41 +90,58 @@ export default async function ProjectPage({ params }: { params: { id: string } }
       </div>
 
       {project.media && (
-        <AnalysisPanel
+        <PipelinePanel
           projectId={project.id}
-          initialStatus={project.analysisStatus ?? 'idle'}
-          initialEdl={project.edl}
-          initialMeta={project.analysisMeta}
-          initialError={project.analysisError}
-          initialPrompt={project.prompt}
+          initialFinalUrl={finalUrl(project)}
+          initial={{
+            pipelineStatus: project.pipelineStatus,
+            pipelineStep: project.pipelineStep,
+            pipelineError: project.pipelineError,
+            analysisStatus: project.analysisStatus,
+            finalStatus: project.finalStatus,
+            edl: project.edl,
+            finalWarnings: project.finalWarnings,
+          }}
         />
       )}
 
       {project.media && (
-        <RenderPanel
-          projectId={project.id}
-          hasEdl={Boolean(project.edl)}
-          initialStatus={project.renderStatus ?? 'idle'}
-          initialUrl={renderUrl(project)}
-          initialMeta={project.renderMeta}
-          initialError={project.renderError}
-        />
-      )}
-
-      {project.media && (
-        <FinalPanel
-          projectId={project.id}
-          hasEdl={Boolean(project.edl)}
-          initialStatus={project.finalStatus ?? 'idle'}
-          initialUrl={finalUrl(project)}
-          initialMeta={project.finalMeta}
-          initialError={project.finalError}
-          initialWarnings={project.finalWarnings}
-        />
+        <details style={{ marginTop: 8 }}>
+          <summary style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 14, padding: '6px 0' }}>
+            Advanced · run steps manually
+          </summary>
+          <div style={{ marginTop: 10 }}>
+            <AnalysisPanel
+              projectId={project.id}
+              initialStatus={project.analysisStatus ?? 'idle'}
+              initialEdl={project.edl}
+              initialMeta={project.analysisMeta}
+              initialError={project.analysisError}
+              initialPrompt={project.prompt}
+            />
+            <RenderPanel
+              projectId={project.id}
+              hasEdl={Boolean(project.edl)}
+              initialStatus={project.renderStatus ?? 'idle'}
+              initialUrl={renderUrl(project)}
+              initialMeta={project.renderMeta}
+              initialError={project.renderError}
+            />
+            <FinalPanel
+              projectId={project.id}
+              hasEdl={Boolean(project.edl)}
+              initialStatus={project.finalStatus ?? 'idle'}
+              initialUrl={finalUrl(project)}
+              initialMeta={project.finalMeta}
+              initialError={project.finalError}
+              initialWarnings={project.finalWarnings}
+            />
+          </div>
+        </details>
       )}
 
       <p className="muted mono">
-        Pipeline complete: upload → analyze → cut → final motion-graphics render.
+        Fully automatic: upload → analyze → cut → final render. Re-edit with new instructions anytime.
       </p>
     </>
   );
