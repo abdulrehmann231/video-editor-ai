@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation';
-import { finalUrl, getProject, renderUrl, sourceUrl } from '@/lib/projects';
+import { finalUrl, getProject, renderUrl, shortsUrl, sourceUrl } from '@/lib/projects';
 import type { MediaInfo } from '@/lib/ingest';
 import AnalysisPanel from './AnalysisPanel';
 import RenderPanel from './RenderPanel';
 import FinalPanel from './FinalPanel';
 import PipelinePanel from './PipelinePanel';
+import ShortsPanel from './ShortsPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,6 +103,17 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             edl: project.edl,
             finalWarnings: project.finalWarnings,
           }}
+        />
+      )}
+
+      {project.media && (
+        <ShortsPanel
+          projectId={project.id}
+          hasEdl={Boolean(project.edl)}
+          initialStatus={project.shortsStatus ?? 'idle'}
+          initialUrl={shortsUrl(project)}
+          initialMeta={project.shortsMeta}
+          initialError={project.shortsError}
         />
       )}
 

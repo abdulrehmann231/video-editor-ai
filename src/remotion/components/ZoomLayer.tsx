@@ -40,7 +40,8 @@ export const ZoomLayer: React.FC<{ src: string; fps: number; zooms: ZoomOverlay[
   return (
     <AbsoluteFill style={{ backgroundColor: 'black', overflow: 'hidden' }}>
       <AbsoluteFill style={{ transform: `scale(${scale})`, transformOrigin: origin }}>
-        <OffthreadVideo src={src} />
+        {/* cover-fit so a landscape source fills any target frame (incl. 9:16). */}
+        <OffthreadVideo src={src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </AbsoluteFill>
     </AbsoluteFill>
   );

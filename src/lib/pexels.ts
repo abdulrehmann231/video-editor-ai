@@ -81,22 +81,20 @@ export function pickBestFile(
   const wantLandscape = opts.orientation === 'landscape';
   const maxWidth = opts.maxWidth ?? 1920;
 
-  const scored = mp4s
-    .map((f) => {
-      const w = f.width!;
-      const h = f.height!;
-      const isPortrait = h > w;
-      const orientationOk =
-        (wantPortrait && isPortrait) ||
-        (wantLandscape && !isPortrait) ||
-        (!wantPortrait && !wantLandscape);
-      const withinWidth = w <= maxWidth;
-      // higher score is better
-      const score =
-        (orientationOk ? 1000 : 0) + (withinWidth ? w : maxWidth - (w - maxWidth));
-      return { f, score };
-    })
-    .sort((a, b) => b.score - a.score);
+  // Prefer files matching the requested orientation; fall back to all.
+  const oriented = mp4s.filter((f) => {
+    const isPortrait = f.height! > f.width!;
+    if (wantPortrait) return isPortrait;
+    if (wantLandscape) return !isPortrait;
+    return true;
+  });
+  const pool = oriented.length > 0 ? oriented : mp4s;
 
-  return scored[0]?.f ?? null;
+  // Within the width cap: pick the LARGEST (best quality that won't be huge).
+  const within = pool.filter((f) => f.width! <= maxWidth);
+  if (within.length > 0) {
+    return within.reduce((best, f) => (f.width! > best.width! ? f : best));
+  }
+  // Everything exceeds the cap: pick the SMALLEST to minimize the download.
+  return pool.reduce((best, f) => (f.width! < best.width! ? f : best));
 }

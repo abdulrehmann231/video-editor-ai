@@ -39,6 +39,16 @@ export interface BrollOverlay {
   query: string;
   src?: string;
 }
+export interface TitleCardOverlay {
+  id: string;
+  start: number;
+  end: number;
+  variant: 'intro' | 'cta';
+  heading: string;
+  sub?: string;
+}
+
+export type OutputLayout = 'landscape' | 'shorts';
 
 export interface EditProps {
   videoSrc: string;
@@ -46,10 +56,14 @@ export interface EditProps {
   width: number;
   height: number;
   durationInFrames: number;
+  /** 'shorts' fits a landscape source into a 9:16 frame (cover-crop, centered). */
+  layout: OutputLayout;
+  progressBar: boolean;
   zooms: ZoomOverlay[];
   captions: CaptionOverlay[];
   lowerThirds: LowerThirdOverlay[];
   brolls: BrollOverlay[];
+  titleCards: TitleCardOverlay[];
 }
 
 export const DEFAULT_EDIT_PROPS: EditProps = {
@@ -58,8 +72,11 @@ export const DEFAULT_EDIT_PROPS: EditProps = {
   width: 1280,
   height: 720,
   durationInFrames: 30,
+  layout: 'landscape',
+  progressBar: true,
   zooms: [],
   captions: [],
   lowerThirds: [],
   brolls: [],
+  titleCards: [],
 };

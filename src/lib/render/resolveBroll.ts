@@ -11,7 +11,9 @@ export async function resolveBroll(
   opts: { orientation?: Orientation; maxWidth?: number } = {},
 ): Promise<{ resolved: BrollOverlay[]; warnings: string[] }> {
   const orientation = opts.orientation ?? 'landscape';
-  const maxWidth = opts.maxWidth ?? 1920;
+  // Cap b-roll resolution to keep downloads small (avoids UHD clips that can
+  // exhaust disk / stall the headless-Chrome fetch during render).
+  const maxWidth = opts.maxWidth ?? 1280;
   const warnings: string[] = [];
 
   const resolved = await Promise.all(

@@ -54,6 +54,13 @@ export const CATALOG: CatalogEntry[] = [
     params:
       'query: 2–5 keyword search for stock footage. layout: full (cover frame) | pip (picture-in-picture).',
   },
+  {
+    type: 'title_card',
+    title: 'Intro / CTA title card',
+    whenToUse:
+      "Optionally overlay a bold full-screen card over the first ~2s (variant 'intro': the video's topic/title) and/or the last ~3s (variant 'cta': a call to action like 'Subscribe for more'). At most one intro and one cta. Overlays existing footage — does not add time.",
+    params: "variant: intro | cta. heading (big line), sub (optional smaller line).",
+  },
 ];
 
 export function buildCatalogText(): string {
@@ -104,6 +111,9 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           subtitle: { type: SchemaType.STRING },
           query: { type: SchemaType.STRING },
           layout: { type: SchemaType.STRING, format: 'enum', enum: ['full', 'pip'] },
+          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta'] },
+          heading: { type: SchemaType.STRING },
+          sub: { type: SchemaType.STRING },
         },
         required: ['id', 'type', 'start', 'end', 'reason'],
       },

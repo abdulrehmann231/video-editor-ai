@@ -70,6 +70,21 @@ See the full design in `/.claude/plans/…` (architecture, phases, effect catalo
 Runs in-process on the long-lived Node server (Railway/Render). Verified live:
 fresh upload → `autostarted: true` → `done` with a final render, no interaction.
 
+### Phase 5 — more effects + 9:16 output ✅
+- **Title cards**: intro/CTA full-screen cards (`title_card` op) overlaid on the
+  footage (no added time); Gemini can place a topic intro and a CTA outro.
+- **Progress bar**: thin brand-gradient bar across the whole video (default on).
+- **Background music + ducking**: a looping ambient bed
+  (`public/music/ambient.m4a` — swap for real royalty-free tracks) mixed under the
+  voice with **ffmpeg sidechain compression** (music dips when the speaker talks),
+  padded to fill the full length. Default on (`project.music`).
+- **9:16 Shorts**: `POST /api/projects/:id/render-final?format=shorts` renders a
+  vertical 720×1280 version (base cover-fit; all overlays reposition). Stored under
+  `shorts*` fields; a "Make 9:16 Shorts" panel shows it with a download.
+
+Verified live: title card, progress bar, and ducked music render correctly; a
+9:16 export produced a valid vertical MP4 with every overlay.
+
 ## Deployment notes
 The render worker needs these system deps (already handled on Railway/Render via
 a Docker base image):

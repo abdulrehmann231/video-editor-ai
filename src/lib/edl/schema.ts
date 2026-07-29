@@ -57,12 +57,21 @@ export const BrollOp = BaseOp.extend({
   layout: z.enum(['full', 'pip']).default('full'),
 });
 
+/** Full-screen intro or CTA title card overlaid on the footage. */
+export const TitleCardOp = BaseOp.extend({
+  type: z.literal('title_card'),
+  variant: z.enum(['intro', 'cta']).default('intro'),
+  heading: z.string().min(1).max(80),
+  sub: z.string().max(120).optional(),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
   ZoomPunchOp,
   LowerThirdOp,
   BrollOp,
+  TitleCardOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];

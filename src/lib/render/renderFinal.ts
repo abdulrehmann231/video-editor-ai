@@ -5,9 +5,13 @@ import { bundle } from '@remotion/bundler';
 import { selectComposition, renderMedia, ensureBrowser } from '@remotion/renderer';
 import { putObject, publicUrl } from '../r2';
 import type { OverlayPlan } from './timeline';
+import { mixMusicDucked } from './music';
+
+export type OutputLayout = 'landscape' | 'shorts';
 
 export interface FinalRenderMeta {
   kind: 'final';
+  layout: OutputLayout;
   createdAt: string;
   durationSec: number;
   width: number;
@@ -18,6 +22,9 @@ export interface FinalRenderMeta {
   lowerThirds: number;
   brolls: number;
   brollsResolved: number;
+  titleCards: number;
+  progressBar: boolean;
+  music: boolean;
   sizeBytes: number | null;
 }
 
@@ -25,11 +32,22 @@ export interface FinalRenderInput {
   projectId: string;
   /** Public URL of the Phase-2 cut video (the base layer). */
   cutUrl: string;
+  /** Native source dimensions (used for landscape output). */
   width: number;
   height: number;
   fps: number;
   plan: OverlayPlan;
+  layout?: OutputLayout;
+  progressBar?: boolean;
+  /** If set, mix this background-music file (ducked) under the audio. */
+  musicPath?: string;
+  /** Whether the base has a voice track (gates music ducking). */
+  hasAudio?: boolean;
 }
+
+/** 9:16 target resolution for Shorts. 720×1280 keeps memory modest (same pixel
+ * count as 720p landscape) while remaining a valid vertical export. */
+const SHORTS_DIMS = { width: 720, height: 1280 };
 
 export interface FinalRenderResult {
   finalKey: string;
@@ -57,51 +75,77 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
   await ensureBrowser();
   const serveUrl = await getBundle();
 
+  const layout: OutputLayout = input.layout ?? 'landscape';
+  const progressBar = input.progressBar ?? true;
+  const dims = layout === 'shorts' ? SHORTS_DIMS : { width: input.width, height: input.height };
+
   const fps = Math.max(1, Math.round(input.fps));
   const durationInFrames = Math.max(1, Math.round(input.plan.outputDurationSec * fps));
 
   const inputProps = {
     videoSrc: input.cutUrl,
     fps,
-    width: input.width,
-    height: input.height,
+    width: dims.width,
+    height: dims.height,
     durationInFrames,
+    layout,
+    progressBar,
     zooms: input.plan.zooms,
     captions: input.plan.captions,
     lowerThirds: input.plan.lowerThirds,
     brolls: input.plan.brolls,
+    titleCards: input.plan.titleCards,
   };
 
   const composition = await selectComposition({ serveUrl, id: 'Edit', inputProps });
 
   const dir = await mkdtemp(join(tmpdir(), 'edit-ai-final-'));
-  const outPath = join(dir, 'final.mp4');
+  const renderedPath = join(dir, 'render.mp4');
 
   await renderMedia({
     composition,
     serveUrl,
     codec: 'h264',
-    outputLocation: outPath,
+    outputLocation: renderedPath,
     inputProps,
     // Let Remotion pick concurrency from the host's core count.
   });
 
+  // Optional background-music ducking pass.
+  let outPath = renderedPath;
+  let musicApplied = false;
+  if (input.musicPath && input.hasAudio) {
+    const mixed = join(dir, 'final.mp4');
+    try {
+      await mixMusicDucked(renderedPath, input.musicPath, mixed);
+      outPath = mixed;
+      musicApplied = true;
+    } catch {
+      outPath = renderedPath; // fall back to un-mixed on failure
+    }
+  }
+
   const [buf, fileStat] = await Promise.all([readFile(outPath), stat(outPath)]);
-  const finalKey = `renders/${input.projectId}/final-${Date.now()}.mp4`;
+  const suffix = layout === 'shorts' ? 'shorts' : 'final';
+  const finalKey = `renders/${input.projectId}/${suffix}-${Date.now()}.mp4`;
   await putObject(finalKey, buf, 'video/mp4');
 
   const meta: FinalRenderMeta = {
     kind: 'final',
+    layout,
     createdAt: new Date().toISOString(),
     durationSec: input.plan.outputDurationSec,
-    width: input.width,
-    height: input.height,
+    width: dims.width,
+    height: dims.height,
     fps,
     zooms: input.plan.zooms.length,
     captions: input.plan.captions.length,
     lowerThirds: input.plan.lowerThirds.length,
     brolls: input.plan.brolls.length,
     brollsResolved: input.plan.brolls.filter((b) => b.src).length,
+    titleCards: input.plan.titleCards.length,
+    progressBar,
+    music: musicApplied,
     sizeBytes: fileStat.size,
   };
 

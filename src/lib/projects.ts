@@ -59,6 +59,15 @@ export interface Project {
   /** Non-fatal render warnings (e.g. b-roll not found). */
   finalWarnings?: string[];
 
+  // ---- 9:16 Shorts output ----
+  shortsStatus?: FinalStatus;
+  shortsError?: string;
+  shortsKey?: string;
+  shortsMeta?: FinalRenderMeta;
+
+  /** Background-music bed (default on). */
+  music?: boolean;
+
   // ---- Phase 4: automatic pipeline ----
   pipelineStatus?: PipelineStatus;
   pipelineStep?: PipelineStep;
@@ -127,4 +136,9 @@ export function renderUrl(p: Project): string | null {
 /** Public playback URL for the latest final render, if any. */
 export function finalUrl(p: Project): string | null {
   return p.finalKey ? publicUrl(p.finalKey) : null;
+}
+
+/** Public playback URL for the latest 9:16 Shorts render, if any. */
+export function shortsUrl(p: Project): string | null {
+  return p.shortsKey ? publicUrl(p.shortsKey) : null;
 }

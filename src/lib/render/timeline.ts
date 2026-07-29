@@ -66,12 +66,21 @@ export interface BrollOverlay {
   /** Resolved later from Pexels. */
   src?: string;
 }
+export interface TitleCardOverlay {
+  id: string;
+  start: number;
+  end: number;
+  variant: 'intro' | 'cta';
+  heading: string;
+  sub?: string;
+}
 
 export interface OverlayPlan {
   zooms: ZoomOverlay[];
   captions: CaptionOverlay[];
   lowerThirds: LowerThirdOverlay[];
   brolls: BrollOverlay[];
+  titleCards: TitleCardOverlay[];
   /** Cut-timeline duration in seconds. */
   outputDurationSec: number;
 }
@@ -92,6 +101,7 @@ export function buildOverlayPlan(
   const captions: CaptionOverlay[] = [];
   const lowerThirds: LowerThirdOverlay[] = [];
   const brolls: BrollOverlay[] = [];
+  const titleCards: TitleCardOverlay[] = [];
 
   for (const op of edl.ops) {
     const mapped = remapRange({ start: op.start, end: op.end }, keep);
@@ -107,6 +117,9 @@ export function buildOverlayPlan(
       case 'broll':
         brolls.push({ id: op.id, start: mapped.start, end: mapped.end, layout: op.layout, query: op.query });
         break;
+      case 'title_card':
+        titleCards.push({ id: op.id, start: mapped.start, end: mapped.end, variant: op.variant, heading: op.heading, sub: op.sub });
+        break;
       case 'caption': {
         const words = remapWordsInRange(transcript, { start: op.start, end: op.end }, keep);
         // Only add caption if we actually have word timings to show.
@@ -120,7 +133,7 @@ export function buildOverlayPlan(
     }
   }
 
-  return { zooms, captions, lowerThirds, brolls, outputDurationSec };
+  return { zooms, captions, lowerThirds, brolls, titleCards, outputDurationSec };
 }
 
 /** Remap transcript words overlapping a source range into cut-time caption words. */

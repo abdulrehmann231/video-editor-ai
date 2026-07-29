@@ -1,9 +1,10 @@
 import { getProject, saveProject, type Project } from '../projects';
 import { analyzeVideo } from '../analyze/analyzeVideo';
 import { renderCut } from '../render/renderCut';
-import { renderFinal } from '../render/renderFinal';
+import { renderFinal, type OutputLayout } from '../render/renderFinal';
 import { buildOverlayPlan } from '../render/timeline';
 import { resolveBroll } from '../render/resolveBroll';
+import { defaultMusicPath } from '../render/music';
 
 /**
  * Reusable pipeline steps shared by the manual API routes AND the automatic
@@ -67,11 +68,23 @@ export interface FinalRenderResult {
   warnings: string[];
 }
 
+export interface FinalRenderOptions {
+  format?: OutputLayout; // 'landscape' (default) | 'shorts'
+}
+
 /**
  * Render the final video: fresh cut (base consistent with current EDL) →
- * overlay plan (source→cut remap) → Pexels b-roll → Remotion composite.
+ * overlay plan (source→cut remap) → Pexels b-roll → Remotion composite →
+ * optional background-music ducking. `format: 'shorts'` outputs a 9:16 version
+ * stored under the shorts* fields.
  */
-export async function runFinalRender(projectId: string): Promise<FinalRenderResult> {
+export async function runFinalRender(
+  projectId: string,
+  opts: FinalRenderOptions = {},
+): Promise<FinalRenderResult> {
+  const format: OutputLayout = opts.format ?? 'landscape';
+  const isShorts = format === 'shorts';
+
   let project = await getProject(projectId);
   if (!project) throw new Error('Project not found');
   if (!project.media) throw new Error('Project is not ingested yet.');
@@ -80,8 +93,13 @@ export async function runFinalRender(projectId: string): Promise<FinalRenderResu
   const media = project.media;
   const edl = project.edl;
   const sourceDuration = media.durationSec ?? 0;
+  const musicOn = project.music !== false;
 
-  await saveProject({ ...project, finalStatus: 'rendering', finalError: undefined });
+  await saveProject(
+    isShorts
+      ? { ...project, shortsStatus: 'rendering', shortsError: undefined }
+      : { ...project, finalStatus: 'rendering', finalError: undefined },
+  );
 
   try {
     // 1. Fresh cut.
@@ -99,14 +117,14 @@ export async function runFinalRender(projectId: string): Promise<FinalRenderResu
       renderMeta: cut.meta,
     });
 
-    // 2. Overlay plan + b-roll.
+    // 2. Overlay plan + b-roll (orientation matches the OUTPUT format).
     const plan = buildOverlayPlan(edl, project.transcript ?? [], sourceDuration);
     const { resolved, warnings } = await resolveBroll(plan.brolls, {
-      orientation: (media.width ?? 16) >= (media.height ?? 9) ? 'landscape' : 'portrait',
+      orientation: isShorts ? 'portrait' : 'landscape',
     });
     plan.brolls = resolved;
 
-    // 3. Composite.
+    // 3. Composite (+ music ducking).
     const result = await renderFinal({
       projectId: project.id,
       cutUrl: cut.url,
@@ -114,19 +132,37 @@ export async function runFinalRender(projectId: string): Promise<FinalRenderResu
       height: media.height ?? 720,
       fps: media.fps ?? 30,
       plan,
+      layout: format,
+      musicPath: musicOn ? defaultMusicPath() ?? undefined : undefined,
+      hasAudio: media.hasAudio,
     });
 
-    const saved = await saveProject({
-      ...project,
-      finalStatus: 'rendered',
-      finalError: undefined,
-      finalKey: result.finalKey,
-      finalMeta: result.meta,
-      finalWarnings: warnings,
-    });
+    const saved = await saveProject(
+      isShorts
+        ? {
+            ...project,
+            shortsStatus: 'rendered',
+            shortsError: undefined,
+            shortsKey: result.finalKey,
+            shortsMeta: result.meta,
+            finalWarnings: warnings,
+          }
+        : {
+            ...project,
+            finalStatus: 'rendered',
+            finalError: undefined,
+            finalKey: result.finalKey,
+            finalMeta: result.meta,
+            finalWarnings: warnings,
+          },
+    );
     return { project: saved, warnings };
   } catch (err) {
-    await saveProject({ ...project, finalStatus: 'error', finalError: (err as Error).message });
+    await saveProject(
+      isShorts
+        ? { ...project, shortsStatus: 'error', shortsError: (err as Error).message }
+        : { ...project, finalStatus: 'error', finalError: (err as Error).message },
+    );
     throw err;
   }
 }
