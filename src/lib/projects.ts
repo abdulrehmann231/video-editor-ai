@@ -1,5 +1,7 @@
 import { getObject, putObject, publicUrl } from './r2';
 import type { MediaInfo } from './ingest';
+import type { AnalysisMeta, Edl } from './edl/schema';
+import type { TranscriptWord } from './analyze/transcribe';
 
 /**
  * Project record store, backed by R2 JSON objects (`projects/<id>.json`).
@@ -10,6 +12,7 @@ import type { MediaInfo } from './ingest';
  */
 
 export type ProjectStatus = 'uploading' | 'uploaded' | 'ingested' | 'error';
+export type AnalysisStatus = 'idle' | 'analyzing' | 'analyzed' | 'error';
 
 export interface Project {
   id: string;
@@ -22,6 +25,14 @@ export interface Project {
   updatedAt: string;
   media?: MediaInfo;
   error?: string;
+
+  // ---- Phase 1: analysis ----
+  analysisStatus?: AnalysisStatus;
+  analysisError?: string;
+  edl?: Edl;
+  analysisMeta?: AnalysisMeta;
+  /** Word-level transcript (kept for captions in later phases). */
+  transcript?: TranscriptWord[];
 }
 
 const INDEX_KEY = 'projects/_index.json';

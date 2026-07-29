@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getProject, sourceUrl } from '@/lib/projects';
 import type { MediaInfo } from '@/lib/ingest';
+import AnalysisPanel from './AnalysisPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,8 +86,18 @@ export default async function ProjectPage({ params }: { params: { id: string } }
         )}
       </div>
 
+      {project.media && (
+        <AnalysisPanel
+          projectId={project.id}
+          initialStatus={project.analysisStatus ?? 'idle'}
+          initialEdl={project.edl}
+          initialMeta={project.analysisMeta}
+          initialError={project.analysisError}
+        />
+      )}
+
       <p className="muted mono">
-        Next: Phase 1 — Gemini analyzes this video and emits an Edit Decision List.
+        Next: Phase 2 — a deterministic renderer (FFmpeg + Remotion) executes this plan.
       </p>
     </>
   );

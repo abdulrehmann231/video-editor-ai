@@ -1,6 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // transformers.js (local Whisper) pulls native/onnx deps — keep them out of
+  // the webpack server bundle so they load at runtime from node_modules.
+  experimental: {
+    serverComponentsExternalPackages: [
+      '@xenova/transformers',
+      'onnxruntime-node',
+      'sharp',
+    ],
+  },
   // The R2 public host serves rendered/uploaded media.
   images: {
     remotePatterns: [
