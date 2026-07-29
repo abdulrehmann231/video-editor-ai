@@ -93,6 +93,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           initialEdl={project.edl}
           initialMeta={project.analysisMeta}
           initialError={project.analysisError}
+          initialPrompt={project.prompt}
         />
       )}
 

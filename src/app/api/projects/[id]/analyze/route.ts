@@ -28,7 +28,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const url = new URL(req.url);
   const noTranscribe = url.searchParams.get('transcribe') === '0';
 
-  await saveProject({ ...project, analysisStatus: 'analyzing', analysisError: undefined });
+  // Allow a re-run to update the steering prompt.
+  let promptOverride: string | undefined;
+  try {
+    const body = await req.json();
+    if (body && typeof body.prompt === 'string') promptOverride = body.prompt.trim();
+  } catch {
+    /* no body — fine */
+  }
+  const effectivePrompt = promptOverride !== undefined ? promptOverride : project.prompt;
+
+  await saveProject({
+    ...project,
+    prompt: effectivePrompt || undefined,
+    analysisStatus: 'analyzing',
+    analysisError: undefined,
+  });
 
   try {
     const result = await analyzeVideo({
@@ -36,11 +51,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       contentType: project.contentType,
       filename: project.filename,
       media: project.media,
+      userPrompt: effectivePrompt,
       transcribe: !noTranscribe,
     });
 
     const saved = await saveProject({
       ...project,
+      prompt: effectivePrompt || undefined,
       analysisStatus: 'analyzed',
       analysisError: undefined,
       edl: result.edl,
@@ -56,6 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   } catch (err) {
     const saved = await saveProject({
       ...project,
+      prompt: effectivePrompt || undefined,
       analysisStatus: 'error',
       analysisError: (err as Error).message,
     });

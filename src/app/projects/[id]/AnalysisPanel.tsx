@@ -25,11 +25,13 @@ export default function AnalysisPanel(props: {
   initialEdl?: Edl;
   initialMeta?: AnalysisMeta;
   initialError?: string;
+  initialPrompt?: string;
 }) {
   const [status, setStatus] = useState<Status>(props.initialStatus);
   const [edl, setEdl] = useState<Edl | undefined>(props.initialEdl);
   const [meta, setMeta] = useState<AnalysisMeta | undefined>(props.initialMeta);
   const [error, setError] = useState<string | undefined>(props.initialError);
+  const [prompt, setPrompt] = useState(props.initialPrompt ?? '');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopPolling = () => {
@@ -63,7 +65,11 @@ export default function AnalysisPanel(props: {
     setError(undefined);
     // Fire the (long-running) analysis; polling reflects completion even if this
     // connection is dropped by a proxy timeout.
-    fetch(`/api/projects/${props.projectId}/analyze`, { method: 'POST' })
+    fetch(`/api/projects/${props.projectId}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt.trim() }),
+    })
       .then(async (res) => {
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));
@@ -75,7 +81,7 @@ export default function AnalysisPanel(props: {
         /* rely on polling */
       });
     if (!pollRef.current) pollRef.current = setInterval(poll, 4000);
-  }, [props.projectId, poll]);
+  }, [props.projectId, poll, prompt]);
 
   const decisions = edl ? toDecisionLog(edl) : [];
 
@@ -95,6 +101,22 @@ export default function AnalysisPanel(props: {
             : 'Run analysis'}
         </button>
       </div>
+
+      <label htmlFor="edit-prompt" style={{ fontSize: 13, fontWeight: 600, display: 'block', marginTop: 14 }}>
+        Editing instructions <span className="muted">(optional)</span>
+      </label>
+      <textarea
+        id="edit-prompt"
+        className="prompt-input"
+        rows={2}
+        placeholder="e.g. Keep it fast, caption every sentence, introduce the speaker as “Sara, CEO”, add analytics b-roll."
+        value={prompt}
+        disabled={status === 'analyzing'}
+        onChange={(e) => setPrompt(e.target.value)}
+      />
+      <p className="muted" style={{ fontSize: 12, margin: '4px 0 0' }}>
+        Edit and re-run to steer the plan.
+      </p>
 
       {status === 'analyzing' && (
         <p className="status">

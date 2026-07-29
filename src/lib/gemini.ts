@@ -16,6 +16,28 @@ function isRateLimit(err: unknown): boolean {
   return e?.status === 429 || msg.includes('429') || msg.includes('rate limit') || msg.includes('quota');
 }
 
+/**
+ * Retryable = rate limits OR transient server-side/network errors (Gemini
+ * occasionally returns 500/503 or times out). These are worth failing over to
+ * another key / retrying; 4xx (except 429) are not.
+ */
+function isRetryable(err: unknown): boolean {
+  if (isRateLimit(err)) return true;
+  const e = err as { status?: number; message?: string };
+  const msg = (e?.message || '').toLowerCase();
+  if (e?.status === 500 || e?.status === 503 || e?.status === 502 || e?.status === 504) return true;
+  return (
+    msg.includes('500') ||
+    msg.includes('503') ||
+    msg.includes('internal error') ||
+    msg.includes('overloaded') ||
+    msg.includes('unavailable') ||
+    msg.includes('timeout') ||
+    msg.includes('fetch failed') ||
+    msg.includes('econnreset')
+  );
+}
+
 export interface GenerateOptions {
   model?: string;
   /** Max key failovers before giving up. Defaults to the number of keys. */
@@ -48,4 +70,4 @@ export async function generateText(prompt: string, opts: GenerateOptions = {}): 
   );
 }
 
-export { isRateLimit };
+export { isRateLimit, isRetryable };

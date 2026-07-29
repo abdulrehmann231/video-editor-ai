@@ -11,6 +11,8 @@ const Body = z.object({
   contentType: z
     .string()
     .regex(/^video\//, 'contentType must be a video/* MIME type'),
+  /** Optional guidance that steers the AI edit. */
+  prompt: z.string().max(2000).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { filename, contentType } = parsed.data;
+  const { filename, contentType, prompt } = parsed.data;
 
   try {
     const id = newId('p_');
@@ -45,6 +47,7 @@ export async function POST(req: NextRequest) {
       status: 'uploading',
       createdAt: now,
       updatedAt: now,
+      prompt: prompt?.trim() || undefined,
     };
     await saveProject(project);
 

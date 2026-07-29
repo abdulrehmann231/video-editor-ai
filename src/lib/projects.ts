@@ -26,6 +26,9 @@ export interface Project {
   media?: MediaInfo;
   error?: string;
 
+  /** Optional user guidance that steers the AI edit (e.g. tone, speaker name, focus). */
+  prompt?: string;
+
   // ---- Phase 1: analysis ----
   analysisStatus?: AnalysisStatus;
   analysisError?: string;

@@ -10,6 +10,8 @@ export default function UploadPage() {
   const [message, setMessage] = useState('');
   const [projectId, setProjectId] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const promptRef = useRef('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const busy = phase === 'presigning' || phase === 'uploading' || phase === 'ingesting';
@@ -26,6 +28,7 @@ export default function UploadPage() {
         body: JSON.stringify({
           filename: file.name,
           contentType: file.type || 'video/mp4',
+          prompt: promptRef.current.trim() || undefined,
         }),
       });
       if (!presignRes.ok) {
@@ -70,6 +73,25 @@ export default function UploadPage() {
       </p>
 
       <div className="card">
+        <label htmlFor="prompt" style={{ fontWeight: 600, fontSize: 14 }}>
+          Editing instructions <span className="muted">(optional)</span>
+        </label>
+        <textarea
+          id="prompt"
+          className="prompt-input"
+          placeholder="e.g. Punchy pace, heavy word-captions, zoom on the hook. Introduce the speaker as “Sara Lee, CEO”. Add b-roll for anything about analytics."
+          value={prompt}
+          disabled={busy}
+          onChange={(e) => {
+            setPrompt(e.target.value);
+            promptRef.current = e.target.value;
+          }}
+          rows={3}
+        />
+        <p className="muted" style={{ fontSize: 12, margin: '4px 0 16px' }}>
+          Steers the AI editor. Leave blank to use the default B2B talking-head style.
+        </p>
+
         <div
           className={`dropzone${drag ? ' drag' : ''}`}
           onClick={() => !busy && inputRef.current?.click()}

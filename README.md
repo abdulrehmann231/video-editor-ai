@@ -26,7 +26,10 @@ See the full design in `/.claude/plans/…` (architecture, phases, effect catalo
 - **Local Whisper** (transformers.js, `whisper-tiny.en`) for word-level caption
   timing — no API key, deployable in the Node worker.
 - Structured output via `responseSchema` + Zod validation + one repair pass;
-  Gemini key rotation/failover re-uploads under a fresh key on 429.
+  Gemini key rotation/failover re-uploads under a fresh key on 429 / transient 5xx.
+- **Optional user prompt** steers the edit — captured at upload and editable on
+  the project page (re-run to re-steer). Threaded into the analysis as
+  highest-priority instructions (e.g. tone, speaker name, what b-roll to add).
 - `POST /api/projects/:id/analyze`; project page shows the plan + decision log.
 
 Next: **Phase 2** — deterministic FFmpeg executor (cuts/silence/audio).

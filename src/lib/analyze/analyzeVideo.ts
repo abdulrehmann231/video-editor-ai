@@ -1,5 +1,5 @@
 import { getEnv } from '../env';
-import { isRateLimit } from '../gemini';
+import { isRateLimit, isRetryable } from '../gemini';
 import { keyCount, markRateLimited, nextKey } from '../geminiKeys';
 import { deleteVideo, generateStructured, generateStructuredText, uploadVideo } from '../ai/geminiVideo';
 import { EDL_RESPONSE_SCHEMA } from '../edl/catalog';
@@ -23,6 +23,8 @@ export interface AnalyzeInput {
   contentType: string;
   filename: string;
   media: MediaInfo;
+  /** Optional user guidance that steers the edit. */
+  userPrompt?: string;
   /** Set false to skip local Whisper (faster, no captions timing). */
   transcribe?: boolean;
 }
@@ -51,7 +53,12 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
       });
     }
 
-    const prompt = buildAnalysisPrompt({ media: input.media, silence, transcript });
+    const prompt = buildAnalysisPrompt({
+      media: input.media,
+      silence,
+      transcript,
+      userPrompt: input.userPrompt,
+    });
     const { edl, meta, repaired } = await runGemini(
       path,
       input.contentType,
@@ -87,7 +94,8 @@ async function runGemini(
   model: string,
 ): Promise<{ edl: Edl; meta: AnalysisMeta; repaired: boolean }> {
   const keys = getEnv().GEMINI_API_KEYS;
-  const attempts = Math.max(1, keyCount());
+  // At least 2 attempts so a single-key transient error still retries.
+  const attempts = Math.max(2, keyCount());
   let lastErr: unknown;
 
   for (let i = 0; i < attempts; i++) {
@@ -118,11 +126,11 @@ async function runGemini(
       }
     } catch (err) {
       lastErr = err;
-      if (isRateLimit(err)) {
-        markRateLimited(key);
-        continue; // failover to next key
+      if (isRetryable(err)) {
+        if (isRateLimit(err)) markRateLimited(key); // cooldown only true rate limits
+        continue; // failover to next key / retry
       }
-      throw err;
+      throw err; // non-retryable (bad request, auth, etc.)
     }
   }
   throw new Error(

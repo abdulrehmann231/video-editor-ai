@@ -7,6 +7,8 @@ export interface PromptInput {
   media: MediaInfo;
   silence: SilenceSegment[];
   transcript?: TranscriptWord[];
+  /** Optional free-text guidance from the user that steers the edit. */
+  userPrompt?: string;
 }
 
 /** Compact the transcript into a timestamped, readable script for the model. */
@@ -35,9 +37,16 @@ function fmt(sec: number): string {
 }
 
 export function buildAnalysisPrompt(input: PromptInput): string {
-  const { media, silence, transcript } = input;
+  const { media, silence, transcript, userPrompt } = input;
   const durationLine =
     media.durationSec != null ? `${media.durationSec}s (${fmt(media.durationSec)})` : 'unknown';
+
+  const userBlock = userPrompt?.trim()
+    ? `\nUSER INSTRUCTIONS (HIGHEST PRIORITY — follow these unless they conflict with the schema/rules):
+"""
+${userPrompt.trim()}
+"""\n`
+    : '';
 
   const silenceBlock =
     silence.length > 0
@@ -53,7 +62,7 @@ export function buildAnalysisPrompt(input: PromptInput): string {
 watch the attached video and produce an EDIT DECISION LIST (EDL): a precise, timestamped
 plan of edits that a deterministic renderer will apply. You do NOT regenerate video — you
 only choose edits from the fixed catalog below, the way a human editor would in After Effects.
-
+${userBlock}
 TARGET STYLE (from a B2B/talking-head inspiration vault):
 - Tight pacing: cut dead air, filler words, and false starts aggressively (jump cuts).
 - Bold word-by-word captions, especially on the hook and key points.
