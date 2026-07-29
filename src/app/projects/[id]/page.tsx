@@ -1,0 +1,160 @@
+import { notFound } from 'next/navigation';
+import { finalUrl, getProject, renderUrl, shortsUrl, sourceUrl } from '@/lib/projects';
+import type { MediaInfo } from '@/lib/ingest';
+import AnalysisPanel from './AnalysisPanel';
+import RenderPanel from './RenderPanel';
+import FinalPanel from './FinalPanel';
+import PipelinePanel from './PipelinePanel';
+import ShortsPanel from './ShortsPanel';
+
+export const dynamic = 'force-dynamic';
+
+function fmtDuration(sec: number | null): string {
+  if (sec == null) return '—';
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function fmtBytes(n: number | null): string {
+  if (n == null) return '—';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let v = n;
+  let u = 0;
+  while (v >= 1024 && u < units.length - 1) {
+    v /= 1024;
+    u++;
+  }
+  return `${v.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
+}
+
+function MediaTable({ media }: { media: MediaInfo }) {
+  return (
+    <dl className="kv">
+      <dt>Duration</dt>
+      <dd>{fmtDuration(media.durationSec)}</dd>
+      <dt>Resolution</dt>
+      <dd>
+        {media.width && media.height ? `${media.width}×${media.height}` : '—'}
+      </dd>
+      <dt>Frame rate</dt>
+      <dd>{media.fps ? `${media.fps} fps` : '—'}</dd>
+      <dt>Video codec</dt>
+      <dd>{media.videoCodec ?? '—'}</dd>
+      <dt>Audio</dt>
+      <dd>{media.hasAudio ? media.audioCodec ?? 'yes' : 'no audio track'}</dd>
+      <dt>Container</dt>
+      <dd>{media.container ?? '—'}</dd>
+      <dt>Size</dt>
+      <dd>{fmtBytes(media.sizeBytes)}</dd>
+    </dl>
+  );
+}
+
+export default async function ProjectPage({ params }: { params: { id: string } }) {
+  const project = await getProject(params.id);
+  if (!project) notFound();
+
+  const url = sourceUrl(project);
+
+  return (
+    <>
+      <p>
+        <a href="/">← Upload another</a>
+      </p>
+      <h1>{project.filename}</h1>
+      <p className="subtitle">
+        <span className={`badge ${project.status}`}>{project.status}</span>{' '}
+        <span className="muted mono">{project.id}</span>
+      </p>
+
+      <div className="card">
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <video controls preload="metadata" src={url} />
+        <p className="muted mono" style={{ marginTop: 10, wordBreak: 'break-all' }}>
+          {url}
+        </p>
+      </div>
+
+      <div className="card">
+        <h2 style={{ marginTop: 0, fontSize: 18 }}>Media info</h2>
+        {project.media ? (
+          <MediaTable media={project.media} />
+        ) : (
+          <p className="muted">Not ingested yet.</p>
+        )}
+        {project.error && (
+          <p className="status error" style={{ marginTop: 12 }}>
+            {project.error}
+          </p>
+        )}
+      </div>
+
+      {project.media && (
+        <PipelinePanel
+          projectId={project.id}
+          initialFinalUrl={finalUrl(project)}
+          initial={{
+            pipelineStatus: project.pipelineStatus,
+            pipelineStep: project.pipelineStep,
+            pipelineError: project.pipelineError,
+            analysisStatus: project.analysisStatus,
+            finalStatus: project.finalStatus,
+            edl: project.edl,
+            finalWarnings: project.finalWarnings,
+          }}
+        />
+      )}
+
+      {project.media && (
+        <ShortsPanel
+          projectId={project.id}
+          hasEdl={Boolean(project.edl)}
+          initialStatus={project.shortsStatus ?? 'idle'}
+          initialUrl={shortsUrl(project)}
+          initialMeta={project.shortsMeta}
+          initialError={project.shortsError}
+        />
+      )}
+
+      {project.media && (
+        <details style={{ marginTop: 8 }}>
+          <summary style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 14, padding: '6px 0' }}>
+            Advanced · run steps manually
+          </summary>
+          <div style={{ marginTop: 10 }}>
+            <AnalysisPanel
+              projectId={project.id}
+              initialStatus={project.analysisStatus ?? 'idle'}
+              initialEdl={project.edl}
+              initialMeta={project.analysisMeta}
+              initialError={project.analysisError}
+              initialPrompt={project.prompt}
+            />
+            <RenderPanel
+              projectId={project.id}
+              hasEdl={Boolean(project.edl)}
+              initialStatus={project.renderStatus ?? 'idle'}
+              initialUrl={renderUrl(project)}
+              initialMeta={project.renderMeta}
+              initialError={project.renderError}
+            />
+            <FinalPanel
+              projectId={project.id}
+              hasEdl={Boolean(project.edl)}
+              initialStatus={project.finalStatus ?? 'idle'}
+              initialUrl={finalUrl(project)}
+              initialMeta={project.finalMeta}
+              initialError={project.finalError}
+              initialWarnings={project.finalWarnings}
+            />
+          </div>
+        </details>
+      )}
+
+      <p className="muted mono">
+        Fully automatic: upload → analyze → cut → final render. Re-edit with new instructions anytime.
+      </p>
+    </>
+  );
+}

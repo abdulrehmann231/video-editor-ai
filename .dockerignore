@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.github
+/tmp
+/tmp-media
+/.scratch
+coverage
+*.log
+.env
+.env*.local
+.DS_Store
+npm-debug.log*

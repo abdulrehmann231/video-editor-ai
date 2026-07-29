@@ -1,0 +1,37 @@
+{
+  "name": "edit-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-assisted (non-generative) B2B video editor — Gemini decides edits, FFmpeg + Remotion execute them.",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3000} -H 0.0.0.0",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "tsx scripts/smoke-test.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.658.0",
+    "@aws-sdk/s3-request-presigner": "^3.658.0",
+    "@google/generative-ai": "^0.21.0",
+    "@remotion/bundler": "^4.0.500",
+    "@remotion/renderer": "^4.0.500",
+    "@xenova/transformers": "^2.17.2",
+    "next": "14.2.18",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "^4.0.500",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.1"
+  }
+}

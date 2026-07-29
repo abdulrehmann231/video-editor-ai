@@ -1,0 +1,35 @@
+# Fly.io config for edit-ai. Uses the repo Dockerfile (Node + ffmpeg + headless
+# Chrome libs). `fly launch` will pick a unique app name if "edit-ai" is taken.
+
+app = "edit-ai"
+primary_region = "iad"  # change to a region near you (e.g. lhr, fra, sin)
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "7860"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 7860
+  force_https = true
+  # Scale to zero when idle to stay within Fly's free allowance; wakes on request.
+  # NOTE: while a render runs, the browser polls every 4s which keeps the machine
+  # awake. If you want renders to survive a closed tab, set min_machines_running = 1.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 25
+    soft_limit = 20
+
+# Swap lets renders survive transient memory spikes on a small VM (no OOM-kill).
+swap_size_mb = 2048
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024  # 720p renders fit here; bump to 2048 for headroom / 1080p Shorts
