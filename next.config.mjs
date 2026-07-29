@@ -8,6 +8,10 @@ const nextConfig = {
       '@xenova/transformers',
       'onnxruntime-node',
       'sharp',
+      'remotion',
+      '@remotion/renderer',
+      '@remotion/bundler',
+      'esbuild',
     ],
   },
   // The R2 public host serves rendered/uploaded media.

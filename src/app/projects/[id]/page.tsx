@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
-import { getProject, renderUrl, sourceUrl } from '@/lib/projects';
+import { finalUrl, getProject, renderUrl, sourceUrl } from '@/lib/projects';
 import type { MediaInfo } from '@/lib/ingest';
 import AnalysisPanel from './AnalysisPanel';
 import RenderPanel from './RenderPanel';
+import FinalPanel from './FinalPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,8 +110,20 @@ export default async function ProjectPage({ params }: { params: { id: string } }
         />
       )}
 
+      {project.media && (
+        <FinalPanel
+          projectId={project.id}
+          hasEdl={Boolean(project.edl)}
+          initialStatus={project.finalStatus ?? 'idle'}
+          initialUrl={finalUrl(project)}
+          initialMeta={project.finalMeta}
+          initialError={project.finalError}
+          initialWarnings={project.finalWarnings}
+        />
+      )}
+
       <p className="muted mono">
-        Next: Phase 3 — Remotion layers captions, zooms, lower thirds &amp; b-roll on top.
+        Pipeline complete: upload → analyze → cut → final motion-graphics render.
       </p>
     </>
   );

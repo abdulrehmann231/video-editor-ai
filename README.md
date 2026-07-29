@@ -40,7 +40,30 @@ See the full design in `/.claude/plans/…` (architecture, phases, effect catalo
 - `POST /api/projects/:id/render`; project page shows the rendered cut with a
   download button and before/after stats (duration, seconds removed, segments).
 
-Next: **Phase 3** — Remotion layers captions, zooms, lower thirds & b-roll.
+### Phase 3 — Remotion motion-graphics (the "AE" layer) ✅
+- **Timeline remapping**: EDL/transcript times are in source-time; overlays are
+  remapped through the keep-segments onto the compressed cut timeline (ops inside
+  a removed gap are dropped). Heavily unit-tested (`timeline.ts`).
+- **Remotion composition** over the cut video (`OffthreadVideo` base):
+  **punch-in zooms**, **word-by-word captions** (active word highlighted),
+  **lower thirds**, and **b-roll** (full / picture-in-picture).
+- **Pexels b-roll**: each `broll` op's query is resolved to a stock clip; a
+  missing result is skipped and logged (non-fatal).
+- Rendered headless via `@remotion/bundler` + `@remotion/renderer`, uploaded to
+  R2. `POST /api/projects/:id/render-final` (auto-renders a fresh cut first).
+
+**Full pipeline:** upload (+prompt) → ingest → Gemini EDL + Whisper → FFmpeg cut
+→ Remotion final render → downloadable B2B-styled MP4.
+
+## Deployment notes
+The render worker needs these system deps (already handled on Railway/Render via
+a Docker base image):
+- **ffmpeg** (cuts, audio, silencedetect, audio extraction).
+- **Headless Chrome libs** for Remotion: `libnss3 libnspr4 libatk1.0-0
+  libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1
+  libxfixes3 libxrandr2 libgbm1 libasound2 libpangocairo-1.0-0 libpango-1.0-0
+  libcairo2 libatspi2.0-0 libxshmfence1 fonts-liberation` (Remotion downloads the
+  Chrome Headless Shell itself). Render concurrency scales with CPU cores.
 
 ## Setup
 

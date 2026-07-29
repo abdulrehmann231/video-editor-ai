@@ -3,6 +3,7 @@ import type { MediaInfo } from './ingest';
 import type { AnalysisMeta, Edl } from './edl/schema';
 import type { TranscriptWord } from './analyze/transcribe';
 import type { RenderMeta } from './render/renderCut';
+import type { FinalRenderMeta } from './render/renderFinal';
 
 /**
  * Project record store, backed by R2 JSON objects (`projects/<id>.json`).
@@ -15,6 +16,7 @@ import type { RenderMeta } from './render/renderCut';
 export type ProjectStatus = 'uploading' | 'uploaded' | 'ingested' | 'error';
 export type AnalysisStatus = 'idle' | 'analyzing' | 'analyzed' | 'error';
 export type RenderStatus = 'idle' | 'rendering' | 'rendered' | 'error';
+export type FinalStatus = 'idle' | 'rendering' | 'rendered' | 'error';
 
 export interface Project {
   id: string;
@@ -45,6 +47,15 @@ export interface Project {
   /** R2 key of the latest rendered cut. */
   renderKey?: string;
   renderMeta?: RenderMeta;
+
+  // ---- Phase 3: final render (motion graphics) ----
+  finalStatus?: FinalStatus;
+  finalError?: string;
+  /** R2 key of the latest final (captions/zooms/lower-thirds/b-roll) render. */
+  finalKey?: string;
+  finalMeta?: FinalRenderMeta;
+  /** Non-fatal render warnings (e.g. b-roll not found). */
+  finalWarnings?: string[];
 }
 
 const INDEX_KEY = 'projects/_index.json';
@@ -95,4 +106,9 @@ export function sourceUrl(p: Project): string {
 /** Public playback URL for the latest rendered cut, if any. */
 export function renderUrl(p: Project): string | null {
   return p.renderKey ? publicUrl(p.renderKey) : null;
+}
+
+/** Public playback URL for the latest final render, if any. */
+export function finalUrl(p: Project): string | null {
+  return p.finalKey ? publicUrl(p.finalKey) : null;
 }
