@@ -7,14 +7,29 @@ executes it. The AI never regenerates pixels — it edits like a human editor.
 
 See the full design in `/.claude/plans/…` (architecture, phases, effect catalog).
 
-## Status — Phase 0 (upload & ingest) ✅
+## Status
 
+### Phase 0 — upload & ingest ✅
 - Next.js (App Router) app with a drag-and-drop upload page.
 - Direct browser → **Cloudflare R2** uploads via presigned PUT URLs.
 - **ffprobe** ingest (duration / resolution / fps / codecs / audio).
-- Project records stored as JSON in R2 (a real DB arrives in Phase 1).
+- Project records stored as JSON in R2 (a real DB arrives later).
 - Client libs: R2, Gemini (with **API-key round-robin + 429 failover**), Pexels.
 - Live **credential smoke test** + unit tests.
+
+### Phase 1 — analysis → Edit Decision List (the brain) ✅
+- **Gemini File API** watches the video and emits a validated, timestamped
+  **EDL** (never regenerates pixels) — ops chosen from a fixed **Effect Catalog**
+  (`silence_cut`, `caption`, `zoom_punch`, `lower_third`, `broll`), each with a
+  `reason` that powers the persisted **decision log**.
+- **ffmpeg silencedetect** pre-pass seeds precise silence-cut ranges.
+- **Local Whisper** (transformers.js, `whisper-tiny.en`) for word-level caption
+  timing — no API key, deployable in the Node worker.
+- Structured output via `responseSchema` + Zod validation + one repair pass;
+  Gemini key rotation/failover re-uploads under a fresh key on 429.
+- `POST /api/projects/:id/analyze`; project page shows the plan + decision log.
+
+Next: **Phase 2** — deterministic FFmpeg executor (cuts/silence/audio).
 
 ## Setup
 
