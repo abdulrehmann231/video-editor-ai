@@ -2,6 +2,7 @@ import { getObject, putObject, publicUrl } from './r2';
 import type { MediaInfo } from './ingest';
 import type { AnalysisMeta, Edl } from './edl/schema';
 import type { TranscriptWord } from './analyze/transcribe';
+import type { RenderMeta } from './render/renderCut';
 
 /**
  * Project record store, backed by R2 JSON objects (`projects/<id>.json`).
@@ -13,6 +14,7 @@ import type { TranscriptWord } from './analyze/transcribe';
 
 export type ProjectStatus = 'uploading' | 'uploaded' | 'ingested' | 'error';
 export type AnalysisStatus = 'idle' | 'analyzing' | 'analyzed' | 'error';
+export type RenderStatus = 'idle' | 'rendering' | 'rendered' | 'error';
 
 export interface Project {
   id: string;
@@ -36,6 +38,13 @@ export interface Project {
   analysisMeta?: AnalysisMeta;
   /** Word-level transcript (kept for captions in later phases). */
   transcript?: TranscriptWord[];
+
+  // ---- Phase 2: render (structural cut) ----
+  renderStatus?: RenderStatus;
+  renderError?: string;
+  /** R2 key of the latest rendered cut. */
+  renderKey?: string;
+  renderMeta?: RenderMeta;
 }
 
 const INDEX_KEY = 'projects/_index.json';
@@ -81,4 +90,9 @@ async function addToIndex(id: string): Promise<void> {
 /** Convenience: the public playback URL for a project's source video. */
 export function sourceUrl(p: Project): string {
   return publicUrl(p.sourceKey);
+}
+
+/** Public playback URL for the latest rendered cut, if any. */
+export function renderUrl(p: Project): string | null {
+  return p.renderKey ? publicUrl(p.renderKey) : null;
 }

@@ -32,7 +32,15 @@ See the full design in `/.claude/plans/…` (architecture, phases, effect catalo
   highest-priority instructions (e.g. tone, speaker name, what b-roll to add).
 - `POST /api/projects/:id/analyze`; project page shows the plan + decision log.
 
-Next: **Phase 2** — deterministic FFmpeg executor (cuts/silence/audio).
+### Phase 2 — deterministic FFmpeg cut renderer ✅
+- Turns the EDL's `silence_cut` ops into **keep-segments** (merge → invert →
+  drop slivers) and stitches them back in a **single ffmpeg pass**
+  (`select`/`aselect` + `setpts`), re-encoding to mp4 with **EBU R128 loudness
+  normalization**. Output uploaded to R2, served via the public domain.
+- `POST /api/projects/:id/render`; project page shows the rendered cut with a
+  download button and before/after stats (duration, seconds removed, segments).
+
+Next: **Phase 3** — Remotion layers captions, zooms, lower thirds & b-roll.
 
 ## Setup
 

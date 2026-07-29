@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
-import { getProject, sourceUrl } from '@/lib/projects';
+import { getProject, renderUrl, sourceUrl } from '@/lib/projects';
 import type { MediaInfo } from '@/lib/ingest';
 import AnalysisPanel from './AnalysisPanel';
+import RenderPanel from './RenderPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,8 +98,19 @@ export default async function ProjectPage({ params }: { params: { id: string } }
         />
       )}
 
+      {project.media && (
+        <RenderPanel
+          projectId={project.id}
+          hasEdl={Boolean(project.edl)}
+          initialStatus={project.renderStatus ?? 'idle'}
+          initialUrl={renderUrl(project)}
+          initialMeta={project.renderMeta}
+          initialError={project.renderError}
+        />
+      )}
+
       <p className="muted mono">
-        Next: Phase 2 — a deterministic renderer (FFmpeg + Remotion) executes this plan.
+        Next: Phase 3 — Remotion layers captions, zooms, lower thirds &amp; b-roll on top.
       </p>
     </>
   );
