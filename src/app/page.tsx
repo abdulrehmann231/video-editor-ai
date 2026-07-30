@@ -2,7 +2,14 @@
 
 import { useCallback, useRef, useState } from 'react';
 
-type Phase = 'idle' | 'presigning' | 'uploading' | 'ingesting' | 'done' | 'error';
+type Phase = 'idle' | 'creating' | 'uploading' | 'finalizing' | 'ingesting' | 'done' | 'error';
+
+interface CompletedPart {
+  PartNumber: number;
+  ETag: string;
+}
+
+const UPLOAD_CONCURRENCY = 4;
 
 export default function UploadPage() {
   const [phase, setPhase] = useState<Phase>('idle');
@@ -14,48 +21,61 @@ export default function UploadPage() {
   const promptRef = useRef('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const busy = phase === 'presigning' || phase === 'uploading' || phase === 'ingesting';
+  const busy = phase === 'creating' || phase === 'uploading' || phase === 'finalizing' || phase === 'ingesting';
 
   const upload = useCallback(async (file: File) => {
+    let pid: string | null = null;
     try {
-      setPhase('presigning');
+      setPhase('creating');
       setProgress(0);
-      setMessage(`Preparing upload for ${file.name}…`);
+      setMessage(`Preparing upload for ${file.name} (${fmtSize(file.size)})…`);
 
-      const presignRes = await fetch('/api/uploads/presign', {
+      const createRes = await fetch('/api/uploads/multipart/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           filename: file.name,
           contentType: file.type || 'video/mp4',
+          size: file.size,
           prompt: promptRef.current.trim() || undefined,
         }),
       });
-      if (!presignRes.ok) {
-        const err = await presignRes.json().catch(() => ({}));
-        throw new Error(err.error || err.detail || 'Failed to create upload');
-      }
-      const { projectId: pid, uploadUrl } = await presignRes.json();
-      setProjectId(pid);
+      if (!createRes.ok) throw new Error((await createRes.json().catch(() => ({}))).detail || 'Failed to start upload');
+      const { projectId: id, partSize, partCount } = await createRes.json();
+      pid = id;
+      setProjectId(id);
 
       setPhase('uploading');
-      setMessage('Uploading to storage…');
-      await putWithProgress(uploadUrl, file, setProgress);
+      setMessage(`Uploading ${partCount} part${partCount > 1 ? 's' : ''}…`);
+      const parts = await multipartUpload(id, file, partSize, partCount, setProgress);
+
+      setPhase('finalizing');
+      setMessage('Finalizing upload…');
+      const done = await fetch('/api/uploads/multipart/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: id, parts }),
+      });
+      if (!done.ok) throw new Error((await done.json().catch(() => ({}))).detail || 'Failed to finalize upload');
 
       setPhase('ingesting');
       setMessage('Analyzing media & starting the AI edit…');
-      const ingestRes = await fetch(`/api/projects/${pid}/ingest`, { method: 'POST' });
-      if (!ingestRes.ok) {
-        const err = await ingestRes.json().catch(() => ({}));
-        throw new Error(err.detail || err.error || 'Ingest failed');
-      }
+      const ingest = await fetch(`/api/projects/${id}/ingest`, { method: 'POST' });
+      if (!ingest.ok) throw new Error((await ingest.json().catch(() => ({}))).detail || 'Ingest failed');
 
       setPhase('done');
       setMessage('Done. Redirecting…');
-      window.location.href = `/projects/${pid}`;
+      window.location.href = `/projects/${id}`;
     } catch (err) {
       setPhase('error');
       setMessage((err as Error).message);
+      if (pid) {
+        fetch('/api/uploads/multipart/abort', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId: pid }),
+        }).catch(() => {});
+      }
     }
   }, []);
 
@@ -68,8 +88,9 @@ export default function UploadPage() {
     <>
       <h1>Upload a video</h1>
       <p className="subtitle">
-        Drop a raw B2B talking-head video. The AI edits it automatically — tight cuts,
-        captions, punch-in zooms, lower thirds &amp; b-roll — then gives you the finished cut.
+        Drop a raw B2B talking-head video (large 4K files welcome — uploads are chunked &amp;
+        resumable). The AI edits it automatically: tight cuts, captions, punch-in zooms, lower
+        thirds &amp; b-roll.
       </p>
 
       <div className="card">
@@ -107,22 +128,16 @@ export default function UploadPage() {
           }}
         >
           {busy ? (
-            <strong>Working… please keep this tab open</strong>
+            <strong>Working… keep this tab open</strong>
           ) : (
             <>
               <strong>Click or drop a video here</strong>
               <div className="muted" style={{ marginTop: 6 }}>
-                mp4 / mov / mkv / webm
+                mp4 / mov / mkv / webm · multi-GB OK
               </div>
             </>
           )}
-          <input
-            ref={inputRef}
-            type="file"
-            accept="video/*"
-            hidden
-            onChange={(e) => onPick(e.target.files)}
-          />
+          <input ref={inputRef} type="file" accept="video/*" hidden onChange={(e) => onPick(e.target.files)} />
         </div>
 
         {(busy || phase === 'error' || phase === 'done') && (
@@ -134,6 +149,7 @@ export default function UploadPage() {
             )}
             <div className={`status${phase === 'error' ? ' error' : ''}`}>
               {message}
+              {phase === 'uploading' ? ` (${progress}%)` : ''}
               {projectId && phase === 'error' && (
                 <>
                   {' '}
@@ -146,29 +162,103 @@ export default function UploadPage() {
       </div>
 
       <p className="muted mono">
-        Flow: presign → PUT to R2 → ffprobe ingest → project page.
+        Flow: multipart upload → R2 → ffprobe ingest → auto AI edit.
       </p>
     </>
   );
 }
 
-function putWithProgress(
-  url: string,
+async function multipartUpload(
+  projectId: string,
   file: File,
+  partSize: number,
+  partCount: number,
   onProgress: (pct: number) => void,
-): Promise<void> {
+): Promise<CompletedPart[]> {
+  const parts = new Array<CompletedPart>(partCount);
+  const uploaded = new Array<number>(partCount).fill(0);
+  const total = file.size;
+  let cursor = 0;
+
+  const report = () => {
+    const sum = uploaded.reduce((a, b) => a + b, 0);
+    onProgress(Math.min(100, Math.round((sum / total) * 100)));
+  };
+
+  async function worker() {
+    for (;;) {
+      const idx = cursor++;
+      if (idx >= partCount) return;
+      const partNumber = idx + 1;
+      const start = idx * partSize;
+      const blob = file.slice(start, Math.min(total, start + partSize));
+      const etag = await uploadPartWithRetry(projectId, partNumber, blob, (loaded) => {
+        uploaded[idx] = loaded;
+        report();
+      });
+      parts[idx] = { PartNumber: partNumber, ETag: etag };
+      uploaded[idx] = blob.size;
+      report();
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(UPLOAD_CONCURRENCY, partCount) }, () => worker()),
+  );
+  return parts;
+}
+
+async function uploadPartWithRetry(
+  projectId: string,
+  partNumber: number,
+  blob: Blob,
+  onLoaded: (loaded: number) => void,
+  attempts = 3,
+): Promise<string> {
+  let lastErr: unknown;
+  for (let a = 1; a <= attempts; a++) {
+    try {
+      const signRes = await fetch('/api/uploads/multipart/sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, partNumber }),
+      });
+      if (!signRes.ok) throw new Error(`sign failed (HTTP ${signRes.status})`);
+      const { url } = await signRes.json();
+      const etag = await putPart(url, blob, onLoaded);
+      if (!etag) throw new Error('missing ETag — check R2 CORS ExposeHeaders: ETag');
+      return etag;
+    } catch (err) {
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 800 * a));
+    }
+  }
+  throw new Error(`part ${partNumber} failed: ${(lastErr as Error)?.message ?? lastErr}`);
+}
+
+function putPart(url: string, blob: Blob, onLoaded: (loaded: number) => void): Promise<string> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', url);
-    xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      if (e.lengthComputable) onLoaded(e.loaded);
     };
     xhr.onload = () =>
       xhr.status >= 200 && xhr.status < 300
-        ? resolve()
-        : reject(new Error(`Upload failed: HTTP ${xhr.status}`));
-    xhr.onerror = () => reject(new Error('Network error during upload'));
-    xhr.send(file);
+        ? resolve(xhr.getResponseHeader('ETag') || '')
+        : reject(new Error(`part HTTP ${xhr.status}`));
+    xhr.onerror = () => reject(new Error('network error during part upload'));
+    xhr.send(blob);
   });
+}
+
+function fmtSize(n: number): string {
+  const u = ['B', 'KB', 'MB', 'GB'];
+  let v = n;
+  let i = 0;
+  while (v >= 1024 && i < u.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  return `${v.toFixed(i >= 2 ? 1 : 0)} ${u[i]}`;
 }

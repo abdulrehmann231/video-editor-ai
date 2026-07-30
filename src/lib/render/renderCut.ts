@@ -1,8 +1,8 @@
 import { join } from 'node:path';
-import { readFile, stat } from 'node:fs/promises';
-import { downloadToTemp, cleanupTemp } from '../media/download';
+import { tmpdir } from 'node:os';
+import { readFile, stat, mkdtemp, rm } from 'node:fs/promises';
 import { probeMedia, type MediaInfo } from '../ingest';
-import { putObject, publicUrl } from '../r2';
+import { putObject, publicUrl, presignGet } from '../r2';
 import type { Edl } from '../edl/schema';
 import { computeKeepSegments, cutRangesFromEdl, totalKept, type Range } from './segments';
 import { renderCutFile } from './ffmpegCut';
@@ -47,11 +47,14 @@ export async function renderCut(input: RenderInput): Promise<RenderResult> {
   const segments = computeKeepSegments(duration, cuts, { minKeepSec: 0.05 });
   if (segments.length === 0) throw new Error('Nothing left to render after cuts.');
 
-  const { path: srcPath, dir } = await downloadToTemp(input.sourceKey, input.filename || 'source');
+  // Stream the (mezzanine) source straight from R2 into ffmpeg — no full local
+  // copy, so multi-GB originals never touch the worker's disk/memory.
+  const inputUrl = await presignGet(input.sourceKey, 3 * 3600);
+  const dir = await mkdtemp(join(tmpdir(), 'edit-ai-cut-'));
   const outPath = join(dir, 'cut.mp4');
 
   try {
-    await renderCutFile(srcPath, outPath, segments, {
+    await renderCutFile(inputUrl, outPath, segments, {
       hasAudio: input.media.hasAudio,
       normalizeAudio: input.normalizeAudio,
     });
@@ -79,6 +82,6 @@ export async function renderCut(input: RenderInput): Promise<RenderResult> {
 
     return { renderKey, url: publicUrl(renderKey), meta, segments };
   } finally {
-    await cleanupTemp(dir);
+    await rm(dir, { recursive: true, force: true }).catch(() => {});
   }
 }

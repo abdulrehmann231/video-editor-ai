@@ -5,6 +5,40 @@ import { renderFinal, type OutputLayout } from '../render/renderFinal';
 import { buildOverlayPlan } from '../render/timeline';
 import { resolveBroll } from '../render/resolveBroll';
 import { defaultMusicPath } from '../render/music';
+import { deriveProxies } from '../media/derive';
+
+/**
+ * Derive the small 480p proxy + 1080p mezzanine from the (possibly huge) source
+ * in one streaming pass. Idempotent-ish: skips if already derived.
+ */
+export async function runDerive(projectId: string): Promise<Project> {
+  const project = await getProject(projectId);
+  if (!project) throw new Error('Project not found');
+  if (!project.media) throw new Error('Project is not ingested yet.');
+  if (project.proxyKey && project.mezzanineKey && project.deriveStatus === 'derived') {
+    return project; // already done
+  }
+
+  await saveProject({ ...project, deriveStatus: 'deriving', deriveError: undefined });
+  try {
+    const res = await deriveProxies({
+      projectId: project.id,
+      sourceKey: project.sourceKey,
+      hasAudio: project.media.hasAudio,
+    });
+    return await saveProject({
+      ...project,
+      deriveStatus: 'derived',
+      deriveError: undefined,
+      proxyKey: res.proxyKey,
+      mezzanineKey: res.mezzanineKey,
+      editMedia: res.mezzanineMedia,
+    });
+  } catch (err) {
+    await saveProject({ ...project, deriveStatus: 'error', deriveError: (err as Error).message });
+    throw err;
+  }
+}
 
 /**
  * Reusable pipeline steps shared by the manual API routes AND the automatic
@@ -35,9 +69,13 @@ export async function runAnalyze(projectId: string, opts: AnalyzeStepOptions = {
   });
 
   try {
+    // Analyze the small 480p proxy when available (keeps us under Gemini's 2 GB
+    // cap and avoids downloading the multi-GB original).
+    const analysisKey = project.proxyKey ?? project.sourceKey;
+    const analysisType = project.proxyKey ? 'video/mp4' : project.contentType;
     const result = await analyzeVideo({
-      sourceKey: project.sourceKey,
-      contentType: project.contentType,
+      sourceKey: analysisKey,
+      contentType: analysisType,
       filename: project.filename,
       media: project.media,
       userPrompt: effectivePrompt,
@@ -92,7 +130,10 @@ export async function runFinalRender(
 
   const media = project.media;
   const edl = project.edl;
-  const sourceDuration = media.durationSec ?? 0;
+  // Edit/render against the 1080p mezzanine when available (else the original).
+  const editMedia = project.editMedia ?? media;
+  const renderSourceKey = project.mezzanineKey ?? project.sourceKey;
+  const sourceDuration = editMedia.durationSec ?? media.durationSec ?? 0;
   const musicOn = project.music !== false;
 
   await saveProject(
@@ -102,12 +143,12 @@ export async function runFinalRender(
   );
 
   try {
-    // 1. Fresh cut.
+    // 1. Fresh cut (on the mezzanine).
     const cut = await renderCut({
       projectId: project.id,
-      sourceKey: project.sourceKey,
+      sourceKey: renderSourceKey,
       filename: project.filename,
-      media,
+      media: editMedia,
       edl,
     });
     project = await saveProject({
@@ -128,13 +169,13 @@ export async function runFinalRender(
     const result = await renderFinal({
       projectId: project.id,
       cutUrl: cut.url,
-      width: media.width ?? 1280,
-      height: media.height ?? 720,
-      fps: media.fps ?? 30,
+      width: editMedia.width ?? 1280,
+      height: editMedia.height ?? 720,
+      fps: editMedia.fps ?? 30,
       plan,
       layout: format,
       musicPath: musicOn ? defaultMusicPath() ?? undefined : undefined,
-      hasAudio: media.hasAudio,
+      hasAudio: editMedia.hasAudio,
     });
 
     const saved = await saveProject(

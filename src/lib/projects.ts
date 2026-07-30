@@ -18,7 +18,7 @@ export type AnalysisStatus = 'idle' | 'analyzing' | 'analyzed' | 'error';
 export type RenderStatus = 'idle' | 'rendering' | 'rendered' | 'error';
 export type FinalStatus = 'idle' | 'rendering' | 'rendered' | 'error';
 export type PipelineStatus = 'idle' | 'running' | 'done' | 'error';
-export type PipelineStep = 'analyze' | 'render' | 'done';
+export type PipelineStep = 'derive' | 'analyze' | 'render' | 'done';
 
 export interface Project {
   id: string;
@@ -32,8 +32,21 @@ export interface Project {
   media?: MediaInfo;
   error?: string;
 
+  // ---- Derived working files (proxy for the brain, mezzanine for the render) ----
+  deriveStatus?: 'idle' | 'deriving' | 'derived' | 'error';
+  deriveError?: string;
+  /** 480p proxy for Gemini + Whisper. */
+  proxyKey?: string;
+  /** 1080p mezzanine for the cut + Remotion. */
+  mezzanineKey?: string;
+  /** Media info of the mezzanine (edit/render dimensions), vs `media` = original. */
+  editMedia?: MediaInfo;
+
   /** Optional user guidance that steers the AI edit (e.g. tone, speaker name, focus). */
   prompt?: string;
+
+  /** In-flight multipart upload id (cleared once completed/aborted). */
+  multipartUploadId?: string;
 
   // ---- Phase 1: analysis ----
   analysisStatus?: AnalysisStatus;

@@ -1,5 +1,5 @@
 import { getProject, patchProject } from '../projects';
-import { runAnalyze, runFinalRender } from './steps';
+import { runAnalyze, runFinalRender, runDerive } from './steps';
 
 /**
  * Fully-automatic pipeline: analyze → final render, chained with a single
@@ -31,16 +31,20 @@ export async function runProjectPipeline(projectId: string, opts: PipelineOption
   try {
     await patchProject(projectId, {
       pipelineStatus: 'running',
-      pipelineStep: 'analyze',
+      pipelineStep: 'derive',
       pipelineError: undefined,
       pipelineStartedAt: new Date().toISOString(),
       pipelineFinishedAt: undefined,
     });
 
-    // Step 1 — editorial analysis (EDL + transcript).
+    // Step 1 — derive proxy + mezzanine from the source (handles multi-GB/4K).
+    await runDerive(projectId);
+
+    // Step 2 — editorial analysis (EDL + transcript) on the proxy.
+    await patchProject(projectId, { pipelineStep: 'analyze' });
     await runAnalyze(projectId, { prompt: opts.prompt });
 
-    // Step 2 — cut + motion-graphics composite.
+    // Step 3 — cut + motion-graphics composite on the mezzanine.
     await patchProject(projectId, { pipelineStep: 'render' });
     await runFinalRender(projectId);
 
@@ -72,7 +76,7 @@ export async function startPipeline(projectId: string, opts: PipelineOptions = {
 
   await patchProject(projectId, {
     pipelineStatus: 'running',
-    pipelineStep: 'analyze',
+    pipelineStep: 'derive',
     pipelineError: undefined,
     pipelineStartedAt: new Date().toISOString(),
   });

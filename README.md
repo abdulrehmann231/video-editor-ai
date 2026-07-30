@@ -80,6 +80,21 @@ See the full design in `/.claude/plans/…` (architecture, phases, effect catalo
 Runs in-process on the long-lived Node server (Railway/Render). Verified live:
 fresh upload → `autostarted: true` → `done` with a final render, no interaction.
 
+### Large-file support (multi-GB / 4K) ✅
+- **Multipart resumable upload** (browser → R2) — chunked, 4-way concurrent, per-part
+  retry, ETag capture; handles files well past the 5 GB single-PUT limit.
+- **Proxy + mezzanine workflow** — the pipeline's first step streams the (possibly
+  10 GB+) source from R2 **once** and derives a **480p proxy** (for Gemini + Whisper,
+  keeping under Gemini's 2 GB cap) and a **1080p mezzanine** (for the cut + Remotion).
+  The 4K original is never downloaded whole or rendered frame-by-frame; ffmpeg reads
+  it via byte-range HTTP (R2 egress is free). Pipeline is now
+  `derive → analyze → cut → final`.
+- **Self-healing EDL parse** — malformed ops from the model are dropped individually
+  rather than failing the whole edit.
+
+Verified live end-to-end: source → derive (proxy+mezzanine) → analyze on proxy →
+render on mezzanine → final, fully automatic.
+
 ### Phase 5 — more effects + 9:16 output ✅
 - **Title cards**: intro/CTA full-screen cards (`title_card` op) overlaid on the
   footage (no added time); Gemini can place a topic intro and a CTA outro.

@@ -145,11 +145,32 @@ export function parseEdl(
   raw: unknown,
   opts: { durationSec?: number | null } = {},
 ): { edl: Edl; warnings: string[] } {
-  const parsed = Edl.parse(stripEmpty(raw));
+  const cleaned = stripEmpty(raw) as { summary?: unknown; ops?: unknown };
   const warnings: string[] = [];
   const dur = opts.durationSec ?? null;
 
-  const ops = parsed.ops.filter((op) => {
+  const rawOps = Array.isArray(cleaned?.ops) ? cleaned.ops : [];
+
+  // Validate each op independently so one malformed op (e.g. a lower_third the
+  // model emitted without a title) is dropped rather than failing the whole edit.
+  const valid: EditOp[] = [];
+  for (const op of rawOps) {
+    const res = EditOp.safeParse(op);
+    if (!res.success) {
+      const t = (op as { type?: string })?.type ?? 'unknown';
+      warnings.push(`Dropped invalid ${t} op: ${res.error.issues[0]?.message ?? 'schema error'}`);
+      continue;
+    }
+    valid.push(res.data);
+  }
+
+  // If the model returned ops but none survived, treat as a failure so the
+  // caller's repair/failover can retry.
+  if (rawOps.length > 0 && valid.length === 0) {
+    throw new Error(`All ${rawOps.length} ops failed validation: ${warnings.join('; ')}`);
+  }
+
+  const kept = valid.filter((op) => {
     if (op.end <= op.start) {
       warnings.push(`Dropped ${op.type} with end<=start (${op.start}->${op.end})`);
       return false;
@@ -157,7 +178,7 @@ export function parseEdl(
     return true;
   });
 
-  const clamped = ops.map((op) => {
+  const clamped = kept.map((op) => {
     if (dur != null && op.end > dur + 0.5) {
       warnings.push(`Clamped ${op.type} end ${op.end} -> ${dur}`);
       return { ...op, end: dur };
@@ -165,5 +186,6 @@ export function parseEdl(
     return op;
   });
 
-  return { edl: { ...parsed, ops: clamped }, warnings };
+  const summary = typeof cleaned?.summary === 'string' ? cleaned.summary : undefined;
+  return { edl: { version: EDL_VERSION, summary, ops: clamped }, warnings };
 }

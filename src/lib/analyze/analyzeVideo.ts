@@ -19,6 +19,7 @@ export interface AnalyzeResult {
 }
 
 export interface AnalyzeInput {
+  /** Object to analyze — the small 480p proxy when available, else the source. */
   sourceKey: string;
   contentType: string;
   filename: string;
