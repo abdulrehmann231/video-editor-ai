@@ -12,10 +12,32 @@
  *
  * Exits non-zero if any check fails.
  */
+import { readFileSync } from 'node:fs';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getEnv } from '../src/lib/env';
 import { deleteObject, getObject, objectExists, putObject } from '../src/lib/r2';
 import { searchVideos } from '../src/lib/pexels';
+
+/** Minimal .env loader so `npm run smoke` picks up .env.local (Next loads it for
+ * the app, but this standalone script doesn't go through Next). */
+function loadEnvFile(path: string) {
+  try {
+    for (const line of readFileSync(path, 'utf8').split('\n')) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
+      if (!m) continue;
+      const key = m[1];
+      let val = m[2].trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      if (process.env[key] === undefined) process.env[key] = val;
+    }
+  } catch {
+    /* file absent — fine */
+  }
+}
+loadEnvFile('.env.local');
+loadEnvFile('.env');
 
 type Check = { name: string; ok: boolean; detail: string };
 const results: Check[] = [];
