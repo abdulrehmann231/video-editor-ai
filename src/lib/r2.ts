@@ -70,6 +70,24 @@ export async function putObject(
   );
 }
 
+/**
+ * Stream a local file to R2 without buffering it in memory (safe for large
+ * derived files like the 1080p mezzanine). Uses a single PUT (up to 5 GB).
+ */
+export async function putFile(key: string, filePath: string, contentType?: string): Promise<void> {
+  const { createReadStream, statSync } = await import('node:fs');
+  const size = statSync(filePath).size;
+  await r2().send(
+    new PutObjectCommand({
+      Bucket: bucket(),
+      Key: key,
+      Body: createReadStream(filePath),
+      ContentLength: size,
+      ContentType: contentType,
+    }),
+  );
+}
+
 /** Read a whole object into a Buffer. Returns null if it does not exist. */
 export async function getObject(key: string): Promise<Buffer | null> {
   try {
