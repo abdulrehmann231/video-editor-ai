@@ -35,6 +35,9 @@ export interface Project {
   /** Optional user guidance that steers the AI edit (e.g. tone, speaker name, focus). */
   prompt?: string;
 
+  /** In-flight multipart upload id (cleared once completed/aborted). */
+  multipartUploadId?: string;
+
   // ---- Phase 1: analysis ----
   analysisStatus?: AnalysisStatus;
   analysisError?: string;
