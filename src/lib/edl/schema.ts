@@ -94,6 +94,8 @@ export interface AnalysisMeta {
   keyIndex?: number;
   transcriptWords?: number;
   silenceSegments?: number;
+  /** How many Inspiration Vault references informed the edit. */
+  referencesUsed?: number;
   repaired?: boolean;
 }
 

@@ -95,6 +95,21 @@ fresh upload → `autostarted: true` → `done` with a final render, no interact
 Verified live end-to-end: source → derive (proxy+mezzanine) → analyze on proxy →
 render on mezzanine → final, fully automatic.
 
+### Reference-grounded editing (Inspiration Vault) ✅
+The AI edits *in the style of real references*. The
+[Editing Inspiration Vault](https://github.com/abdulrehmann231/notion-vault/tree/main/editing-inspiration-vault)
+— **451 AI-analyzed B2B editing effects** (name, what/when, motion type, style
+tags, b2b use) — is vendored into the app (`src/lib/vault/vault.json`).
+- At analysis time, a keyword retriever (`src/lib/vault/index.ts`) pulls the
+  ~16 references most relevant to the video's transcript + the user's prompt,
+  diversified across motion types.
+- Those references are injected into the Gemini prompt with a mapping from each
+  reference's motion (kinetic typography, scale pop, lower-third, stat callout,
+  b-roll…) to the closest renderable catalog op.
+- Gemini **cites the inspiring reference in each edit's reason**, so the decision
+  log reads e.g. *"Highlight hook word by word (ref: Kinetic Word-by-Word Hook
+  Caption)"*. `analysisMeta.referencesUsed` is shown in the UI.
+
 ### Phase 5 — more effects + 9:16 output ✅
 - **Title cards**: intro/CTA full-screen cards (`title_card` op) overlaid on the
   footage (no added time); Gemini can place a topic intro and a CTA outro.

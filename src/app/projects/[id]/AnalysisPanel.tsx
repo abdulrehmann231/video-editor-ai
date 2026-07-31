@@ -138,6 +138,7 @@ export default function AnalysisPanel(props: {
               {edl.ops.length} edits · model {meta.model}
               {meta.transcriptWords ? ` · ${meta.transcriptWords} words` : ''}
               {meta.silenceSegments ? ` · ${meta.silenceSegments} silences` : ''}
+              {meta.referencesUsed ? ` · ${meta.referencesUsed} vault refs` : ''}
               {meta.repaired ? ' · repaired' : ''}
             </p>
           )}
