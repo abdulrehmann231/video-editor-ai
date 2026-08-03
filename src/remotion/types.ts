@@ -83,6 +83,8 @@ export interface EditProps {
 }
 
 export const DEFAULT_EDIT_PROPS: EditProps = {
+  // Only used by the Remotion Studio preview / default props; real renders always
+  // pass a real cut URL. Empty here renders a placeholder (see ZoomLayer).
   videoSrc: '',
   fps: 30,
   width: 1280,
