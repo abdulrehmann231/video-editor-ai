@@ -34,7 +34,10 @@ export function buildFilterComplex(segments: Range[], opts: CutOptions): string 
 }
 
 export function buildFfmpegArgs(input: string, output: string, segments: Range[], opts: CutOptions): string[] {
-  const crf = opts.crf ?? 20;
+  // The cut is an intermediate base that gets re-encoded in the final render, so
+  // a lighter crf keeps the file small (faster for Remotion to fetch) with no
+  // visible loss on talking-head content.
+  const crf = opts.crf ?? 23;
   const preset = opts.preset ?? 'veryfast';
   const filter = buildFilterComplex(segments, opts);
 

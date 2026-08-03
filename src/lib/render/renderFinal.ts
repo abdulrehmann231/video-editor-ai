@@ -101,7 +101,17 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     transitions: input.plan.transitions,
   };
 
-  const composition = await selectComposition({ serveUrl, id: 'Edit', inputProps });
+  // The base video (cut) can be 100+ MB and is fetched over the network by
+  // OffthreadVideo — give it a generous timeout so a slow first fetch/seek
+  // doesn't trip Remotion's default ~28s delayRender limit.
+  const fetchTimeoutMs = Number(process.env.REMOTION_TIMEOUT_MS) || 180_000;
+
+  const composition = await selectComposition({
+    serveUrl,
+    id: 'Edit',
+    inputProps,
+    timeoutInMilliseconds: fetchTimeoutMs,
+  });
 
   const dir = await mkdtemp(join(tmpdir(), 'edit-ai-final-'));
   const renderedPath = join(dir, 'render.mp4');
@@ -112,6 +122,9 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     codec: 'h264',
     outputLocation: renderedPath,
     inputProps,
+    timeoutInMilliseconds: fetchTimeoutMs,
+    // Cache decoded frames of the (large) base video across the render.
+    offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
     // Let Remotion pick concurrency from the host's core count.
   });
 
