@@ -29,6 +29,10 @@ const CaptionBlock: React.FC<{ caption: CaptionOverlay }> = ({ caption }) => {
   const activeIdx = findActiveWord(caption.words, tAbs);
   if (activeIdx < 0) return null;
 
+  if (caption.style === 'typewriter') {
+    return <Typewriter caption={caption} tAbs={tAbs} activeIdx={activeIdx} width={width} />;
+  }
+
   // rolling window of up to 3 words centered on the active one
   const start = Math.max(0, activeIdx - 1);
   const windowWords = caption.words.slice(start, start + 3);
@@ -70,6 +74,47 @@ const CaptionBlock: React.FC<{ caption: CaptionOverlay }> = ({ caption }) => {
             </span>
           );
         })}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+/** Typewriter: build the phrase up word-by-word with the active word revealing
+ *  character by character, plus a blinking cursor. */
+const Typewriter: React.FC<{
+  caption: CaptionOverlay;
+  tAbs: number;
+  activeIdx: number;
+  width: number;
+}> = ({ caption, tAbs, activeIdx, width }) => {
+  const active = caption.words[activeIdx];
+  const dur = Math.max(0.12, active.end - active.start);
+  const prog = Math.min(1, Math.max(0, (tAbs - active.start) / dur));
+  const activeText = clean(active.word);
+  const shownChars = Math.ceil(activeText.length * prog);
+
+  const done = caption.words.slice(0, activeIdx).map((w) => clean(w.word)).join(' ');
+  const typed = activeText.slice(0, shownChars);
+  const cursorOn = Math.floor(tAbs * 2) % 2 === 0;
+  const fontSize = Math.round(width * 0.05);
+
+  return (
+    <AbsoluteFill style={{ justifyContent: 'flex-end', alignItems: 'center', paddingBottom: '10%' }}>
+      <div
+        style={{
+          maxWidth: '86%',
+          textAlign: 'center',
+          fontFamily: 'Inter, Arial, sans-serif',
+          fontWeight: 800,
+          fontSize,
+          lineHeight: 1.15,
+          color: '#ffffff',
+          textShadow: '0 4px 18px rgba(0,0,0,0.85), 0 2px 3px rgba(0,0,0,0.9)',
+        }}
+      >
+        {done ? done + ' ' : ''}
+        <span style={{ color: '#ffe14d' }}>{typed}</span>
+        <span style={{ opacity: cursorOn ? 1 : 0 }}>▌</span>
       </div>
     </AbsoluteFill>
   );

@@ -21,7 +21,7 @@ export interface CaptionOverlay {
   id: string;
   start: number;
   end: number;
-  style: 'word_highlight' | 'bold_pop' | 'karaoke';
+  style: 'word_highlight' | 'bold_pop' | 'karaoke' | 'typewriter';
   words: CaptionWord[];
 }
 export interface LowerThirdOverlay {
@@ -47,6 +47,20 @@ export interface TitleCardOverlay {
   heading: string;
   sub?: string;
 }
+export interface StatCalloutOverlay {
+  id: string;
+  start: number;
+  end: number;
+  value: string;
+  label?: string;
+  position: 'center' | 'corner';
+}
+export interface TransitionOverlay {
+  id: string;
+  start: number;
+  end: number;
+  variant: 'glitch' | 'flash' | 'zoom_blur';
+}
 
 export type OutputLayout = 'landscape' | 'shorts';
 
@@ -64,9 +78,13 @@ export interface EditProps {
   lowerThirds: LowerThirdOverlay[];
   brolls: BrollOverlay[];
   titleCards: TitleCardOverlay[];
+  statCallouts: StatCalloutOverlay[];
+  transitions: TransitionOverlay[];
 }
 
 export const DEFAULT_EDIT_PROPS: EditProps = {
+  // Only used by the Remotion Studio preview / default props; real renders always
+  // pass a real cut URL. Empty here renders a placeholder (see ZoomLayer).
   videoSrc: '',
   fps: 30,
   width: 1280,
@@ -79,4 +97,6 @@ export const DEFAULT_EDIT_PROPS: EditProps = {
   lowerThirds: [],
   brolls: [],
   titleCards: [],
+  statCallouts: [],
+  transitions: [],
 };

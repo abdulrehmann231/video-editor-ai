@@ -15,6 +15,22 @@ describe('title_card op', () => {
     expect(edl.ops[0]).toMatchObject({ type: 'title_card', variant: 'intro', heading: 'Grow your B2B' });
   });
 
+  it('validates + maps stat_callout and transition ops', () => {
+    const { edl } = parseEdl({
+      ops: [
+        { id: 'sc', type: 'stat_callout', start: 4, end: 6, reason: 'metric', value: '$1.2M', label: 'revenue', position: 'center' },
+        { id: 'tr', type: 'transition', start: 6, end: 6.4, reason: 'section change', variant: 'glitch' },
+        { id: 'cap', type: 'caption', start: 0, end: 3, reason: 'hook', style: 'typewriter' },
+      ],
+    });
+    expect(edl.ops.map((o) => o.type)).toEqual(['stat_callout', 'transition', 'caption']);
+    const plan = buildOverlayPlan(edl, [{ word: 'Hi', start: 0.2, end: 0.6 }], 20);
+    expect(plan.statCallouts).toHaveLength(1);
+    expect(plan.statCallouts[0].value).toBe('$1.2M');
+    expect(plan.transitions[0].variant).toBe('glitch');
+    expect(plan.captions[0].style).toBe('typewriter');
+  });
+
   it('maps title cards into the overlay plan (cut timeline)', () => {
     const edl: Edl = {
       version: 1,

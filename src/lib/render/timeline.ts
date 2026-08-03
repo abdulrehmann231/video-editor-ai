@@ -47,7 +47,7 @@ export interface CaptionOverlay {
   id: string;
   start: number;
   end: number;
-  style: 'word_highlight' | 'bold_pop' | 'karaoke';
+  style: 'word_highlight' | 'bold_pop' | 'karaoke' | 'typewriter';
   words: CaptionWord[];
 }
 export interface LowerThirdOverlay {
@@ -74,6 +74,20 @@ export interface TitleCardOverlay {
   heading: string;
   sub?: string;
 }
+export interface StatCalloutOverlay {
+  id: string;
+  start: number;
+  end: number;
+  value: string;
+  label?: string;
+  position: 'center' | 'corner';
+}
+export interface TransitionOverlay {
+  id: string;
+  start: number;
+  end: number;
+  variant: 'glitch' | 'flash' | 'zoom_blur';
+}
 
 export interface OverlayPlan {
   zooms: ZoomOverlay[];
@@ -81,6 +95,8 @@ export interface OverlayPlan {
   lowerThirds: LowerThirdOverlay[];
   brolls: BrollOverlay[];
   titleCards: TitleCardOverlay[];
+  statCallouts: StatCalloutOverlay[];
+  transitions: TransitionOverlay[];
   /** Cut-timeline duration in seconds. */
   outputDurationSec: number;
 }
@@ -102,6 +118,8 @@ export function buildOverlayPlan(
   const lowerThirds: LowerThirdOverlay[] = [];
   const brolls: BrollOverlay[] = [];
   const titleCards: TitleCardOverlay[] = [];
+  const statCallouts: StatCalloutOverlay[] = [];
+  const transitions: TransitionOverlay[] = [];
 
   for (const op of edl.ops) {
     const mapped = remapRange({ start: op.start, end: op.end }, keep);
@@ -120,6 +138,12 @@ export function buildOverlayPlan(
       case 'title_card':
         titleCards.push({ id: op.id, start: mapped.start, end: mapped.end, variant: op.variant, heading: op.heading, sub: op.sub });
         break;
+      case 'stat_callout':
+        statCallouts.push({ id: op.id, start: mapped.start, end: mapped.end, value: op.value, label: op.label, position: op.position });
+        break;
+      case 'transition':
+        transitions.push({ id: op.id, start: mapped.start, end: mapped.end, variant: op.variant });
+        break;
       case 'caption': {
         const words = remapWordsInRange(transcript, { start: op.start, end: op.end }, keep);
         // Only add caption if we actually have word timings to show.
@@ -133,7 +157,7 @@ export function buildOverlayPlan(
     }
   }
 
-  return { zooms, captions, lowerThirds, brolls, titleCards, outputDurationSec };
+  return { zooms, captions, lowerThirds, brolls, titleCards, statCallouts, transitions, outputDurationSec };
 }
 
 /** Remap transcript words overlapping a source range into cut-time caption words. */

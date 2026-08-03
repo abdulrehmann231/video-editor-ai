@@ -7,6 +7,7 @@ import { parseEdl, type AnalysisMeta, type Edl } from '../edl/schema';
 import { detectSilence, type SilenceSegment } from './silence';
 import { transcribe, type TranscriptWord } from './transcribe';
 import { buildAnalysisPrompt, buildRepairPrompt } from './prompt';
+import { retrieveReferences } from '../vault';
 import { downloadToTemp, cleanupTemp } from '../media/download';
 import type { MediaInfo } from '../ingest';
 
@@ -54,11 +55,19 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
       });
     }
 
+    // Retrieve vault references relevant to this video's content + user intent.
+    const query = [
+      input.userPrompt ?? '',
+      transcript.map((w) => w.word).join(' '),
+    ].join(' ');
+    const references = retrieveReferences(query, { limit: 24 });
+
     const prompt = buildAnalysisPrompt({
       media: input.media,
       silence,
       transcript,
       userPrompt: input.userPrompt,
+      references,
     });
     const { edl, meta, repaired } = await runGemini(
       path,
@@ -75,6 +84,7 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
         ...meta,
         transcriptWords: transcript.length,
         silenceSegments: silence.length,
+        referencesUsed: references.length,
         repaired,
       },
       transcript,

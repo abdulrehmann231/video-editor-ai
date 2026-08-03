@@ -2,6 +2,7 @@ import { buildCatalogText } from '../edl/catalog';
 import type { MediaInfo } from '../ingest';
 import type { SilenceSegment } from './silence';
 import type { TranscriptWord } from './transcribe';
+import { refLine, type VaultRef } from '../vault';
 
 export interface PromptInput {
   media: MediaInfo;
@@ -9,6 +10,8 @@ export interface PromptInput {
   transcript?: TranscriptWord[];
   /** Optional free-text guidance from the user that steers the edit. */
   userPrompt?: string;
+  /** Relevant editing references retrieved from the Inspiration Vault. */
+  references?: VaultRef[];
 }
 
 /** Compact the transcript into a timestamped, readable script for the model. */
@@ -37,9 +40,28 @@ function fmt(sec: number): string {
 }
 
 export function buildAnalysisPrompt(input: PromptInput): string {
-  const { media, silence, transcript, userPrompt } = input;
+  const { media, silence, transcript, userPrompt, references } = input;
   const durationLine =
     media.durationSec != null ? `${media.durationSec}s (${fmt(media.durationSec)})` : 'unknown';
+
+  const refBlock =
+    references && references.length > 0
+      ? `\nSTYLE REFERENCES (retrieved from a 451-effect B2B editing vault — edit in THIS spirit):
+${references.map(refLine).join('\n')}
+
+Map each reference idea to the CLOSEST catalog op you can actually render:
+- kinetic typography / typewriter / word pop / caption reveal → caption
+- scale pop / punch-in / zoom / camera push → zoom_punch
+- lower-third / name tag / title bar → lower_third
+- stat callout / badge / big number / concept card / intro-outro → title_card
+- b-roll / screen-capture / overlay footage → broll
+For each op, end its "reason" with the reference that inspired it, e.g. "(ref: Bold Word Pop)".
+Be RICH and varied: draw on as many of these references as genuinely fit — vary caption
+styles (word_highlight / bold_pop / karaoke / typewriter), pop a stat_callout on any number
+or metric the speaker says, add a short transition at a clear section change, and use
+lower thirds / title cards / b-roll where they help. Aim to reference many techniques across
+the video, but NEVER force an effect where it doesn't fit the moment.\n`
+      : '';
 
   const userBlock = userPrompt?.trim()
     ? `\nUSER INSTRUCTIONS (HIGHEST PRIORITY — follow these unless they conflict with the schema/rules):
@@ -82,6 +104,7 @@ ${silenceBlock}
 TRANSCRIPT (word-timed; use for caption ranges, emphasis, and finding filler/claims):
 ${scriptBlock}
 
+${refBlock}
 EFFECT CATALOG (choose ONLY these op types):
 ${buildCatalogText()}
 
