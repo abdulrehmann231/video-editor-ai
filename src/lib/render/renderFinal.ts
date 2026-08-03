@@ -23,6 +23,8 @@ export interface FinalRenderMeta {
   brolls: number;
   brollsResolved: number;
   titleCards: number;
+  statCallouts: number;
+  transitions: number;
   progressBar: boolean;
   music: boolean;
   sizeBytes: number | null;
@@ -95,6 +97,8 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     lowerThirds: input.plan.lowerThirds,
     brolls: input.plan.brolls,
     titleCards: input.plan.titleCards,
+    statCallouts: input.plan.statCallouts,
+    transitions: input.plan.transitions,
   };
 
   const composition = await selectComposition({ serveUrl, id: 'Edit', inputProps });
@@ -144,6 +148,8 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     brolls: input.plan.brolls.length,
     brollsResolved: input.plan.brolls.filter((b) => b.src).length,
     titleCards: input.plan.titleCards.length,
+    statCallouts: input.plan.statCallouts.length,
+    transitions: input.plan.transitions.length,
     progressBar,
     music: musicApplied,
     sizeBytes: fileStat.size,

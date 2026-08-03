@@ -60,7 +60,7 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
       input.userPrompt ?? '',
       transcript.map((w) => w.word).join(' '),
     ].join(' ');
-    const references = retrieveReferences(query, { limit: 16 });
+    const references = retrieveReferences(query, { limit: 24 });
 
     const prompt = buildAnalysisPrompt({
       media: input.media,

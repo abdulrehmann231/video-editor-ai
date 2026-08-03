@@ -61,6 +61,20 @@ export const CATALOG: CatalogEntry[] = [
       "Optionally overlay a bold full-screen card over the first ~2s (variant 'intro': the video's topic/title) and/or the last ~3s (variant 'cta': a call to action like 'Subscribe for more'). At most one intro and one cta. Overlays existing footage — does not add time.",
     params: "variant: intro | cta. heading (big line), sub (optional smaller line).",
   },
+  {
+    type: 'stat_callout',
+    title: 'Animated stat / metric badge',
+    whenToUse:
+      'When the speaker states a number, metric, price, multiple or percentage, pop an animated badge showing it. Great for finance/growth points. Keep it short (1–2s).',
+    params: "value (e.g. \"$1.2M\", \"3x\", \"+40%\"), label (optional short caption), position: center | corner.",
+  },
+  {
+    type: 'transition',
+    title: 'Scene transition',
+    whenToUse:
+      'A brief transition at a strong topic/section boundary (keep it short, ~0.3–0.6s, and rare — a few at most). Adds energy between segments.',
+    params: 'variant: glitch | flash | zoom_blur.',
+  },
 ];
 
 export function buildCatalogText(): string {
@@ -103,7 +117,7 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
             description: 'Short justification for this edit (shown to the user).',
           },
           // op-specific params (only fill the ones relevant to `type`)
-          style: { type: SchemaType.STRING, format: 'enum', enum: ['word_highlight', 'bold_pop', 'karaoke'] },
+          style: { type: SchemaType.STRING, format: 'enum', enum: ['word_highlight', 'bold_pop', 'karaoke', 'typewriter'] },
           emphasis: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
           scale: { type: SchemaType.NUMBER },
           focus: { type: SchemaType.STRING, format: 'enum', enum: ['center', 'face', 'left', 'right', 'top'] },
@@ -111,9 +125,12 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           subtitle: { type: SchemaType.STRING },
           query: { type: SchemaType.STRING },
           layout: { type: SchemaType.STRING, format: 'enum', enum: ['full', 'pip'] },
-          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta'] },
+          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta', 'glitch', 'flash', 'zoom_blur'] },
           heading: { type: SchemaType.STRING },
           sub: { type: SchemaType.STRING },
+          value: { type: SchemaType.STRING },
+          label: { type: SchemaType.STRING },
+          position: { type: SchemaType.STRING, format: 'enum', enum: ['center', 'corner'] },
         },
         required: ['id', 'type', 'start', 'end', 'reason'],
       },

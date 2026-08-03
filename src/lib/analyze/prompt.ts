@@ -56,7 +56,11 @@ Map each reference idea to the CLOSEST catalog op you can actually render:
 - stat callout / badge / big number / concept card / intro-outro → title_card
 - b-roll / screen-capture / overlay footage → broll
 For each op, end its "reason" with the reference that inspired it, e.g. "(ref: Bold Word Pop)".
-Only use references that genuinely fit this video's content and moments.\n`
+Be RICH and varied: draw on as many of these references as genuinely fit — vary caption
+styles (word_highlight / bold_pop / karaoke / typewriter), pop a stat_callout on any number
+or metric the speaker says, add a short transition at a clear section change, and use
+lower thirds / title cards / b-roll where they help. Aim to reference many techniques across
+the video, but NEVER force an effect where it doesn't fit the moment.\n`
       : '';
 
   const userBlock = userPrompt?.trim()

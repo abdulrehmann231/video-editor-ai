@@ -109,6 +109,16 @@ tags, b2b use) — is vendored into the app (`src/lib/vault/vault.json`).
 - Gemini **cites the inspiring reference in each edit's reason**, so the decision
   log reads e.g. *"Highlight hook word by word (ref: Kinetic Word-by-Word Hook
   Caption)"*. `analysisMeta.referencesUsed` is shown in the UI.
+- **~24 references** retrieved per video and the prompt pushes a rich, varied edit
+  (multiple caption styles, a stat callout on any figure, transitions at section
+  changes) — without forcing effects where they don't fit.
+
+**Renderable effect set** (each maps to common vault motions):
+`silence_cut` · `caption` (word-highlight / bold-pop / karaoke / **typewriter**) ·
+`zoom_punch` · `lower_third` · `broll` (full / PiP) · `title_card` (intro / CTA) ·
+**`stat_callout`** (scale-pop metric badge) · **`transition`** (glitch / flash /
+zoom-blur) · progress bar · ducked background music. Verified live with frames:
+the stat badge, typewriter caption, and glitch transition all render.
 
 ### Phase 5 — more effects + 9:16 output ✅
 - **Title cards**: intro/CTA full-screen cards (`title_card` op) overlaid on the

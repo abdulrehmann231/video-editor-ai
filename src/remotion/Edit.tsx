@@ -7,6 +7,8 @@ import { Captions } from './components/Captions';
 import { LowerThirds } from './components/LowerThirds';
 import { TitleCards } from './components/TitleCards';
 import { ProgressBar } from './components/ProgressBar';
+import { StatCallouts } from './components/StatCallouts';
+import { Transitions } from './components/Transitions';
 
 /**
  * The final composite: cut video (with punch-in zooms) at the base, then b-roll,
@@ -22,15 +24,19 @@ export const Edit: React.FC<EditProps> = ({
   lowerThirds,
   captions,
   titleCards,
+  statCallouts,
+  transitions,
   progressBar,
 }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: 'black' }}>
       <ZoomLayer src={videoSrc} fps={fps} zooms={zooms} />
       <BrollLayer brolls={brolls} fps={fps} />
+      <StatCallouts items={statCallouts} fps={fps} />
       <LowerThirds items={lowerThirds} fps={fps} />
       <Captions captions={captions} fps={fps} />
       <TitleCards items={titleCards} fps={fps} />
+      <Transitions items={transitions} fps={fps} />
       {progressBar && <ProgressBar />}
     </AbsoluteFill>
   );

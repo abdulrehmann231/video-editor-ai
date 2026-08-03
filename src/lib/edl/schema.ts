@@ -30,7 +30,7 @@ export const SilenceCutOp = BaseOp.extend({
 /** Animated word-by-word captions over a spoken segment. */
 export const CaptionOp = BaseOp.extend({
   type: z.literal('caption'),
-  style: z.enum(['word_highlight', 'bold_pop', 'karaoke']).default('word_highlight'),
+  style: z.enum(['word_highlight', 'bold_pop', 'karaoke', 'typewriter']).default('word_highlight'),
   /** Words to visually emphasize (optional). */
   emphasis: z.array(z.string()).max(20).optional(),
 });
@@ -65,6 +65,22 @@ export const TitleCardOp = BaseOp.extend({
   sub: z.string().max(120).optional(),
 });
 
+/** Animated stat / metric badge (scale-pop) for a number or key figure. */
+export const StatCalloutOp = BaseOp.extend({
+  type: z.literal('stat_callout'),
+  /** The headline figure, e.g. "$1.2M", "3x", "+40%". */
+  value: z.string().min(1).max(24),
+  /** Short label under the value, e.g. "revenue growth". */
+  label: z.string().max(60).optional(),
+  position: z.enum(['center', 'corner']).default('center'),
+});
+
+/** Short transition effect at a scene boundary. */
+export const TransitionOp = BaseOp.extend({
+  type: z.literal('transition'),
+  variant: z.enum(['glitch', 'flash', 'zoom_blur']).default('flash'),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
@@ -72,6 +88,8 @@ export const EditOp = z.discriminatedUnion('type', [
   LowerThirdOp,
   BrollOp,
   TitleCardOp,
+  StatCalloutOp,
+  TransitionOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];
