@@ -133,6 +133,10 @@ export interface AnalysisMeta {
   silenceSegments?: number;
   /** How many Inspiration Vault references informed the edit. */
   referencesUsed?: number;
+  /** Multi-stage brain: number of planned beats. */
+  beats?: number;
+  /** Whether the web-research (Google Search grounding) stage ran. */
+  researched?: boolean;
   repaired?: boolean;
 }
 

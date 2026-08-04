@@ -46,6 +46,22 @@ Legend: [ ] todo · [~] in progress · [x] done
 
 ## Phase D — Blender (optional)      — not started (only if a photoreal 3D need arises)
 
+## Phase E — Agentic editor brain (multi-stage, per-moment vault)   ✅ DONE
+- [x] PLAN stage (`analyze/plan.ts`): Gemini watches the video → editorial plan
+      (niche/tone/segments/beats, each beat w/ intent + vault searchQuery).
+- [x] Per-moment vault search (`analyze/build.ts`): each beat searches ALL 451 refs
+      via its searchQuery → its own matches (uses many refs across a video, not 24).
+- [x] BUILD stage: text-only Gemini turns plan + per-beat refs + catalog → EDL,
+      mapping each beat to the closest 2D/Lottie/3D effect, citing its ref.
+- [x] RESEARCH stage (`analyze/research.ts`, env `EDIT_RESEARCH=on`): Gemini Google
+      Search grounding brief. NOTE: `googleSearch` tool unsupported by @google/
+      generative-ai@0.21 for the model → returns nothing (gated + graceful). To enable
+      later: upgrade the SDK or call the REST grounding API.
+- [x] analyzeVideo rewired: PLAN → (RESEARCH) → per-moment retrieve → BUILD, with
+      key rotation + 429/5xx failover around all stages. Meta adds beats + researched.
+- [x] Verified live (20s clip): 4 beats, 15 distinct beat-refs, EDL grounded per beat
+      incl. three[card_3d] from a "3D card" vault ref. 2 Gemini calls (~95s here).
+
 ## Notes / decisions
 - Installed: `@remotion/google-fonts`. Fonts: Anton (display) + Inter (body).
 - Asset licensing: only bundle CC0 / free-for-commercial Lottie/3D assets; log sources here.
