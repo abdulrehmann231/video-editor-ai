@@ -95,6 +95,14 @@ export interface LottieOverlay {
   template: string;
   position?: 'full' | 'center' | 'corner';
 }
+export interface ThreeOverlay {
+  id: string;
+  start: number;
+  end: number;
+  template: string;
+  value?: string;
+  label?: string;
+}
 
 export interface OverlayPlan {
   zooms: ZoomOverlay[];
@@ -105,6 +113,7 @@ export interface OverlayPlan {
   statCallouts: StatCalloutOverlay[];
   transitions: TransitionOverlay[];
   lotties: LottieOverlay[];
+  threes: ThreeOverlay[];
   /** Cut-timeline duration in seconds. */
   outputDurationSec: number;
 }
@@ -128,6 +137,7 @@ export function buildOverlayPlan(
   const statCallouts: StatCalloutOverlay[] = [];
   const transitions: TransitionOverlay[] = [];
   const lotties: LottieOverlay[] = [];
+  const threes: ThreeOverlay[] = [];
   // Gemini caption ops become STYLE hints over cut-time ranges; the actual dense
   // caption coverage is generated from the full transcript below.
   const captionStyleRanges: { start: number; end: number; style: CaptionStyle }[] = [];
@@ -158,6 +168,9 @@ export function buildOverlayPlan(
       case 'lottie':
         lotties.push({ id: op.id, start: mapped.start, end: mapped.end, template: op.template, position: op.position });
         break;
+      case 'three':
+        threes.push({ id: op.id, start: mapped.start, end: mapped.end, template: op.template, value: op.value, label: op.label });
+        break;
       case 'caption':
         captionStyleRanges.push({ start: mapped.start, end: mapped.end, style: op.style });
         break;
@@ -170,7 +183,7 @@ export function buildOverlayPlan(
   // with Gemini's caption ops applying their style over their ranges.
   const captions = buildAutoCaptions(transcript, keep, captionStyleRanges);
 
-  return { zooms, captions, lowerThirds, brolls, titleCards, statCallouts, transitions, lotties, outputDurationSec };
+  return { zooms, captions, lowerThirds, brolls, titleCards, statCallouts, transitions, lotties, threes, outputDurationSec };
 }
 
 type CaptionStyle = CaptionOverlay['style'];

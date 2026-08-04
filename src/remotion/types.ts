@@ -68,6 +68,14 @@ export interface LottieOverlay {
   template: string;
   position?: 'full' | 'center' | 'corner';
 }
+export interface ThreeOverlay {
+  id: string;
+  start: number;
+  end: number;
+  template: string;
+  value?: string;
+  label?: string;
+}
 
 export type OutputLayout = 'landscape' | 'shorts';
 
@@ -88,6 +96,7 @@ export interface EditProps {
   statCallouts: StatCalloutOverlay[];
   transitions: TransitionOverlay[];
   lotties: LottieOverlay[];
+  threes: ThreeOverlay[];
 }
 
 export const DEFAULT_EDIT_PROPS: EditProps = {
@@ -108,4 +117,5 @@ export const DEFAULT_EDIT_PROPS: EditProps = {
   statCallouts: [],
   transitions: [],
   lotties: [],
+  threes: [],
 };

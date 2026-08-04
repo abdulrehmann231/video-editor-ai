@@ -10,6 +10,7 @@ import { ProgressBar } from './components/ProgressBar';
 import { StatCallouts } from './components/StatCallouts';
 import { Transitions } from './components/Transitions';
 import { LottieLayer } from './components/LottieLayer';
+import { Three3DLayer } from './components/three/Three3DLayer';
 
 /**
  * The final composite: cut video (with punch-in zooms) at the base, then b-roll,
@@ -28,12 +29,14 @@ export const Edit: React.FC<EditProps> = ({
   statCallouts,
   transitions,
   lotties,
+  threes,
   progressBar,
 }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: 'black' }}>
       <ZoomLayer src={videoSrc} fps={fps} zooms={zooms} />
       <BrollLayer brolls={brolls} fps={fps} />
+      <Three3DLayer items={threes} fps={fps} />
       <StatCallouts items={statCallouts} fps={fps} />
       <LottieLayer lotties={lotties} fps={fps} />
       <LowerThirds items={lowerThirds} fps={fps} />

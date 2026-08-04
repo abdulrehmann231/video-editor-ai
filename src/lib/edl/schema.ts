@@ -89,6 +89,15 @@ export const LottieOp = BaseOp.extend({
   position: z.enum(['full', 'center', 'corner']).optional(),
 });
 
+/** Real 3D effect (Three.js) chosen from the 3D registry. */
+export const ThreeOp = BaseOp.extend({
+  type: z.literal('three'),
+  /** 3D template id (see THREE_TEMPLATES): stat_orb | card_3d. */
+  template: z.string().min(1),
+  value: z.string().max(24).optional(),
+  label: z.string().max(60).optional(),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
@@ -99,6 +108,7 @@ export const EditOp = z.discriminatedUnion('type', [
   StatCalloutOp,
   TransitionOp,
   LottieOp,
+  ThreeOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];

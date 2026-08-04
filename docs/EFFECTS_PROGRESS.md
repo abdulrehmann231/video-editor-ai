@@ -31,8 +31,20 @@ Legend: [ ] todo · [~] in progress · [x] done
       underline, swipe_wipe (self-authored, owned). Verified underline renders.
       Adding more = drop JSON + registry entry (see docs/LOTTIE.md). (Ongoing.)
 
-## Phase C — Three.js 3D lane        — not started (C0 = verify WebGL in headless Chrome)
-## Phase D — Blender (optional)      — not started
+## Phase C — Three.js 3D lane        ✅ DONE
+- [x] C0 verified WebGL renders headless via **software WebGL `gl:'swangle'`** (no
+      GPU). `angle` needs a GPU; `swangle` works (and is Lambda's default).
+- [x] @remotion/three + three + @react-three/fiber. `three` EDL op + catalog +
+      threeRegistry (stat_orb, card_3d) + Three3DLayer (ThreeCanvas scenes +
+      crisp 2D text overlay); schema/timeline/Edit/renderFinal wiring;
+      renderFinal sets gl:'swangle' when the plan has 3D.
+- [x] Verified live: the glass **stat orb** (glossy 3D sphere w/ specular +
+      "$1.2M") renders correctly over the video; card_3d uses the same engine.
+- ⚠️ 3D is CPU-heavy (software WebGL): ~260s for a short clip on the 1-core
+      sandbox. Use the **Lambda backend** (parallel) or a multi-core box for real
+      speed. Prompt tells Gemini to use 3D rarely.
+
+## Phase D — Blender (optional)      — not started (only if a photoreal 3D need arises)
 
 ## Notes / decisions
 - Installed: `@remotion/google-fonts`. Fonts: Anton (display) + Inter (body).
