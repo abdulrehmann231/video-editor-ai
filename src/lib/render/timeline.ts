@@ -114,12 +114,14 @@ export function buildOverlayPlan(
   const outputDurationSec = round(totalKept(keep));
 
   const zooms: ZoomOverlay[] = [];
-  const captions: CaptionOverlay[] = [];
   const lowerThirds: LowerThirdOverlay[] = [];
   const brolls: BrollOverlay[] = [];
   const titleCards: TitleCardOverlay[] = [];
   const statCallouts: StatCalloutOverlay[] = [];
   const transitions: TransitionOverlay[] = [];
+  // Gemini caption ops become STYLE hints over cut-time ranges; the actual dense
+  // caption coverage is generated from the full transcript below.
+  const captionStyleRanges: { start: number; end: number; style: CaptionStyle }[] = [];
 
   for (const op of edl.ops) {
     const mapped = remapRange({ start: op.start, end: op.end }, keep);
@@ -144,20 +146,83 @@ export function buildOverlayPlan(
       case 'transition':
         transitions.push({ id: op.id, start: mapped.start, end: mapped.end, variant: op.variant });
         break;
-      case 'caption': {
-        const words = remapWordsInRange(transcript, { start: op.start, end: op.end }, keep);
-        // Only add caption if we actually have word timings to show.
-        if (words.length > 0) {
-          captions.push({ id: op.id, start: mapped.start, end: mapped.end, style: op.style, words });
-        }
+      case 'caption':
+        captionStyleRanges.push({ start: mapped.start, end: mapped.end, style: op.style });
         break;
-      }
       case 'silence_cut':
         break; // already consumed into the timeline
     }
   }
 
+  // Dense captions across the WHOLE spoken content (like a real YouTube edit),
+  // with Gemini's caption ops applying their style over their ranges.
+  const captions = buildAutoCaptions(transcript, keep, captionStyleRanges);
+
   return { zooms, captions, lowerThirds, brolls, titleCards, statCallouts, transitions, outputDurationSec };
+}
+
+type CaptionStyle = CaptionOverlay['style'];
+
+/**
+ * Generate continuous, punchy captions from the full transcript (remapped to the
+ * cut timeline), grouped into short phrases (≤4 words; break on gaps/punctuation).
+ * A caption gets its style from any overlapping Gemini caption op, else a default.
+ */
+export function buildAutoCaptions(
+  transcript: TranscriptWord[],
+  keep: Range[],
+  styleRanges: { start: number; end: number; style: CaptionStyle }[] = [],
+  opts: { maxWords?: number; gapSec?: number; defaultStyle?: CaptionStyle } = {},
+): CaptionOverlay[] {
+  const maxWords = opts.maxWords ?? 4;
+  const gapSec = opts.gapSec ?? 0.6;
+  const defaultStyle = opts.defaultStyle ?? 'word_highlight';
+
+  // Remap every word to cut time, drop those inside removed gaps, sort.
+  const words: CaptionWord[] = [];
+  for (const w of transcript) {
+    const r = remapRange({ start: w.start, end: w.end }, keep, 0.01);
+    if (r) words.push({ word: w.word, start: r.start, end: r.end });
+  }
+  words.sort((a, b) => a.start - b.start);
+  if (words.length === 0) return [];
+
+  // Group into phrases.
+  const phrases: CaptionWord[][] = [];
+  let cur: CaptionWord[] = [];
+  for (const w of words) {
+    if (cur.length > 0) {
+      const prev = cur[cur.length - 1];
+      const endsSentence = /[.!?,]$/.test(prev.word);
+      if (cur.length >= maxWords || w.start - prev.end > gapSec || endsSentence) {
+        phrases.push(cur);
+        cur = [];
+      }
+    }
+    cur.push(w);
+  }
+  if (cur.length) phrases.push(cur);
+
+  const styleFor = (start: number, end: number): CaptionStyle => {
+    const mid = (start + end) / 2;
+    const hit = styleRanges.find((r) => mid >= r.start && mid <= r.end);
+    return hit?.style ?? defaultStyle;
+  };
+
+  return phrases.map((p, i) => {
+    const start = p[0].start;
+    const rawEnd = p[p.length - 1].end;
+    // Hold the caption until just before the next phrase (avoids flicker gaps).
+    const next = phrases[i + 1]?.[0].start ?? rawEnd + 0.4;
+    const end = Math.min(next - 0.01, rawEnd + 0.35);
+    return {
+      id: `cap_${i}`,
+      start: round(start),
+      end: round(Math.max(end, start + 0.2)),
+      style: styleFor(start, rawEnd),
+      words: p,
+    };
+  });
 }
 
 /** Remap transcript words overlapping a source range into cut-time caption words. */

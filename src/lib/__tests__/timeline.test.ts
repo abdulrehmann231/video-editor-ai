@@ -84,11 +84,15 @@ describe('buildOverlayPlan', () => {
     expect(plan.lowerThirds).toHaveLength(1);
     expect(plan.brolls).toHaveLength(1);
     expect(plan.brolls[0].query).toBe('sales chart');
-    expect(plan.captions).toHaveLength(1);
-    expect(plan.captions[0].words.map((w) => w.word)).toEqual(['Hello', 'world']);
+    // Dense auto-captions from the transcript: "Hello" and "world" are far apart
+    // (>0.6s gap) so they become two phrases; the caption op sets the style.
+    expect(plan.captions.length).toBeGreaterThanOrEqual(1);
+    const allWords = plan.captions.flatMap((c) => c.words.map((w) => w.word));
+    expect(allWords).toEqual(['Hello', 'world']);
+    expect(plan.captions[0].style).toBe('word_highlight');
   });
 
-  it('drops caption ops that have no transcript words', () => {
+  it('produces no captions when there is no transcript', () => {
     const plan = buildOverlayPlan(edl, [], 20);
     expect(plan.captions).toHaveLength(0);
   });

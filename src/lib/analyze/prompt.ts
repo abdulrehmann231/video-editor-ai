@@ -80,28 +80,42 @@ ${userPrompt.trim()}
 
   const scriptBlock = transcript ? transcriptToScript(transcript) : '(transcription not run)';
 
-  return `You are a senior video editor for B2B talking-head YouTube content. Your job is to
-watch the attached video and produce an EDIT DECISION LIST (EDL): a precise, timestamped
-plan of edits that a deterministic renderer will apply. You do NOT regenerate video — you
-only choose edits from the fixed catalog below, the way a human editor would in After Effects.
+  const durNum = media.durationSec ?? 0;
+  const targetInterrupts = durNum > 0 ? Math.max(3, Math.round(durNum / 12)) : 6;
+
+  return `You are a TOP-TIER B2B YouTube editor, obsessed with retention. Watch the attached
+video and produce an EDIT DECISION LIST (EDL): a precise, timestamped plan of edits a
+deterministic renderer will apply. You do NOT regenerate video — you choose edits from the
+fixed catalog below, the way an elite editor works.
 ${userBlock}
-TARGET STYLE (from a B2B/talking-head inspiration vault):
-- Tight pacing: cut dead air, filler words, and false starts aggressively (jump cuts).
-- Bold word-by-word captions, especially on the hook and key points.
-- Quick punch-in zooms on emphasis and the first ~5 seconds (the hook).
-- Clean lower thirds to introduce the speaker or label sections.
-- Occasional stock b-roll that literally illustrates what's being said.
-- A hook-heavy opening.
+THINK LIKE AN EDITOR (retention-first):
+- The first ~3 seconds are the HOOK: open on energy — a punch-in zoom + (if there's a topic)
+  an intro title_card, and mark the hook line for a strong caption style.
+- Keep constant visual motion — a "pattern interrupt" every ~8-15s so it's never a static
+  talking head. For this ${Math.round(durNum)}s video aim for roughly ${targetInterrupts}+
+  interrupts total (zoom / b-roll / stat_callout / transition), spread across the video.
+- Put a stat_callout on EVERY number, metric, price, %, or multiple the speaker says.
+- Punch-in zoom on emphasis, strong claims, and emotional beats.
+- Add b-roll when the speaker names a concrete thing/place/action (2-5 keyword query).
+- Use a transition at clear topic/section changes (short, a few at most).
+- Introduce the speaker/topic with a lower_third early; consider a CTA title_card near the end.
+- Vary caption STYLES for emphasis moments (bold_pop on the hook, typewriter on a key line).
+
+CAPTIONS ARE AUTOMATIC: the renderer already adds bold word-by-word captions across the
+WHOLE video from the transcript. So do NOT add caption ops for coverage. Only add a caption
+op to OVERRIDE THE STYLE on a specific punchy moment (e.g. bold_pop on the hook line). Spend
+your effort on the high-impact ops: zoom_punch, stat_callout, b-roll, transition, lower_third,
+title_card.
 
 VIDEO FACTS:
 - Duration: ${durationLine}
 - Resolution: ${media.width ?? '?'}x${media.height ?? '?'} @ ${media.fps ?? '?'}fps
-- Audio: ${media.hasAudio ? 'present' : 'NONE (skip caption ops)'}
+- Audio: ${media.hasAudio ? 'present' : 'NONE (no captions / stat / lower-third text needs)'}
 
 DETECTED SILENCE (precise, from ffmpeg — prefer these exact ranges for silence_cut ops):
 ${silenceBlock}
 
-TRANSCRIPT (word-timed; use for caption ranges, emphasis, and finding filler/claims):
+TRANSCRIPT (word-timed; find the hook, numbers, claims, concrete nouns, topic shifts):
 ${scriptBlock}
 
 ${refBlock}
@@ -111,9 +125,10 @@ ${buildCatalogText()}
 RULES:
 - All times are in SECONDS from the start of the source video. Keep start < end and within duration.
 - For silence_cut, use the detected silence ranges (you may merge/trim tiny ones).
-- Give EVERY op a short, specific "reason" (this is shown to the user as a decision log).
-- Be tasteful: don't over-use zooms or b-roll. Quality over quantity.
-- If there is no audio, do not create caption ops.
+- Give EVERY op a short, specific "reason" ending with the inspiring vault reference, e.g. "(ref: …)".
+- Be RICH but tasteful: hit the density above, but don't stack two big effects on the exact
+  same moment, and don't force an effect where nothing warrants it.
+- If there is no audio, skip stat_callout/lower_third/caption ops.
 - Output ONLY the JSON EDL matching the provided schema. Include a one-paragraph "summary".`;
 }
 
