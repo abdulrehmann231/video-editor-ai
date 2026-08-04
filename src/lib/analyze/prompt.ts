@@ -123,7 +123,10 @@ EFFECT CATALOG (choose ONLY these op types):
 ${buildCatalogText()}
 
 RULES:
-- All times are in SECONDS from the start of the source video. Keep start < end and within duration.
+- All times are in SECONDS from the start of the source video. Keep start < end.
+- CRITICAL: every start and end MUST be between 0 and ${Math.round(durNum)} (the exact
+  duration). NEVER output a timestamp past ${Math.round(durNum)}s. Use the transcript's
+  real word times — do not guess or extrapolate beyond the end of the video.
 - For silence_cut, use the detected silence ranges (you may merge/trim tiny ones).
 - Give EVERY op a short, specific "reason" ending with the inspiring vault reference, e.g. "(ref: …)".
 - Be RICH but tasteful: hit the density above, but don't stack two big effects on the exact

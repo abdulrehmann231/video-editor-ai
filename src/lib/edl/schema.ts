@@ -190,21 +190,26 @@ export function parseEdl(
     throw new Error(`All ${rawOps.length} ops failed validation: ${warnings.join('; ')}`);
   }
 
-  const kept = valid.filter((op) => {
-    if (op.end <= op.start) {
-      warnings.push(`Dropped ${op.type} with end<=start (${op.start}->${op.end})`);
-      return false;
+  // Normalize timing: drop ops that start beyond the video, clamp ends to the
+  // duration, then drop anything left with end <= start. (Gemini can drift and
+  // emit timestamps past the real duration on longer videos.)
+  const clamped: EditOp[] = [];
+  for (const op of valid) {
+    if (dur != null && op.start >= dur) {
+      warnings.push(`Dropped ${op.type} starting past duration (${op.start} >= ${dur})`);
+      continue;
     }
-    return true;
-  });
-
-  const clamped = kept.map((op) => {
-    if (dur != null && op.end > dur + 0.5) {
+    let end = op.end;
+    if (dur != null && end > dur + 0.5) {
       warnings.push(`Clamped ${op.type} end ${op.end} -> ${dur}`);
-      return { ...op, end: dur };
+      end = dur;
     }
-    return op;
-  });
+    if (end <= op.start) {
+      warnings.push(`Dropped ${op.type} with end<=start (${op.start}->${op.end})`);
+      continue;
+    }
+    clamped.push(end === op.end ? op : ({ ...op, end } as EditOp));
+  }
 
   const summary = typeof cleaned?.summary === 'string' ? cleaned.summary : undefined;
   return { edl: { version: EDL_VERSION, summary, ops: clamped }, warnings };
