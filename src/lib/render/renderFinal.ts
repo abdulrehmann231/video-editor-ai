@@ -26,6 +26,7 @@ export interface FinalRenderMeta {
   titleCards: number;
   statCallouts: number;
   transitions: number;
+  lotties: number;
   progressBar: boolean;
   music: boolean;
   sizeBytes: number | null;
@@ -97,6 +98,7 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     titleCards: input.plan.titleCards,
     statCallouts: input.plan.statCallouts,
     transitions: input.plan.transitions,
+    lotties: input.plan.lotties,
   };
 
   // The base video (cut) can be 100+ MB and is fetched over the network by
@@ -167,6 +169,7 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     titleCards: input.plan.titleCards.length,
     statCallouts: input.plan.statCallouts.length,
     transitions: input.plan.transitions.length,
+    lotties: input.plan.lotties.length,
     progressBar,
     music: musicApplied,
     sizeBytes: fileStat.size,

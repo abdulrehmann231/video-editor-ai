@@ -9,6 +9,7 @@ import { TitleCards } from './components/TitleCards';
 import { ProgressBar } from './components/ProgressBar';
 import { StatCallouts } from './components/StatCallouts';
 import { Transitions } from './components/Transitions';
+import { LottieLayer } from './components/LottieLayer';
 
 /**
  * The final composite: cut video (with punch-in zooms) at the base, then b-roll,
@@ -26,6 +27,7 @@ export const Edit: React.FC<EditProps> = ({
   titleCards,
   statCallouts,
   transitions,
+  lotties,
   progressBar,
 }) => {
   return (
@@ -33,6 +35,7 @@ export const Edit: React.FC<EditProps> = ({
       <ZoomLayer src={videoSrc} fps={fps} zooms={zooms} />
       <BrollLayer brolls={brolls} fps={fps} />
       <StatCallouts items={statCallouts} fps={fps} />
+      <LottieLayer lotties={lotties} fps={fps} />
       <LowerThirds items={lowerThirds} fps={fps} />
       <Captions captions={captions} fps={fps} />
       <TitleCards items={titleCards} fps={fps} />

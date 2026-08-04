@@ -81,6 +81,14 @@ export const TransitionOp = BaseOp.extend({
   variant: z.enum(['glitch', 'flash', 'zoom_blur']).default('flash'),
 });
 
+/** Pro Lottie animation overlay chosen from the bundled registry. */
+export const LottieOp = BaseOp.extend({
+  type: z.literal('lottie'),
+  /** Registry template id (see LOTTIE_TEMPLATES). */
+  template: z.string().min(1),
+  position: z.enum(['full', 'center', 'corner']).optional(),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
@@ -90,6 +98,7 @@ export const EditOp = z.discriminatedUnion('type', [
   TitleCardOp,
   StatCalloutOp,
   TransitionOp,
+  LottieOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];

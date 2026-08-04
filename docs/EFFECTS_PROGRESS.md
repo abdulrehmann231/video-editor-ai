@@ -20,7 +20,17 @@ Legend: [ ] todo · [~] in progress · [x] done
       glass lower third, title card all look YouTube-ready (11 dense captions in test).
 - [ ] A6 **5-minute real raw video** test end-to-end (download a talking-head clip).
 
-## Phase B — Lottie lane (pro 2D)   — not started
+## Phase B — Lottie lane (pro 2D)   ✅ ENGINE DONE
+- [x] Installed @remotion/lottie + lottie-web. Two free Lottie assets in
+      public/lottie/ (confetti, checkmark).
+- [x] `lottie` EDL op + catalog + response schema; `lottieRegistry.ts` (shared);
+      `LottieLayer.tsx` (loads bundled JSON, positions full/center/corner);
+      timeline mapping; Edit + renderFinal wiring; Gemini picks a template by id.
+- [x] Verified live: confetti Lottie composited over b-roll in a real render.
+- [ ] GROW THE LIBRARY: add more free/CC0 Lottie JSONs to public/lottie/ +
+      registry entries (lower thirds, callouts, arrows, subscribe, transitions).
+      This is now just data — no code. (Ongoing.)
+
 ## Phase C — Three.js 3D lane        — not started (C0 = verify WebGL in headless Chrome)
 ## Phase D — Blender (optional)      — not started
 
