@@ -11,6 +11,7 @@ const nextConfig = {
       'remotion',
       '@remotion/renderer',
       '@remotion/bundler',
+      '@remotion/lambda',
       'esbuild',
     ],
   },
