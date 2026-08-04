@@ -27,9 +27,9 @@ Legend: [ ] todo · [~] in progress · [x] done
       `LottieLayer.tsx` (loads bundled JSON, positions full/center/corner);
       timeline mapping; Edit + renderFinal wiring; Gemini picks a template by id.
 - [x] Verified live: confetti Lottie composited over b-roll in a real render.
-- [ ] GROW THE LIBRARY: add more free/CC0 Lottie JSONs to public/lottie/ +
-      registry entries (lower thirds, callouts, arrows, subscribe, transitions).
-      This is now just data — no code. (Ongoing.)
+- [x] GREW THE LIBRARY to 5: confetti, checkmark, trophy (LottieFiles free) +
+      underline, swipe_wipe (self-authored, owned). Verified underline renders.
+      Adding more = drop JSON + registry entry (see docs/LOTTIE.md). (Ongoing.)
 
 ## Phase C — Three.js 3D lane        — not started (C0 = verify WebGL in headless Chrome)
 ## Phase D — Blender (optional)      — not started

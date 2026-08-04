@@ -38,6 +38,33 @@ export const LOTTIE_TEMPLATES: LottieTemplate[] = [
     scale: 0.35,
     loop: false,
   },
+  {
+    id: 'trophy',
+    file: 'trophy.json',
+    label: 'Trophy / achievement',
+    whenToUse: 'a big achievement, milestone, "#1", or best-result moment',
+    position: 'center',
+    scale: 0.42,
+    loop: false,
+  },
+  {
+    id: 'underline',
+    file: 'underline.json',
+    label: 'Highlight underline swipe',
+    whenToUse: 'swipe a bold underline under a key phrase or claim for emphasis',
+    position: 'full',
+    scale: 1,
+    loop: false,
+  },
+  {
+    id: 'swipe_wipe',
+    file: 'swipe_wipe.json',
+    label: 'Branded wipe transition',
+    whenToUse: 'a quick branded wipe at a clear section/topic change (short)',
+    position: 'full',
+    scale: 1,
+    loop: false,
+  },
 ];
 
 export const LOTTIE_IDS = LOTTIE_TEMPLATES.map((t) => t.id);
