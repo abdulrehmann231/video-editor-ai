@@ -20,9 +20,47 @@ Legend: [ ] todo · [~] in progress · [x] done
       glass lower third, title card all look YouTube-ready (11 dense captions in test).
 - [ ] A6 **5-minute real raw video** test end-to-end (download a talking-head clip).
 
-## Phase B — Lottie lane (pro 2D)   — not started
-## Phase C — Three.js 3D lane        — not started (C0 = verify WebGL in headless Chrome)
-## Phase D — Blender (optional)      — not started
+## Phase B — Lottie lane (pro 2D)   ✅ ENGINE DONE
+- [x] Installed @remotion/lottie + lottie-web. Two free Lottie assets in
+      public/lottie/ (confetti, checkmark).
+- [x] `lottie` EDL op + catalog + response schema; `lottieRegistry.ts` (shared);
+      `LottieLayer.tsx` (loads bundled JSON, positions full/center/corner);
+      timeline mapping; Edit + renderFinal wiring; Gemini picks a template by id.
+- [x] Verified live: confetti Lottie composited over b-roll in a real render.
+- [x] GREW THE LIBRARY to 5: confetti, checkmark, trophy (LottieFiles free) +
+      underline, swipe_wipe (self-authored, owned). Verified underline renders.
+      Adding more = drop JSON + registry entry (see docs/LOTTIE.md). (Ongoing.)
+
+## Phase C — Three.js 3D lane        ✅ DONE
+- [x] C0 verified WebGL renders headless via **software WebGL `gl:'swangle'`** (no
+      GPU). `angle` needs a GPU; `swangle` works (and is Lambda's default).
+- [x] @remotion/three + three + @react-three/fiber. `three` EDL op + catalog +
+      threeRegistry (stat_orb, card_3d) + Three3DLayer (ThreeCanvas scenes +
+      crisp 2D text overlay); schema/timeline/Edit/renderFinal wiring;
+      renderFinal sets gl:'swangle' when the plan has 3D.
+- [x] Verified live: the glass **stat orb** (glossy 3D sphere w/ specular +
+      "$1.2M") renders correctly over the video; card_3d uses the same engine.
+- ⚠️ 3D is CPU-heavy (software WebGL): ~260s for a short clip on the 1-core
+      sandbox. Use the **Lambda backend** (parallel) or a multi-core box for real
+      speed. Prompt tells Gemini to use 3D rarely.
+
+## Phase D — Blender (optional)      — not started (only if a photoreal 3D need arises)
+
+## Phase E — Agentic editor brain (multi-stage, per-moment vault)   ✅ DONE
+- [x] PLAN stage (`analyze/plan.ts`): Gemini watches the video → editorial plan
+      (niche/tone/segments/beats, each beat w/ intent + vault searchQuery).
+- [x] Per-moment vault search (`analyze/build.ts`): each beat searches ALL 451 refs
+      via its searchQuery → its own matches (uses many refs across a video, not 24).
+- [x] BUILD stage: text-only Gemini turns plan + per-beat refs + catalog → EDL,
+      mapping each beat to the closest 2D/Lottie/3D effect, citing its ref.
+- [x] RESEARCH stage (`analyze/research.ts`, env `EDIT_RESEARCH=on`): Gemini Google
+      Search grounding brief. NOTE: `googleSearch` tool unsupported by @google/
+      generative-ai@0.21 for the model → returns nothing (gated + graceful). To enable
+      later: upgrade the SDK or call the REST grounding API.
+- [x] analyzeVideo rewired: PLAN → (RESEARCH) → per-moment retrieve → BUILD, with
+      key rotation + 429/5xx failover around all stages. Meta adds beats + researched.
+- [x] Verified live (20s clip): 4 beats, 15 distinct beat-refs, EDL grounded per beat
+      incl. three[card_3d] from a "3D card" vault ref. 2 Gemini calls (~95s here).
 
 ## Notes / decisions
 - Installed: `@remotion/google-fonts`. Fonts: Anton (display) + Inter (body).

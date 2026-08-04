@@ -2,12 +2,13 @@ import { getEnv } from '../env';
 import { isRateLimit, isRetryable } from '../gemini';
 import { keyCount, markRateLimited, nextKey } from '../geminiKeys';
 import { deleteVideo, generateStructured, generateStructuredText, uploadVideo } from '../ai/geminiVideo';
-import { EDL_RESPONSE_SCHEMA } from '../edl/catalog';
 import { parseEdl, type AnalysisMeta, type Edl } from '../edl/schema';
 import { detectSilence, type SilenceSegment } from './silence';
 import { transcribe, type TranscriptWord } from './transcribe';
-import { buildAnalysisPrompt, buildRepairPrompt } from './prompt';
-import { retrieveReferences } from '../vault';
+import { buildRepairPrompt } from './prompt';
+import { buildPlanPrompt, parsePlan, PLAN_RESPONSE_SCHEMA, type EditorialPlan } from './plan';
+import { buildBuildPrompt, EDL_RESPONSE_SCHEMA, countBeatRefs } from './build';
+import { researchEnabled, researchTechniques } from './research';
 import { downloadToTemp, cleanupTemp } from '../media/download';
 import type { MediaInfo } from '../ingest';
 
@@ -55,28 +56,16 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
       });
     }
 
-    // Retrieve vault references relevant to this video's content + user intent.
-    const query = [
-      input.userPrompt ?? '',
-      transcript.map((w) => w.word).join(' '),
-    ].join(' ');
-    const references = retrieveReferences(query, { limit: 24 });
-
-    const prompt = buildAnalysisPrompt({
+    const { edl, meta, plan, repaired } = await runAgentic({
+      localPath: path,
+      contentType: input.contentType,
+      filename: input.filename,
       media: input.media,
       silence,
       transcript,
       userPrompt: input.userPrompt,
-      references,
+      model: env.GEMINI_MODEL,
     });
-    const { edl, meta, repaired } = await runGemini(
-      path,
-      input.contentType,
-      input.filename,
-      prompt,
-      input.media.durationSec ?? null,
-      env.GEMINI_MODEL,
-    );
 
     return {
       edl,
@@ -84,7 +73,8 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
         ...meta,
         transcriptWords: transcript.length,
         silenceSegments: silence.length,
-        referencesUsed: references.length,
+        referencesUsed: countBeatRefs(plan),
+        beats: plan.beats.length,
         repaired,
       },
       transcript,
@@ -96,16 +86,29 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
   }
 }
 
-async function runGemini(
-  localPath: string,
-  contentType: string,
-  filename: string,
-  prompt: string,
-  durationSec: number | null,
-  model: string,
-): Promise<{ edl: Edl; meta: AnalysisMeta; repaired: boolean }> {
+interface AgenticInput {
+  localPath: string;
+  contentType: string;
+  filename: string;
+  media: MediaInfo;
+  silence: SilenceSegment[];
+  transcript: TranscriptWord[];
+  userPrompt?: string;
+  model: string;
+}
+
+/**
+ * Multi-stage "editor brain": PLAN (watch video → editorial plan) →
+ * [RESEARCH: web-grounded techniques] → per-moment vault search (inside BUILD's
+ * prompt) → BUILD (plan + per-beat refs → EDL). Key rotation + failover wrap the
+ * whole thing (re-plans under a new key on a rate limit).
+ */
+async function runAgentic(
+  input: AgenticInput,
+): Promise<{ edl: Edl; meta: AnalysisMeta; plan: EditorialPlan; repaired: boolean }> {
+  const { model } = input;
+  const durationSec = input.media.durationSec ?? null;
   const keys = getEnv().GEMINI_API_KEYS;
-  // At least 2 attempts so a single-key transient error still retries.
   const attempts = Math.max(2, keyCount());
   let lastErr: unknown;
 
@@ -113,44 +116,67 @@ async function runGemini(
     const key = nextKey();
     const keyIndex = keys.indexOf(key);
     try {
-      const file = await uploadVideo(key, localPath, contentType || 'video/mp4', filename);
-      let text: string;
+      // STAGE 1 — PLAN (needs the video).
+      const file = await uploadVideo(key, input.localPath, input.contentType || 'video/mp4', input.filename);
+      let plan: EditorialPlan;
       try {
-        text = await generateStructured(key, model, file, prompt, EDL_RESPONSE_SCHEMA);
+        const planText = await generateStructured(
+          key,
+          model,
+          file,
+          buildPlanPrompt({ media: input.media, silence: input.silence, transcript: input.transcript, userPrompt: input.userPrompt }),
+          PLAN_RESPONSE_SCHEMA,
+        );
+        plan = parsePlan(safeJson(planText));
       } finally {
         await deleteVideo(key, file.name).catch(() => {});
       }
 
-      // Validate, with a single repair pass on failure.
+      // STAGE 2 — RESEARCH (optional, web-grounded).
+      let research: string | undefined;
+      let researched = false;
+      if (researchEnabled()) {
+        research = await researchTechniques(key, model, plan.niche, plan.tone);
+        researched = Boolean(research);
+      }
+
+      // STAGE 3 (per-moment vault search) + BUILD (text-only) → EDL.
+      const buildPrompt = buildBuildPrompt({
+        plan,
+        media: input.media,
+        silence: input.silence,
+        transcript: input.transcript,
+        research,
+        userPrompt: input.userPrompt,
+      });
+      const meta = (): AnalysisMeta => ({ model, generatedAt: new Date().toISOString(), keyIndex, researched });
+
+      const buildText = await generateStructuredText(key, model, buildPrompt, EDL_RESPONSE_SCHEMA);
       try {
-        const { edl } = parseEdl(safeJson(text), { durationSec });
-        return { edl, meta: baseMeta(model, keyIndex), repaired: false };
+        const { edl } = parseEdl(safeJson(buildText), { durationSec });
+        return { edl, meta: meta(), plan, repaired: false };
       } catch (validationErr) {
         const repairText = await generateStructuredText(
           key,
           model,
-          buildRepairPrompt(text, (validationErr as Error).message),
+          buildRepairPrompt(buildText, (validationErr as Error).message),
           EDL_RESPONSE_SCHEMA,
         );
         const { edl } = parseEdl(safeJson(repairText), { durationSec });
-        return { edl, meta: baseMeta(model, keyIndex), repaired: true };
+        return { edl, meta: meta(), plan, repaired: true };
       }
     } catch (err) {
       lastErr = err;
       if (isRetryable(err)) {
-        if (isRateLimit(err)) markRateLimited(key); // cooldown only true rate limits
-        continue; // failover to next key / retry
+        if (isRateLimit(err)) markRateLimited(key);
+        continue;
       }
-      throw err; // non-retryable (bad request, auth, etc.)
+      throw err;
     }
   }
   throw new Error(
-    `Gemini analysis failed after ${attempts} attempt(s): ${(lastErr as Error)?.message ?? lastErr}`,
+    `Agentic analysis failed after ${attempts} attempt(s): ${(lastErr as Error)?.message ?? lastErr}`,
   );
-}
-
-function baseMeta(model: string, keyIndex: number): AnalysisMeta {
-  return { model, generatedAt: new Date().toISOString(), keyIndex };
 }
 
 function safeJson(text: string): unknown {

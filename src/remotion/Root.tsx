@@ -1,6 +1,7 @@
 import React from 'react';
 import { Composition } from 'remotion';
 import { Edit } from './Edit';
+import { ThreeProbe } from './components/three/ThreeProbe';
 import { DEFAULT_EDIT_PROPS, type EditProps } from './types';
 
 /**
@@ -14,6 +15,7 @@ const EditComponent = Edit as unknown as React.FC<Record<string, unknown>>;
 
 export const RemotionRoot: React.FC = () => {
   return (
+    <>
     <Composition
       id="Edit"
       component={EditComponent}
@@ -32,5 +34,14 @@ export const RemotionRoot: React.FC = () => {
         };
       }}
     />
+    <Composition
+      id="ThreeProbe"
+      component={ThreeProbe}
+      durationInFrames={60}
+      fps={30}
+      width={1280}
+      height={720}
+    />
+    </>
   );
 };

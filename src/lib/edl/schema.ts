@@ -81,6 +81,23 @@ export const TransitionOp = BaseOp.extend({
   variant: z.enum(['glitch', 'flash', 'zoom_blur']).default('flash'),
 });
 
+/** Pro Lottie animation overlay chosen from the bundled registry. */
+export const LottieOp = BaseOp.extend({
+  type: z.literal('lottie'),
+  /** Registry template id (see LOTTIE_TEMPLATES). */
+  template: z.string().min(1),
+  position: z.enum(['full', 'center', 'corner']).optional(),
+});
+
+/** Real 3D effect (Three.js) chosen from the 3D registry. */
+export const ThreeOp = BaseOp.extend({
+  type: z.literal('three'),
+  /** 3D template id (see THREE_TEMPLATES): stat_orb | card_3d. */
+  template: z.string().min(1),
+  value: z.string().max(24).optional(),
+  label: z.string().max(60).optional(),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
@@ -90,6 +107,8 @@ export const EditOp = z.discriminatedUnion('type', [
   TitleCardOp,
   StatCalloutOp,
   TransitionOp,
+  LottieOp,
+  ThreeOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];
@@ -114,6 +133,10 @@ export interface AnalysisMeta {
   silenceSegments?: number;
   /** How many Inspiration Vault references informed the edit. */
   referencesUsed?: number;
+  /** Multi-stage brain: number of planned beats. */
+  beats?: number;
+  /** Whether the web-research (Google Search grounding) stage ran. */
+  researched?: boolean;
   repaired?: boolean;
 }
 

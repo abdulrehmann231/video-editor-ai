@@ -1,5 +1,7 @@
 import { SchemaType, type Schema } from '@google/generative-ai';
 import type { EditOpType } from './schema';
+import { LOTTIE_TEMPLATES, LOTTIE_IDS } from '../render/lottieRegistry';
+import { THREE_TEMPLATES, THREE_IDS } from '../render/threeRegistry';
 
 /**
  * The Effect Catalog — the fixed menu of edits the brain may choose from.
@@ -75,6 +77,24 @@ export const CATALOG: CatalogEntry[] = [
       'A brief transition at a strong topic/section boundary (keep it short, ~0.3–0.6s, and rare — a few at most). Adds energy between segments.',
     params: 'variant: glitch | flash | zoom_blur.',
   },
+  {
+    type: 'lottie',
+    title: 'Pro animated overlay (Lottie)',
+    whenToUse:
+      'Drop a polished animated graphic on a specific beat. Available templates:\n' +
+      LOTTIE_TEMPLATES.map((t) => `      • ${t.id} — ${t.label}: ${t.whenToUse}`).join('\n') +
+      '\n    Use sparingly, only when the moment clearly fits one.',
+    params: `template: one of [${LOTTIE_IDS.join(', ')}]. position (optional): full | center | corner.`,
+  },
+  {
+    type: 'three',
+    title: 'Real 3D effect (Three.js)',
+    whenToUse:
+      'A premium 3D moment (rendered in real 3D, not fake). Templates:\n' +
+      THREE_TEMPLATES.map((t) => `      • ${t.id} — ${t.label}: ${t.whenToUse}`).join('\n') +
+      '\n    Use rarely — only for a standout number or headline. Keep it ~1.5–2.5s.',
+    params: `template: one of [${THREE_IDS.join(', ')}]. value (big text/number), label (small text).`,
+  },
 ];
 
 export function buildCatalogText(): string {
@@ -130,7 +150,8 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           sub: { type: SchemaType.STRING },
           value: { type: SchemaType.STRING },
           label: { type: SchemaType.STRING },
-          position: { type: SchemaType.STRING, format: 'enum', enum: ['center', 'corner'] },
+          position: { type: SchemaType.STRING, format: 'enum', enum: ['center', 'corner', 'full'] },
+          template: { type: SchemaType.STRING, format: 'enum', enum: [...LOTTIE_IDS, ...THREE_IDS] },
         },
         required: ['id', 'type', 'start', 'end', 'reason'],
       },

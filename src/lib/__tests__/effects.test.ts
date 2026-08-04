@@ -31,6 +31,19 @@ describe('title_card op', () => {
     expect(plan.captions[0].style).toBe('typewriter');
   });
 
+  it('validates + maps a lottie op', () => {
+    const { edl } = parseEdl({
+      ops: [
+        { id: 'lo', type: 'lottie', start: 3, end: 5, reason: 'win (ref: Confetti)', template: 'confetti', position: 'full' },
+      ],
+    });
+    expect(edl.ops[0].type).toBe('lottie');
+    const plan = buildOverlayPlan(edl, [], 20);
+    expect(plan.lotties).toHaveLength(1);
+    expect(plan.lotties[0].template).toBe('confetti');
+    expect(plan.lotties[0].position).toBe('full');
+  });
+
   it('maps title cards into the overlay plan (cut timeline)', () => {
     const edl: Edl = {
       version: 1,

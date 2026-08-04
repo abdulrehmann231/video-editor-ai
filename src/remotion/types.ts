@@ -61,6 +61,21 @@ export interface TransitionOverlay {
   end: number;
   variant: 'glitch' | 'flash' | 'zoom_blur';
 }
+export interface LottieOverlay {
+  id: string;
+  start: number;
+  end: number;
+  template: string;
+  position?: 'full' | 'center' | 'corner';
+}
+export interface ThreeOverlay {
+  id: string;
+  start: number;
+  end: number;
+  template: string;
+  value?: string;
+  label?: string;
+}
 
 export type OutputLayout = 'landscape' | 'shorts';
 
@@ -80,6 +95,8 @@ export interface EditProps {
   titleCards: TitleCardOverlay[];
   statCallouts: StatCalloutOverlay[];
   transitions: TransitionOverlay[];
+  lotties: LottieOverlay[];
+  threes: ThreeOverlay[];
 }
 
 export const DEFAULT_EDIT_PROPS: EditProps = {
@@ -99,4 +116,6 @@ export const DEFAULT_EDIT_PROPS: EditProps = {
   titleCards: [],
   statCallouts: [],
   transitions: [],
+  lotties: [],
+  threes: [],
 };

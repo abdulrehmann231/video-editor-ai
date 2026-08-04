@@ -26,6 +26,8 @@ export interface FinalRenderMeta {
   titleCards: number;
   statCallouts: number;
   transitions: number;
+  lotties: number;
+  threes: number;
   progressBar: boolean;
   music: boolean;
   sizeBytes: number | null;
@@ -97,6 +99,8 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     titleCards: input.plan.titleCards,
     statCallouts: input.plan.statCallouts,
     transitions: input.plan.transitions,
+    lotties: input.plan.lotties,
+    threes: input.plan.threes,
   };
 
   // The base video (cut) can be 100+ MB and is fetched over the network by
@@ -111,6 +115,10 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     // Parallel cloud render on AWS Lambda (fast, scales). Same inputProps.
     await renderOnLambda(inputProps, renderedPath);
   } else {
+    // 3D (Three.js/WebGL) needs a GL backend; 'swangle' is software WebGL (no
+    // GPU) — used only when the plan has 3D so 2D renders stay on the fast path.
+    // (Lambda already uses swangle by default.)
+    const chromiumOptions = input.plan.threes.length > 0 ? ({ gl: 'swangle' } as const) : undefined;
     await ensureBrowser();
     const serveUrl = await getBundle();
     const composition = await selectComposition({
@@ -118,6 +126,7 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
       id: 'Edit',
       inputProps,
       timeoutInMilliseconds: fetchTimeoutMs,
+      chromiumOptions,
     });
     await renderMedia({
       composition,
@@ -126,6 +135,7 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
       outputLocation: renderedPath,
       inputProps,
       timeoutInMilliseconds: fetchTimeoutMs,
+      chromiumOptions,
       // Cache decoded frames of the (large) base video across the render.
       offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
       // Let Remotion pick concurrency from the host's core count.
@@ -167,6 +177,8 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     titleCards: input.plan.titleCards.length,
     statCallouts: input.plan.statCallouts.length,
     transitions: input.plan.transitions.length,
+    lotties: input.plan.lotties.length,
+    threes: input.plan.threes.length,
     progressBar,
     music: musicApplied,
     sizeBytes: fileStat.size,
