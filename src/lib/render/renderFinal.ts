@@ -6,6 +6,7 @@ import { selectComposition, renderMedia, ensureBrowser } from '@remotion/rendere
 import { putObject, publicUrl } from '../r2';
 import type { OverlayPlan } from './timeline';
 import { mixMusicDucked } from './music';
+import { useLambda, renderOnLambda } from './lambda';
 
 export type OutputLayout = 'landscape' | 'shorts';
 
@@ -74,9 +75,6 @@ function getBundle(): Promise<string> {
  * video with Remotion (headless Chromium) and upload the final mp4 to R2.
  */
 export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderResult> {
-  await ensureBrowser();
-  const serveUrl = await getBundle();
-
   const layout: OutputLayout = input.layout ?? 'landscape';
   const progressBar = input.progressBar ?? true;
   const dims = layout === 'shorts' ? SHORTS_DIMS : { width: input.width, height: input.height };
@@ -101,19 +99,38 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     transitions: input.plan.transitions,
   };
 
-  const composition = await selectComposition({ serveUrl, id: 'Edit', inputProps });
+  // The base video (cut) can be 100+ MB and is fetched over the network by
+  // OffthreadVideo — give it a generous timeout so a slow first fetch/seek
+  // doesn't trip Remotion's default ~28s delayRender limit.
+  const fetchTimeoutMs = Number(process.env.REMOTION_TIMEOUT_MS) || 180_000;
 
   const dir = await mkdtemp(join(tmpdir(), 'edit-ai-final-'));
   const renderedPath = join(dir, 'render.mp4');
 
-  await renderMedia({
-    composition,
-    serveUrl,
-    codec: 'h264',
-    outputLocation: renderedPath,
-    inputProps,
-    // Let Remotion pick concurrency from the host's core count.
-  });
+  if (useLambda()) {
+    // Parallel cloud render on AWS Lambda (fast, scales). Same inputProps.
+    await renderOnLambda(inputProps, renderedPath);
+  } else {
+    await ensureBrowser();
+    const serveUrl = await getBundle();
+    const composition = await selectComposition({
+      serveUrl,
+      id: 'Edit',
+      inputProps,
+      timeoutInMilliseconds: fetchTimeoutMs,
+    });
+    await renderMedia({
+      composition,
+      serveUrl,
+      codec: 'h264',
+      outputLocation: renderedPath,
+      inputProps,
+      timeoutInMilliseconds: fetchTimeoutMs,
+      // Cache decoded frames of the (large) base video across the render.
+      offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
+      // Let Remotion pick concurrency from the host's core count.
+    });
+  }
 
   // Optional background-music ducking pass.
   let outPath = renderedPath;

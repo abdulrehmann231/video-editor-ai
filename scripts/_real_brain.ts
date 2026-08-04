@@ -1,0 +1,21 @@
+import { readFile } from 'node:fs/promises';
+import { putObject, deleteObject } from '../src/lib/r2';
+import { probeMedia } from '../src/lib/ingest';
+import { saveProject } from '../src/lib/projects';
+import { runDerive, runAnalyze } from '../src/lib/pipeline/steps';
+import { newId } from '../src/lib/ids';
+(async () => {
+  const id = newId('p_');
+  const sourceKey = `uploads/${id}/real5min.mp4`;
+  await putObject(sourceKey, await readFile('/tmp/real5min.mp4'), 'video/mp4');
+  const media = await probeMedia('/tmp/real5min.mp4');
+  const now = new Date().toISOString();
+  await saveProject({ id, filename:'real5min.mp4', contentType:'video/mp4', sourceKey, status:'ingested', createdAt:now, updatedAt:now, media });
+  let t=Date.now(); await runDerive(id); console.log(`derive ${((Date.now()-t)/1000).toFixed(0)}s`);
+  t=Date.now(); const p = await runAnalyze(id, { transcribe:false }); console.log(`analyze(no-transcribe) ${((Date.now()-t)/1000).toFixed(0)}s`);
+  const counts:any={}; for (const o of (p.edl?.ops||[])) counts[o.type]=(counts[o.type]||0)+1;
+  console.log('5-MIN BRAIN RESULT: ops', (p.edl?.ops||[]).length, '| refs', p.analysisMeta?.referencesUsed, '| counts', JSON.stringify(counts));
+  console.log('summary:', (p.edl?.summary||'').slice(0,180));
+  for (const o of (p.edl?.ops||[]).filter(o=>o.type!=='silence_cut').slice(0,10)) console.log(`  [${o.start}s] ${o.type}: ${o.reason}`);
+  for (const k of [sourceKey, p.proxyKey, p.mezzanineKey, `projects/${id}.json`]) if(k) await deleteObject(k).catch(()=>{});
+})().catch(e=>{ console.error('FAILED:', e?.stack||e); process.exit(1); });
