@@ -18,6 +18,24 @@ export interface LambdaConfig {
   serveUrl: string;
 }
 
+const DEFAULT_MAX_LAMBDA_FUNCTIONS = 10;
+
+function readPositiveInt(value: string | undefined): number | null {
+  if (value === undefined) return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) return null;
+  return parsed;
+}
+
+export function framesPerLambda(durationInFrames: number): number {
+  const explicit = readPositiveInt(process.env.REMOTION_FRAMES_PER_LAMBDA);
+  if (explicit !== null) return explicit;
+
+  const maxLambdaFunctions = readPositiveInt(process.env.REMOTION_MAX_LAMBDA_FUNCTIONS) ?? DEFAULT_MAX_LAMBDA_FUNCTIONS;
+  const rendererFunctions = Math.max(1, maxLambdaFunctions - 1);
+  return Math.max(1, Math.ceil(durationInFrames / rendererFunctions));
+}
+
 export function lambdaConfig(): LambdaConfig | null {
   const region = process.env.REMOTION_AWS_REGION || process.env.AWS_REGION;
   const functionName = process.env.REMOTION_LAMBDA_FUNCTION_NAME;
@@ -41,7 +59,7 @@ export function useLambda(): boolean {
 export async function renderOnLambda(
   inputProps: Record<string, unknown>,
   outPath: string,
-  opts: { pollMs?: number; timeoutMs?: number } = {},
+  opts: { durationInFrames: number; pollMs?: number; timeoutMs?: number } = { durationInFrames: 1 },
 ): Promise<void> {
   const cfg = lambdaConfig();
   if (!cfg) throw new Error('Lambda not configured (see DEPLOY-LAMBDA.md).');
@@ -56,6 +74,7 @@ export async function renderOnLambda(
     imageFormat: 'jpeg',
     privacy: 'public',
     maxRetries: 1,
+    framesPerLambda: framesPerLambda(opts.durationInFrames),
     downloadBehavior: { type: 'download', fileName: 'final.mp4' },
   });
 

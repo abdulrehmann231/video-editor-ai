@@ -113,7 +113,7 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
 
   if (useLambda()) {
     // Parallel cloud render on AWS Lambda (fast, scales). Same inputProps.
-    await renderOnLambda(inputProps, renderedPath);
+    await renderOnLambda(inputProps, renderedPath, { durationInFrames });
   } else {
     // 3D (Three.js/WebGL) needs a GL backend; 'swangle' is software WebGL (no
     // GPU) — used only when the plan has 3D so 2D renders stay on the fast path.

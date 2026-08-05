@@ -33,6 +33,7 @@ loadEnvFile('.env');
 async function main() {
   const region = (process.env.REMOTION_AWS_REGION || process.env.AWS_REGION || 'us-east-1') as AwsRegion;
   const SITE = 'edit-ai';
+  const timeoutInSeconds = Number(process.env.REMOTION_LAMBDA_TIMEOUT_SECONDS) || 900;
 
   console.log(`Deploying Remotion Lambda in region ${region} …`);
   const { functionName } = await deployFunction({
@@ -40,7 +41,7 @@ async function main() {
     createCloudWatchLogGroup: true,
     memorySizeInMb: 2048,
     diskSizeInMb: 4096,
-    timeoutInSeconds: 240,
+    timeoutInSeconds,
   });
   console.log('  function:', functionName);
 

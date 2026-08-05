@@ -32,10 +32,22 @@ REMOTION_AWS_SECRET_ACCESS_KEY=<secret>
 REMOTION_AWS_REGION=us-east-1
 ```
 
+If your AWS account has a low Lambda concurrency limit while testing, you can
+keep Remotion from spawning too many workers at once by adding:
+```
+REMOTION_MAX_LAMBDA_FUNCTIONS=10
+```
+or set a fixed shard size directly:
+```
+REMOTION_FRAMES_PER_LAMBDA=100
+```
+
 ## 4. Deploy the function + composition site (one-time, and after UI changes)
 ```bash
 npm run lambda:deploy
 ```
+The deploy script now defaults the main Lambda timeout to 900 seconds. If you
+still hit timeouts, set `REMOTION_LAMBDA_TIMEOUT_SECONDS` before deploying.
 It prints values — add them to `.env.local`:
 ```
 RENDER_BACKEND=lambda
@@ -50,6 +62,10 @@ REMOTION_SERVE_URL=https://remotionlambda-…s3.amazonaws.com/sites/edit-ai/inde
 Restart the app (`npm run dev`) and hit **Re-edit** on a project. The final
 render now runs on Lambda; everything else (upload, proxy, cut, music, R2) is
 unchanged. Flip back anytime with `RENDER_BACKEND=local`.
+
+If AWS still reports a rate-limit error, increase `REMOTION_FRAMES_PER_LAMBDA`
+so each Lambda render job covers more frames, or request a higher concurrency
+quota in AWS.
 
 ## Notes
 - The Lambda pulls the base cut + b-roll from their public URLs (R2 custom domain
