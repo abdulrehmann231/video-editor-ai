@@ -27,13 +27,28 @@ function readPositiveInt(value: string | undefined): number | null {
   return parsed;
 }
 
+/**
+ * Frames each Lambda renders. Remotion has NO separate concurrency knob — the
+ * number of renderer Lambdas invoked at once is exactly
+ * `ceil(durationInFrames / framesPerLambda)` (+1 orchestrator). So to stay under
+ * the AWS account concurrency limit (new accounts are capped at 10) we derive a
+ * shard size from `REMOTION_MAX_LAMBDA_FUNCTIONS` and treat that as a HARD cap:
+ * an explicit `REMOTION_FRAMES_PER_LAMBDA` may make shards bigger (fewer
+ * Lambdas) but is never allowed to make them smaller than the cap requires —
+ * otherwise it would silently spawn hundreds of Lambdas and trip AWS's
+ * "Rate Exceeded" throttle.
+ */
 export function framesPerLambda(durationInFrames: number): number {
-  const explicit = readPositiveInt(process.env.REMOTION_FRAMES_PER_LAMBDA);
-  if (explicit !== null) return explicit;
-
-  const maxLambdaFunctions = readPositiveInt(process.env.REMOTION_MAX_LAMBDA_FUNCTIONS) ?? DEFAULT_MAX_LAMBDA_FUNCTIONS;
+  const maxLambdaFunctions =
+    readPositiveInt(process.env.REMOTION_MAX_LAMBDA_FUNCTIONS) ?? DEFAULT_MAX_LAMBDA_FUNCTIONS;
+  // Reserve one concurrency slot for the orchestrator function.
   const rendererFunctions = Math.max(1, maxLambdaFunctions - 1);
-  return Math.max(1, Math.ceil(durationInFrames / rendererFunctions));
+  // Smallest shard that keeps the renderer count within the cap.
+  const concurrencyFloor = Math.max(1, Math.ceil(durationInFrames / rendererFunctions));
+
+  const explicit = readPositiveInt(process.env.REMOTION_FRAMES_PER_LAMBDA);
+  // Honor a bigger explicit shard, but never let it push concurrency over the cap.
+  return explicit !== null ? Math.max(explicit, concurrencyFloor) : concurrencyFloor;
 }
 
 export function lambdaConfig(): LambdaConfig | null {
