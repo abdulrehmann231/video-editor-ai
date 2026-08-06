@@ -65,9 +65,16 @@ export function buildFfmpegArgs(input: string, output: string, segments: Range[]
   // position — otherwise a VFR source yields a VFR cut and Remotion's
   // <OffthreadVideo> fails with "No frame found at position …". `-fps_mode cfr`
   // (ffmpeg >= 5.0; the deploy image is Debian Bookworm / ffmpeg 5.1) resamples
-  // to a constant grid; `-r <fps>` pins that grid to the source rate when known.
+  // to a constant grid.
+  //
+  // Pin that grid to an INTEGER fps via `-r round(fps)`. This must match the
+  // Remotion composition, which renders at `Math.round(input.fps)`
+  // (see renderFinal.ts). A fractional cut rate (e.g. 23.98 → time_base 1/19184)
+  // played inside a 24 fps composition makes Remotion seek source-time = frame/24,
+  // which never lands on the 23.98 grid → "No frame found". An integer rate gives
+  // a clean time_base (24 → 1/12288) and a 1:1 frame mapping with the composition.
   const cfr = ['-fps_mode', 'cfr'];
-  if (opts.fps && opts.fps > 0) cfr.push('-r', String(opts.fps));
+  if (opts.fps && opts.fps > 0) cfr.push('-r', String(Math.max(1, Math.round(opts.fps))));
 
   args.push(
     '-c:v', 'libx264',
