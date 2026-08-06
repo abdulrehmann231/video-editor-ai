@@ -102,7 +102,12 @@ export async function renderOnLambda(
   });
 
   const pollMs = opts.pollMs ?? 3000;
-  const deadline = Date.now() + (opts.timeoutMs ?? 15 * 60_000);
+  // How long the client waits for the whole render before giving up. On a low
+  // AWS concurrency quota the frames are split into a few large chunks that run
+  // in parallel, so wall-clock can approach the Lambda function timeout (up to
+  // 900s) plus overhead. Default 25 min; override with REMOTION_LAMBDA_RENDER_TIMEOUT_MS.
+  const defaultDeadlineMs = readPositiveInt(process.env.REMOTION_LAMBDA_RENDER_TIMEOUT_MS) ?? 25 * 60_000;
+  const deadline = Date.now() + (opts.timeoutMs ?? defaultDeadlineMs);
   for (;;) {
     const progress = await getRenderProgress({
       renderId,
