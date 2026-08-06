@@ -36,13 +36,19 @@ async function main() {
   const timeoutInSeconds = Number(process.env.REMOTION_LAMBDA_TIMEOUT_SECONDS) || 900;
 
   console.log(`Deploying Remotion Lambda in region ${region} …`);
+  const memorySizeInMb = Number(process.env.REMOTION_LAMBDA_MEMORY_MB) || 4096;
   const { functionName } = await deployFunction({
     region,
     createCloudWatchLogGroup: true,
-    memorySizeInMb: 2048,
+    // On Lambda, CPU scales with memory, so more memory = faster per-frame
+    // rendering (crucial when a low account concurrency quota forces big
+    // chunks). 4096 MB ≈ 2.5 vCPUs vs ~1.2 at 2048; cost stays ~flat because
+    // you pay memory × time and time drops. Override with REMOTION_LAMBDA_MEMORY_MB.
+    memorySizeInMb,
     diskSizeInMb: 4096,
     timeoutInSeconds,
   });
+  console.log(`  memory: ${memorySizeInMb} MB, timeout: ${timeoutInSeconds}s`);
   console.log('  function:', functionName);
 
   const { bucketName } = await getOrCreateBucket({ region });
