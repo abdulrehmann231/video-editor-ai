@@ -57,6 +57,9 @@ export async function renderCut(input: RenderInput): Promise<RenderResult> {
     await renderCutFile(inputUrl, outPath, segments, {
       hasAudio: input.media.hasAudio,
       normalizeAudio: input.normalizeAudio,
+      // Pin the cut to the source fps as CFR so Remotion's <OffthreadVideo> can
+      // always find a frame (VFR sources otherwise trip "No frame found").
+      fps: input.media.fps,
     });
 
     const [buf, outInfo, fileStat] = await Promise.all([

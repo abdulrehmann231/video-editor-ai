@@ -15,6 +15,15 @@ export interface CutOptions {
   crf?: number;
   preset?: string;
   timeoutMs?: number;
+  /**
+   * Source frame rate. When set, the cut is written as constant-frame-rate video
+   * pinned to this fps. This is REQUIRED for correctness with variable-frame-rate
+   * sources (phone/screen recordings): `select` passes through the source's
+   * irregular timestamps, and a VFR output makes Remotion's <OffthreadVideo>
+   * throw "No frame found at position …" because there is no frame at the exact
+   * position it seeks. Forcing CFR guarantees a frame at every position.
+   */
+  fps?: number | null;
 }
 
 /** Build the select expression: between(t,s1,e1)+between(t,s2,e2)+… */
@@ -52,11 +61,20 @@ export function buildFfmpegArgs(input: string, output: string, segments: Range[]
   } else {
     args.push('-an');
   }
+  // Force constant frame rate so the cut has a decodable frame at every
+  // position — otherwise a VFR source yields a VFR cut and Remotion's
+  // <OffthreadVideo> fails with "No frame found at position …". `-fps_mode cfr`
+  // (ffmpeg >= 5.0; the deploy image is Debian Bookworm / ffmpeg 5.1) resamples
+  // to a constant grid; `-r <fps>` pins that grid to the source rate when known.
+  const cfr = ['-fps_mode', 'cfr'];
+  if (opts.fps && opts.fps > 0) cfr.push('-r', String(opts.fps));
+
   args.push(
     '-c:v', 'libx264',
     '-preset', preset,
     '-crf', String(crf),
     '-pix_fmt', 'yuv420p',
+    ...cfr,
     '-movflags', '+faststart',
     output,
   );
