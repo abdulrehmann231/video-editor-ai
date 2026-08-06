@@ -74,7 +74,9 @@ export function useLambda(): boolean {
 export async function renderOnLambda(
   inputProps: Record<string, unknown>,
   outPath: string,
-  opts: { durationInFrames: number; pollMs?: number; timeoutMs?: number } = { durationInFrames: 1 },
+  opts: { durationInFrames: number; pollMs?: number; timeoutMs?: number; frameTimeoutMs?: number } = {
+    durationInFrames: 1,
+  },
 ): Promise<void> {
   const cfg = lambdaConfig();
   if (!cfg) throw new Error('Lambda not configured (see DEPLOY-LAMBDA.md).');
@@ -90,6 +92,12 @@ export async function renderOnLambda(
     privacy: 'public',
     maxRetries: 1,
     framesPerLambda: framesPerLambda(opts.durationInFrames),
+    // Raise the per-frame delayRender timeout above Remotion's 28s default — the
+    // 100+ MB cut is fetched/seeked over the network by <OffthreadVideo> and a
+    // far seek (e.g. time=268s) can exceed 28s. Cache decoded frames of the big
+    // base video so repeated seeks within a chunk don't re-fetch.
+    timeoutInMilliseconds: opts.frameTimeoutMs ?? 120_000,
+    offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
     downloadBehavior: { type: 'download', fileName: 'final.mp4' },
   });
 

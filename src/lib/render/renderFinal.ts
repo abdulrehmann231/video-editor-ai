@@ -113,7 +113,9 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
 
   if (useLambda()) {
     // Parallel cloud render on AWS Lambda (fast, scales). Same inputProps.
-    await renderOnLambda(inputProps, renderedPath, { durationInFrames });
+    // Pass the generous frame timeout + video cache so a slow fetch/seek of the
+    // large cut doesn't trip Remotion's default 28s delayRender limit on Lambda.
+    await renderOnLambda(inputProps, renderedPath, { durationInFrames, frameTimeoutMs: fetchTimeoutMs });
   } else {
     // 3D (Three.js/WebGL) needs a GL backend; 'swangle' is software WebGL (no
     // GPU) — used only when the plan has 3D so 2D renders stay on the fast path.
