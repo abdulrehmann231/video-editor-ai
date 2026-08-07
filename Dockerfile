@@ -23,7 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- Non-root user (HF Spaces expects uid 1000) --------------------------
-RUN useradd -m -u 1000 user
+# The node:bookworm base image already ships a "node" user at uid 1000, so
+# creating our "user" at uid 1000 collides ("UID 1000 is not unique"). Free the
+# uid first (remove node's user+group) so "user" can take 1000.
+RUN userdel -r node 2>/dev/null || true; \
+    groupdel node 2>/dev/null || true; \
+    useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH \
