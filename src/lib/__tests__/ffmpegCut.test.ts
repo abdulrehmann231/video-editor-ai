@@ -47,4 +47,30 @@ describe('buildFfmpegArgs', () => {
     expect(args).toContain('-an');
     expect(args.join(' ')).not.toContain('-map [a]');
   });
+
+  it('always forces constant frame rate (fixes VFR "No frame found" in Remotion)', () => {
+    const args = buildFfmpegArgs('in.mp4', 'out.mp4', segs, { hasAudio: true });
+    expect(args.join(' ')).toContain('-fps_mode cfr');
+  });
+
+  it('pins the output frame rate to the source fps when provided', () => {
+    const args = buildFfmpegArgs('in.mp4', 'out.mp4', segs, { hasAudio: true, fps: 30 });
+    expect(args.join(' ')).toContain('-fps_mode cfr');
+    expect(args.join(' ')).toContain('-r 30');
+    expect(args[args.length - 1]).toBe('out.mp4');
+  });
+
+  it('rounds a fractional fps to an integer so it matches the Remotion composition', () => {
+    // 23.98 fps → composition renders at Math.round(23.98)=24; the cut must too,
+    // else Remotion seeks between frames and throws "No frame found".
+    const args = buildFfmpegArgs('in.mp4', 'out.mp4', segs, { hasAudio: true, fps: 23.98 });
+    expect(args.join(' ')).toContain('-r 24');
+    expect(args.join(' ')).not.toContain('-r 23.98');
+  });
+
+  it('omits -r when fps is unknown but still forces CFR', () => {
+    const args = buildFfmpegArgs('in.mp4', 'out.mp4', segs, { hasAudio: true, fps: null });
+    expect(args.join(' ')).toContain('-fps_mode cfr');
+    expect(args.join(' ')).not.toContain(' -r ');
+  });
 });

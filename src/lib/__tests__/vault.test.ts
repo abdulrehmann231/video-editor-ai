@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { retrieveReferences, refLine, VAULT, VAULT_SIZE } from '../vault';
+import { retrieveReferences, refLine, refCatalogLine, vaultCatalogText, referencesByIds, VAULT, VAULT_SIZE } from '../vault';
 
 describe('vault dataset', () => {
   it('loaded the 451-effect catalog', () => {
@@ -46,5 +46,24 @@ describe('refLine', () => {
     const line = refLine(VAULT[0]);
     expect(line.startsWith('- ')).toBe(true);
     expect(line).toContain(VAULT[0].name);
+  });
+});
+
+describe('model-driven vault catalog', () => {
+  it('refCatalogLine leads with the #id so the model can cite it', () => {
+    const line = refCatalogLine(VAULT[0]);
+    expect(line.startsWith(`#${VAULT[0].i} `)).toBe(true);
+    expect(line).toContain(VAULT[0].name);
+  });
+
+  it('vaultCatalogText lists every reference, one per line', () => {
+    const text = vaultCatalogText();
+    expect(text.split('\n').length).toBe(VAULT_SIZE);
+    expect(text).toContain('#1 ');
+  });
+
+  it('referencesByIds returns the requested references', () => {
+    const refs = referencesByIds([VAULT[0].i, VAULT[3].i]);
+    expect(refs.map((r) => r.i).sort()).toEqual([VAULT[0].i, VAULT[3].i].sort());
   });
 });

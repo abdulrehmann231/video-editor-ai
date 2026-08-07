@@ -31,3 +31,7 @@ next-env.d.ts
 # local scratch / media
 /tmp-media
 /.scratch
+
+# crash/core dumps (never commit — may contain secrets from memory)
+core
+core.*

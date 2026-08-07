@@ -1,5 +1,5 @@
 import { buildCatalogText, EDL_RESPONSE_SCHEMA } from '../edl/catalog';
-import { retrieveReferences, refLine } from '../vault';
+import { retrieveReferences, refLine, vaultCatalogText } from '../vault';
 import { transcriptToScript } from './prompt';
 import type { EditorialPlan } from './plan';
 import type { MediaInfo } from '../ingest';
@@ -38,9 +38,10 @@ export function countBeatRefs(plan: EditorialPlan, refsPerBeat = 4): number {
 export function buildBuildPrompt(input: BuildInput): string {
   const { plan, media, silence, transcript, research, userPrompt } = input;
   const dur = media.durationSec ?? 0;
-  const refsPerBeat = input.refsPerBeat ?? 4;
+  const refsPerBeat = input.refsPerBeat ?? 3;
 
-  // Per-moment vault search: each beat gets its own best-matching references.
+  // Per-beat keyword matches are now only STARTING POINTS — the model sees the
+  // full vault (below) and may pick any reference by #id that fits by meaning.
   const beatBlocks = plan.beats
     .map((b, i) => {
       const refs = retrieveReferences(b.searchQuery, { limit: refsPerBeat });
@@ -48,8 +49,8 @@ export function buildBuildPrompt(input: BuildInput): string {
       return `  BEAT ${i + 1} [${b.start}s–${b.end}s] intent: ${b.intent}${
         b.effectHint ? ` | hint: ${b.effectHint}` : ''
       }
-    vault matches for "${b.searchQuery}":
-${refLines || '      (no strong match — use the closest catalog effect)'}`;
+    keyword starting points for "${b.searchQuery}" (you may instead pick ANY #id from the FULL VAULT):
+${refLines || '      (weak keyword match — choose from the FULL VAULT by meaning)'}`;
     })
     .join('\n\n');
 
@@ -63,8 +64,9 @@ ${refLines || '      (no strong match — use the closest catalog effect)'}`;
     silence.length > 0 ? silence.slice(0, 200).map((s) => `  - ${s.start}s → ${s.end}s`).join('\n') : '  (none)';
 
   return `You are an elite B2B YouTube editor building the final EDIT DECISION LIST (EDL) from a
-plan you already made. For EACH beat, realize the intent with the SINGLE best-fitting effect
-from the catalog, inspired by that beat's matched vault reference. Map the vault look to the
+plan you already made. For EACH beat, CHOOSE the single best-fitting reference from the FULL
+INSPIRATION VAULT below (by meaning — the per-beat keyword lists are only starting points), then
+realize it with the closest renderable effect from the catalog. Map the vault look to the
 closest renderable effect (kinetic/typewriter → caption style; scale-pop/zoom → zoom_punch;
 lower-third → lower_third; stat/badge → stat_callout OR three:stat_orb for a premium 3D
 number; celebration → lottie:confetti/trophy; underline/highlight → lottie:underline;
@@ -73,7 +75,11 @@ ${userBlock}${researchBlock}
 EDITORIAL PLAN: niche=${plan.niche ?? '?'}, tone=${plan.tone ?? '?'}.
 ${plan.summary ? `Approach: ${plan.summary}` : ''}
 
-BEATS (each with its own vault matches — build one effect per beat):
+FULL INSPIRATION VAULT — 451 references. Pick the best #id for each beat by MEANING (not just
+keyword overlap); prefer variety across the video. Each line: #id name [motion; tags] — use.
+${vaultCatalogText()}
+
+BEATS (choose one vault #id per beat, then one effect):
 ${beatBlocks}
 
 ALSO: add silence_cut ops for the detected silence (tighten pacing):
@@ -91,6 +97,6 @@ RULES:
 - Prefer the beats' plan, but you MAY add/adjust for a professional result. Be rich yet tasteful;
   don't stack two big effects on the exact same instant.
 - Use 3D (three) sparingly — a couple of standout moments at most.
-- End every op's "reason" with the inspiring reference, e.g. "(ref: …)".
+- End every op's "reason" with the chosen vault reference id + name, e.g. "(ref: #123 Liquid Money Orb Pop-In)".
 - Output ONLY the JSON EDL matching the schema, plus a one-paragraph "summary".`;
 }

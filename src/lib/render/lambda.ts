@@ -27,13 +27,28 @@ function readPositiveInt(value: string | undefined): number | null {
   return parsed;
 }
 
+/**
+ * Frames each Lambda renders. Remotion has NO separate concurrency knob — the
+ * number of renderer Lambdas invoked at once is exactly
+ * `ceil(durationInFrames / framesPerLambda)` (+1 orchestrator). So to stay under
+ * the AWS account concurrency limit (new accounts are capped at 10) we derive a
+ * shard size from `REMOTION_MAX_LAMBDA_FUNCTIONS` and treat that as a HARD cap:
+ * an explicit `REMOTION_FRAMES_PER_LAMBDA` may make shards bigger (fewer
+ * Lambdas) but is never allowed to make them smaller than the cap requires —
+ * otherwise it would silently spawn hundreds of Lambdas and trip AWS's
+ * "Rate Exceeded" throttle.
+ */
 export function framesPerLambda(durationInFrames: number): number {
-  const explicit = readPositiveInt(process.env.REMOTION_FRAMES_PER_LAMBDA);
-  if (explicit !== null) return explicit;
-
-  const maxLambdaFunctions = readPositiveInt(process.env.REMOTION_MAX_LAMBDA_FUNCTIONS) ?? DEFAULT_MAX_LAMBDA_FUNCTIONS;
+  const maxLambdaFunctions =
+    readPositiveInt(process.env.REMOTION_MAX_LAMBDA_FUNCTIONS) ?? DEFAULT_MAX_LAMBDA_FUNCTIONS;
+  // Reserve one concurrency slot for the orchestrator function.
   const rendererFunctions = Math.max(1, maxLambdaFunctions - 1);
-  return Math.max(1, Math.ceil(durationInFrames / rendererFunctions));
+  // Smallest shard that keeps the renderer count within the cap.
+  const concurrencyFloor = Math.max(1, Math.ceil(durationInFrames / rendererFunctions));
+
+  const explicit = readPositiveInt(process.env.REMOTION_FRAMES_PER_LAMBDA);
+  // Honor a bigger explicit shard, but never let it push concurrency over the cap.
+  return explicit !== null ? Math.max(explicit, concurrencyFloor) : concurrencyFloor;
 }
 
 export function lambdaConfig(): LambdaConfig | null {
@@ -59,7 +74,9 @@ export function useLambda(): boolean {
 export async function renderOnLambda(
   inputProps: Record<string, unknown>,
   outPath: string,
-  opts: { durationInFrames: number; pollMs?: number; timeoutMs?: number } = { durationInFrames: 1 },
+  opts: { durationInFrames: number; pollMs?: number; timeoutMs?: number; frameTimeoutMs?: number } = {
+    durationInFrames: 1,
+  },
 ): Promise<void> {
   const cfg = lambdaConfig();
   if (!cfg) throw new Error('Lambda not configured (see DEPLOY-LAMBDA.md).');
@@ -75,11 +92,22 @@ export async function renderOnLambda(
     privacy: 'public',
     maxRetries: 1,
     framesPerLambda: framesPerLambda(opts.durationInFrames),
+    // Raise the per-frame delayRender timeout above Remotion's 28s default — the
+    // 100+ MB cut is fetched/seeked over the network by <OffthreadVideo> and a
+    // far seek (e.g. time=268s) can exceed 28s. Cache decoded frames of the big
+    // base video so repeated seeks within a chunk don't re-fetch.
+    timeoutInMilliseconds: opts.frameTimeoutMs ?? 120_000,
+    offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
     downloadBehavior: { type: 'download', fileName: 'final.mp4' },
   });
 
   const pollMs = opts.pollMs ?? 3000;
-  const deadline = Date.now() + (opts.timeoutMs ?? 15 * 60_000);
+  // How long the client waits for the whole render before giving up. On a low
+  // AWS concurrency quota the frames are split into a few large chunks that run
+  // in parallel, so wall-clock can approach the Lambda function timeout (up to
+  // 900s) plus overhead. Default 25 min; override with REMOTION_LAMBDA_RENDER_TIMEOUT_MS.
+  const defaultDeadlineMs = readPositiveInt(process.env.REMOTION_LAMBDA_RENDER_TIMEOUT_MS) ?? 25 * 60_000;
+  const deadline = Date.now() + (opts.timeoutMs ?? defaultDeadlineMs);
   for (;;) {
     const progress = await getRenderProgress({
       renderId,

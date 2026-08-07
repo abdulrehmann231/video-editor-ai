@@ -26,10 +26,16 @@ export const Beat = z.object({
 });
 export type Beat = z.infer<typeof Beat>;
 
+/** Where word-captions sit so they never cover the speaker/key on-screen content. */
+export const CAPTION_PLACEMENTS = ['lower', 'middle', 'upper'] as const;
+export type CaptionPlacement = (typeof CAPTION_PLACEMENTS)[number];
+
 export const EditorialPlan = z.object({
   niche: z.string().max(80).optional(),
   tone: z.string().max(80).optional(),
   summary: z.string().max(800).optional(),
+  /** AI-chosen caption position based on the video's framing. */
+  captionPlacement: z.enum(CAPTION_PLACEMENTS).optional(),
   segments: z
     .array(z.object({ start: z.number().min(0), end: z.number().min(0), title: z.string().max(120) }))
     .default([]),
@@ -43,6 +49,11 @@ export const PLAN_RESPONSE_SCHEMA: Schema = {
     niche: { type: SchemaType.STRING, description: 'Content niche (e.g. B2B SaaS, fitness, finance).' },
     tone: { type: SchemaType.STRING, description: 'Overall tone/energy.' },
     summary: { type: SchemaType.STRING, description: 'One-paragraph editorial approach.' },
+    captionPlacement: {
+      type: SchemaType.STRING,
+      description:
+        "Where the word-by-word subtitles should sit so they NEVER cover the speaker's face or key on-screen text/graphics. 'lower' = standard YouTube lower-third position (use by default when the subject is centered or in the upper 2/3). 'upper' = near the top (use when the speaker or important content occupies the BOTTOM of the frame). 'middle' = centered (only for full-screen b-roll stretches, or when both top and bottom are busy).",
+    },
     segments: {
       type: SchemaType.ARRAY,
       items: {
@@ -106,6 +117,9 @@ Think about RETENTION and a professional look:
   (e.g. "kinetic caption hook", "3d money orb finance", "glitch section wipe").
 - Aim for roughly ${targetBeats}+ beats spread across the ${Math.round(dur)}s video (a
   pattern-interrupt every ~8–15s). Be rich but tasteful — don't stack beats on the same moment.
+- Set captionPlacement by WATCHING the framing: pick where subtitles won't cover the speaker's
+  face or on-screen text. Default 'lower' (standard YouTube); use 'upper' if the subject sits in
+  the lower third; 'middle' only for full-screen b-roll stretches.
 
 VIDEO FACTS: duration ${dur}s (${fmt(dur)}), ${media.width}x${media.height} @ ${media.fps}fps,
 audio ${media.hasAudio ? 'present' : 'NONE'}.

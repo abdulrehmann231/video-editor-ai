@@ -4,6 +4,7 @@ import { renderCut } from '../render/renderCut';
 import { renderFinal, type OutputLayout } from '../render/renderFinal';
 import { buildOverlayPlan } from '../render/timeline';
 import { resolveBroll } from '../render/resolveBroll';
+import { normalizeBrollClips } from '../render/normalizeBroll';
 import { defaultMusicPath } from '../render/music';
 import { deriveProxies } from '../media/derive';
 
@@ -163,7 +164,13 @@ export async function runFinalRender(
     const { resolved, warnings } = await resolveBroll(plan.brolls, {
       orientation: isShorts ? 'portrait' : 'landscape',
     });
-    plan.brolls = resolved;
+    // Normalize each clip to the composition's integer fps (same rate renderFinal
+    // uses). Stock clips are commonly 23.976 fps; played in a 24 fps composition
+    // they crash Remotion with "No frame found at position …". Re-encode to CFR
+    // integer fps (cached in R2) so every source maps 1:1 to the timeline.
+    const norm = await normalizeBrollClips(resolved, editMedia.fps ?? 30);
+    plan.brolls = norm.brolls;
+    warnings.push(...norm.warnings);
 
     // 3. Composite (+ music ducking).
     const result = await renderFinal({

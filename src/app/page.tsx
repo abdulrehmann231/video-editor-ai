@@ -236,18 +236,42 @@ async function uploadPartWithRetry(
   throw new Error(`part ${partNumber} failed: ${(lastErr as Error)?.message ?? lastErr}`);
 }
 
+/** No-progress window after which a part is considered stalled and aborted. */
+const PART_STALL_MS = 60_000;
+
 function putPart(url: string, blob: Blob, onLoaded: (loaded: number) => void): Promise<string> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    // Watchdog: if neither the upload nor the server response makes progress for
+    // PART_STALL_MS, abort so uploadPartWithRetry re-signs and retries. Without
+    // this, a stalled connection AFTER the body is sent (bar shows 100% but the
+    // ETag response never arrives) hangs the whole upload forever.
+    let timer: ReturnType<typeof setTimeout>;
+    const arm = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        xhr.abort();
+        reject(new Error(`part stalled (no progress for ${PART_STALL_MS / 1000}s)`));
+      }, PART_STALL_MS);
+    };
+    const done = (fn: () => void) => {
+      clearTimeout(timer);
+      fn();
+    };
     xhr.open('PUT', url);
     xhr.upload.onprogress = (e) => {
+      arm();
       if (e.lengthComputable) onLoaded(e.loaded);
     };
     xhr.onload = () =>
-      xhr.status >= 200 && xhr.status < 300
-        ? resolve(xhr.getResponseHeader('ETag') || '')
-        : reject(new Error(`part HTTP ${xhr.status}`));
-    xhr.onerror = () => reject(new Error('network error during part upload'));
+      done(() =>
+        xhr.status >= 200 && xhr.status < 300
+          ? resolve(xhr.getResponseHeader('ETag') || '')
+          : reject(new Error(`part HTTP ${xhr.status}`)),
+      );
+    xhr.onerror = () => done(() => reject(new Error('network error during part upload')));
+    xhr.onabort = () => clearTimeout(timer);
+    arm();
     xhr.send(blob);
   });
 }
