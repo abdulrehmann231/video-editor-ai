@@ -27,14 +27,18 @@ primary_region = "sin"
 [http_service]
   internal_port = 7860
   force_https = true
-  # Scale to zero when idle = cheap (you only pay while processing). The machine
-  # auto-starts on the next request.
+  # Jobs (derive/analyze/cut/render) run IN-PROCESS as background tasks. Fly's
+  # auto-stop only looks at HTTP request load, not background work, so with
+  # auto_stop="stop" it kills a machine mid-encode ("excess capacity, autostopping")
+  # and the pipeline freezes forever. So DISABLE auto-stop — the machine stays up
+  # while a job runs. It still auto-STARTS on a request if you've manually stopped
+  # it. Cost control: when you're done for the day, `fly machine stop <id>` (or
+  # `fly scale count 0`); a visit to the URL wakes it again.
   #
-  # IMPORTANT: jobs run in-process. While a render runs, the browser polls every
-  # ~4s which keeps the machine awake — so KEEP THE TAB OPEN until it finishes.
-  # If you want long renders to survive a closed tab, set min_machines_running = 1
-  # (costs ~$X/mo to keep one machine always on — only do this if you need it).
-  auto_stop_machines = "stop"
+  # Also keep exactly ONE machine (`fly scale count 1`): with 2+ machines the
+  # browser's polling load-balances across them and Fly stops the "excess" one —
+  # which may be the one running your job.
+  auto_stop_machines = "off"
   auto_start_machines = true
   min_machines_running = 0
 
