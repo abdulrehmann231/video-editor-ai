@@ -1,8 +1,17 @@
 # Fly.io config for edit-ai. Uses the repo Dockerfile (Node + ffmpeg + headless
 # Chrome libs). `fly launch` will pick a unique app name if "edit-ai" is taken.
+#
+# Path A setup: this one machine runs the WHOLE pipeline (derive → analyze → cut
+# → render) with RENDER_BACKEND=local, so there's no AWS Lambda and no quota to
+# fight. It's a performance VM (fast encodes/renders) that SCALES TO ZERO when
+# idle — you pay per-second only while it's actually working (~cents per video),
+# not a monthly server bill.
 
 app = "edit-ai"
-primary_region = "iad"  # change to a region near you (e.g. lhr, fra, sin)
+# Put the machine near your Cloudflare R2 bucket (yours is APAC) so reads/writes
+# are fast. Change to your nearest Fly region: sin=Singapore, hkg=Hong Kong,
+# nrt=Tokyo, bom=Mumbai, syd=Sydney, fra=Frankfurt, iad=US-East.
+primary_region = "sin"
 
 [build]
   dockerfile = "Dockerfile"
@@ -10,13 +19,21 @@ primary_region = "iad"  # change to a region near you (e.g. lhr, fra, sin)
 [env]
   PORT = "7860"
   NODE_ENV = "production"
+  # Render on THIS machine (no Lambda) — avoids the AWS concurrency quota entirely.
+  # Set to "lambda" instead (and configure the REMOTION_* secrets) once your AWS
+  # Lambda concurrency quota is raised, if you want faster parallel renders.
+  RENDER_BACKEND = "local"
 
 [http_service]
   internal_port = 7860
   force_https = true
-  # Scale to zero when idle to stay within Fly's free allowance; wakes on request.
-  # NOTE: while a render runs, the browser polls every 4s which keeps the machine
-  # awake. If you want renders to survive a closed tab, set min_machines_running = 1.
+  # Scale to zero when idle = cheap (you only pay while processing). The machine
+  # auto-starts on the next request.
+  #
+  # IMPORTANT: jobs run in-process. While a render runs, the browser polls every
+  # ~4s which keeps the machine awake — so KEEP THE TAB OPEN until it finishes.
+  # If you want long renders to survive a closed tab, set min_machines_running = 1
+  # (costs ~$X/mo to keep one machine always on — only do this if you need it).
   auto_stop_machines = "stop"
   auto_start_machines = true
   min_machines_running = 0
@@ -26,10 +43,14 @@ primary_region = "iad"  # change to a region near you (e.g. lhr, fra, sin)
     hard_limit = 25
     soft_limit = 20
 
-# Swap lets renders survive transient memory spikes on a small VM (no OOM-kill).
-swap_size_mb = 2048
+# Swap absorbs transient memory spikes during a render so a big frame doesn't
+# OOM-kill the machine.
+swap_size_mb = 4096
 
+# Performance (dedicated) CPUs so encodes/renders finish fast. Because the machine
+# scales to zero, a faster VM often costs LESS per video (less active time).
+# Smaller/cheaper: cpus = 2, memory_mb = 4096. Faster: cpus = 8, memory_mb = 16384.
 [[vm]]
-  cpu_kind = "shared"
-  cpus = 1
-  memory_mb = 1024  # 720p renders fit here; bump to 2048 for headroom / 1080p Shorts
+  cpu_kind = "performance"
+  cpus = 4
+  memory_mb = 8192
