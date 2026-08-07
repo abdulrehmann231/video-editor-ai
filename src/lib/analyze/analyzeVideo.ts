@@ -154,6 +154,8 @@ async function runAgentic(
       const buildText = await generateStructuredText(key, model, buildPrompt, EDL_RESPONSE_SCHEMA);
       try {
         const { edl } = parseEdl(safeJson(buildText), { durationSec });
+        // The PLAN stage (which watched the video) decides caption placement.
+        edl.captionPlacement = plan.captionPlacement ?? edl.captionPlacement;
         return { edl, meta: meta(), plan, repaired: false };
       } catch (validationErr) {
         const repairText = await generateStructuredText(
@@ -163,6 +165,7 @@ async function runAgentic(
           EDL_RESPONSE_SCHEMA,
         );
         const { edl } = parseEdl(safeJson(repairText), { durationSec });
+        edl.captionPlacement = plan.captionPlacement ?? edl.captionPlacement;
         return { edl, meta: meta(), plan, repaired: true };
       }
     } catch (err) {

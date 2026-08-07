@@ -119,6 +119,8 @@ export const Edl = z.object({
   version: z.literal(EDL_VERSION).default(EDL_VERSION),
   /** One-paragraph editorial summary of the approach taken. */
   summary: z.string().max(1000).optional(),
+  /** AI-chosen caption position (from the PLAN stage). Defaults to 'lower' at render. */
+  captionPlacement: z.enum(['lower', 'middle', 'upper']).optional(),
   ops: z.array(EditOp),
 });
 export type Edl = z.infer<typeof Edl>;
@@ -235,5 +237,8 @@ export function parseEdl(
   }
 
   const summary = typeof cleaned?.summary === 'string' ? cleaned.summary : undefined;
-  return { edl: { version: EDL_VERSION, summary, ops: clamped }, warnings };
+  const cp = (cleaned as { captionPlacement?: unknown }).captionPlacement;
+  const captionPlacement =
+    cp === 'lower' || cp === 'middle' || cp === 'upper' ? cp : undefined;
+  return { edl: { version: EDL_VERSION, summary, captionPlacement, ops: clamped }, warnings };
 }

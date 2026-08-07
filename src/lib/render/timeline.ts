@@ -116,6 +116,8 @@ export interface OverlayPlan {
   threes: ThreeOverlay[];
   /** Cut-timeline duration in seconds. */
   outputDurationSec: number;
+  /** AI-chosen caption position ('lower' | 'middle' | 'upper'). */
+  captionPlacement?: 'lower' | 'middle' | 'upper';
 }
 
 /**
@@ -183,7 +185,7 @@ export function buildOverlayPlan(
   // with Gemini's caption ops applying their style over their ranges.
   const captions = buildAutoCaptions(transcript, keep, captionStyleRanges);
 
-  return { zooms, captions, lowerThirds, brolls, titleCards, statCallouts, transitions, lotties, threes, outputDurationSec };
+  return { zooms, captions, lowerThirds, brolls, titleCards, statCallouts, transitions, lotties, threes, outputDurationSec, captionPlacement: edl.captionPlacement };
 }
 
 type CaptionStyle = CaptionOverlay['style'];

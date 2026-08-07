@@ -31,6 +31,7 @@ export const Edit: React.FC<EditProps> = ({
   lotties,
   threes,
   progressBar,
+  captionPlacement,
 }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: 'black' }}>
@@ -40,7 +41,7 @@ export const Edit: React.FC<EditProps> = ({
       <StatCallouts items={statCallouts} fps={fps} />
       <LottieLayer lotties={lotties} fps={fps} />
       <LowerThirds items={lowerThirds} fps={fps} />
-      <Captions captions={captions} fps={fps} />
+      <Captions captions={captions} fps={fps} placement={captionPlacement} />
       <TitleCards items={titleCards} fps={fps} />
       <Transitions items={transitions} fps={fps} />
       {progressBar && <ProgressBar />}

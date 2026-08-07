@@ -11,32 +11,46 @@ import { FONT_DISPLAY, COLORS, outlineStyle } from '../theme';
  *  - karaoke        : words fill with colour as they're spoken
  *  - typewriter     : phrase builds up character-by-character
  */
-export const Captions: React.FC<{ captions: CaptionOverlay[]; fps: number }> = ({ captions, fps }) => (
+export type CaptionPlacement = 'lower' | 'middle' | 'upper';
+
+export const Captions: React.FC<{ captions: CaptionOverlay[]; fps: number; placement?: CaptionPlacement }> = ({
+  captions,
+  fps,
+  placement = 'lower',
+}) => (
   <>
     {captions.map((c) => {
       const from = Math.round(c.start * fps);
       const durationInFrames = Math.max(1, Math.round((c.end - c.start) * fps));
       return (
         <Sequence key={c.id} from={from} durationInFrames={durationInFrames}>
-          <CaptionBlock caption={c} />
+          <CaptionBlock caption={c} placement={placement} />
         </Sequence>
       );
     })}
   </>
 );
 
-const WRAP: React.CSSProperties = {
-  position: 'absolute',
-  bottom: '13%',
-  left: 0,
-  right: 0,
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'flex-end',
-  padding: '0 7%',
-};
+/**
+ * Vertical placement of the caption block. The AI (PLAN stage) picks this per
+ * video so subtitles don't cover the speaker's face or on-screen text. 'lower'
+ * is the standard YouTube lower-third spot.
+ */
+function wrapStyle(placement: CaptionPlacement): React.CSSProperties {
+  const base: React.CSSProperties = {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0 7%',
+  };
+  if (placement === 'upper') return { ...base, top: '12%', alignItems: 'flex-start' };
+  if (placement === 'middle') return { ...base, top: 0, bottom: 0, alignItems: 'center' };
+  return { ...base, bottom: '13%', alignItems: 'flex-end' }; // 'lower' (default)
+}
 
-const CaptionBlock: React.FC<{ caption: CaptionOverlay }> = ({ caption }) => {
+const CaptionBlock: React.FC<{ caption: CaptionOverlay; placement: CaptionPlacement }> = ({ caption, placement }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
   const tAbs = caption.start + frame / fps;
@@ -44,7 +58,7 @@ const CaptionBlock: React.FC<{ caption: CaptionOverlay }> = ({ caption }) => {
   if (activeIdx < 0) return null;
 
   if (caption.style === 'typewriter') {
-    return <Typewriter caption={caption} tAbs={tAbs} activeIdx={activeIdx} width={width} />;
+    return <Typewriter caption={caption} tAbs={tAbs} activeIdx={activeIdx} width={width} placement={placement} />;
   }
 
   const fontSize = Math.round(width * 0.062);
@@ -72,7 +86,7 @@ const CaptionBlock: React.FC<{ caption: CaptionOverlay }> = ({ caption }) => {
   });
 
   return (
-    <AbsoluteFill style={WRAP}>
+    <AbsoluteFill style={wrapStyle(placement)}>
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: `${fontSize * 0.12}px ${fontSize * 0.3}px`, maxWidth: '90%' }}>
         {win.map((w, i) => {
           const idx = from + i;
@@ -121,12 +135,13 @@ const CaptionBlock: React.FC<{ caption: CaptionOverlay }> = ({ caption }) => {
   );
 };
 
-const Typewriter: React.FC<{ caption: CaptionOverlay; tAbs: number; activeIdx: number; width: number }> = ({
-  caption,
-  tAbs,
-  activeIdx,
-  width,
-}) => {
+const Typewriter: React.FC<{
+  caption: CaptionOverlay;
+  tAbs: number;
+  activeIdx: number;
+  width: number;
+  placement: CaptionPlacement;
+}> = ({ caption, tAbs, activeIdx, width, placement }) => {
   const active = caption.words[activeIdx];
   const dur = Math.max(0.12, active.end - active.start);
   const prog = Math.min(1, Math.max(0, (tAbs - active.start) / dur));
@@ -138,7 +153,7 @@ const Typewriter: React.FC<{ caption: CaptionOverlay; tAbs: number; activeIdx: n
   const stroke = Math.max(4, Math.round(fontSize * 0.08));
 
   return (
-    <AbsoluteFill style={WRAP}>
+    <AbsoluteFill style={wrapStyle(placement)}>
       <div
         style={{
           maxWidth: '88%',

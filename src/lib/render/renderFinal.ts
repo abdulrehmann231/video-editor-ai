@@ -101,6 +101,7 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     transitions: input.plan.transitions,
     lotties: input.plan.lotties,
     threes: input.plan.threes,
+    captionPlacement: input.plan.captionPlacement ?? 'lower',
   };
 
   // The base video (cut) can be 100+ MB and is fetched over the network by

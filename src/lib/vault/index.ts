@@ -121,3 +121,29 @@ export function refLine(r: VaultRef): string {
   const use = (r.use || r.what).slice(0, 140);
   return `- ${r.name} [${r.motion || 'n/a'}${tags ? `; ${tags}` : ''}] — ${use}`;
 }
+
+/**
+ * Catalog line for MODEL-DRIVEN selection: leads with the numeric #id so the
+ * model can cite exactly which reference it chose. Includes motion + tags + a
+ * one-line use so the model can decide by meaning, not our keyword match.
+ */
+export function refCatalogLine(r: VaultRef): string {
+  const tags = r.tags.slice(0, 4).join(', ');
+  const use = (r.use || r.what).replace(/\s+/g, ' ').slice(0, 120);
+  return `#${r.i} ${r.name} [${r.motion || 'n/a'}${tags ? `; ${tags}` : ''}] — ${use}`;
+}
+
+/**
+ * The ENTIRE vault as compact catalog lines (~21k tokens for 451 refs). Fed to
+ * the BUILD stage so the model chooses references itself instead of being handed
+ * only a keyword pre-filter.
+ */
+export function vaultCatalogText(): string {
+  return VAULT.map(refCatalogLine).join('\n');
+}
+
+/** Full detail for specific reference ids (for optional on-demand expansion). */
+export function referencesByIds(ids: number[]): VaultRef[] {
+  const want = new Set(ids);
+  return VAULT.filter((r) => want.has(r.i));
+}

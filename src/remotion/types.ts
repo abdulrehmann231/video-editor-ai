@@ -97,6 +97,8 @@ export interface EditProps {
   transitions: TransitionOverlay[];
   lotties: LottieOverlay[];
   threes: ThreeOverlay[];
+  /** AI-chosen caption position; defaults to 'lower' (standard YouTube). */
+  captionPlacement?: 'lower' | 'middle' | 'upper';
 }
 
 export const DEFAULT_EDIT_PROPS: EditProps = {
@@ -118,4 +120,5 @@ export const DEFAULT_EDIT_PROPS: EditProps = {
   transitions: [],
   lotties: [],
   threes: [],
+  captionPlacement: 'lower',
 };
