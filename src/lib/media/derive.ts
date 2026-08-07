@@ -57,7 +57,7 @@ export async function deriveProxies(input: DeriveInput): Promise<DeriveResult> {
   try {
     // Big 4K sources are read from R2 over HTTP and re-encoded twice on CPU, which
     // can exceed 30 min. Default 60 min; override with DERIVE_TIMEOUT_MS.
-    const timeoutMs = input.timeoutMs ?? Number(process.env.DERIVE_TIMEOUT_MS) || 60 * 60_000;
+    const timeoutMs = input.timeoutMs ?? (Number(process.env.DERIVE_TIMEOUT_MS) || 60 * 60_000);
     await runFfmpeg(args, timeoutMs);
 
     const mezzanineMedia = await probeMedia(mezzPath);
