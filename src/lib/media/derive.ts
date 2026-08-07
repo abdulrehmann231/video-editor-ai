@@ -46,15 +46,19 @@ export async function deriveProxies(input: DeriveInput): Promise<DeriveResult> {
     '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart',
     mezzPath,
-    // proxy (480p, mono)
+    // proxy (480p, mono, 15fps) — only feeds Gemini/Whisper, so encode it as
+    // cheaply as possible (ultrafast + low fps) to cut total derive time.
     '-map', '[proxy]', ...audioMaps,
-    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '30', '-pix_fmt', 'yuv420p',
+    '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '30', '-pix_fmt', 'yuv420p', '-r', '15',
     '-c:a', 'aac', '-b:a', '96k', '-ac', '1', '-movflags', '+faststart',
     proxyPath,
   ];
 
   try {
-    await runFfmpeg(args, input.timeoutMs ?? 30 * 60_000);
+    // Big 4K sources are read from R2 over HTTP and re-encoded twice on CPU, which
+    // can exceed 30 min. Default 60 min; override with DERIVE_TIMEOUT_MS.
+    const timeoutMs = input.timeoutMs ?? Number(process.env.DERIVE_TIMEOUT_MS) || 60 * 60_000;
+    await runFfmpeg(args, timeoutMs);
 
     const mezzanineMedia = await probeMedia(mezzPath);
     const proxyKey = `derived/${input.projectId}/proxy.mp4`;
