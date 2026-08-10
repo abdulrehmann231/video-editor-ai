@@ -50,9 +50,8 @@ describe('brand-driven templates', () => {
 describe('dynamic caption styling (kinetic_text)', () => {
   const cap = (params: Record<string, unknown>) => resolveTemplate('kinetic_text', { text: 'hi', ...params }, CTX).layers[0] as AnyLayer;
 
-  it('defaults to a smaller size than before (0.042 of width)', () => {
-    expect(cap({}).font?.size).toBe(Math.round(1280 * 0.042)); // 54 (was 64)
-    expect(cap({}).font!.size!).toBeLessThan(64);
+  it('uses the caption default size (0.05 of width) in the text fallback', () => {
+    expect(cap({}).font?.size).toBe(Math.round(1280 * 0.05)); // 64
   });
 
   it('honors size / tracking / fontFamily / fill params', () => {

@@ -119,4 +119,24 @@ describe.skipIf(!RUN)('pixel golden — Motion composition', () => {
     },
     120_000,
   );
+
+  it(
+    'word-by-word caption (reveal + active highlight) matches the reference',
+    async () => {
+      const { edl } = parseEdl({ ops: [{ id: 'c', type: 'caption', start: 0, end: 3, reason: 's', style: 'word_highlight' }] }, { durationSec: 5 });
+      const { compositions } = motionFromEdl(
+        edl,
+        [
+          { word: 'THIS', start: 0, end: 0.5 },
+          { word: 'CHANGES', start: 0.5, end: 1.1 },
+          { word: 'EVERYTHING', start: 1.1, end: 1.9 },
+        ],
+        5,
+        MEDIA,
+      );
+      // frame 22 (~0.73s): "THIS CHANGES" shown, CHANGES active/highlighted.
+      await renderAndCompare('motion-caption', 'public/testclips/base.mp4', compositions, 22);
+    },
+    120_000,
+  );
 });

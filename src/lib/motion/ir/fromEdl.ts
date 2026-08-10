@@ -120,7 +120,9 @@ export function motionFromEdl(
 
   // Dense word-by-word captions across the whole spoken content (like a real
   // YouTube edit); Gemini caption ops apply their style over their ranges.
-  const captions = buildAutoCaptions(transcript, keep, captionStyleRanges);
+  // Punchy phrases (≤3 words) so few words are on screen at once — reads better
+  // and lets the per-word reveal animation breathe.
+  const captions = buildAutoCaptions(transcript, keep, captionStyleRanges, { maxWords: 3 });
   captions.forEach((c, i) => {
     const dur = round(c.end - c.start);
     const words = c.words.map((w) => ({ word: w.word, start: round(w.start - c.start), end: round(w.end - c.start) }));
