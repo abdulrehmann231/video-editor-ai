@@ -49,7 +49,7 @@ describe('clampParams', () => {
 
   it('clamps a fractional size param', () => {
     const t = getTemplate('kinetic_text')!;
-    expect(clampParams(t, { size: 0.99 }).size).toBe(0.1); // max
+    expect(clampParams(t, { size: 0.99 }).size).toBe(0.15); // max
     expect(clampParams(t, { size: 0.001 }).size).toBe(0.02); // min
   });
 });

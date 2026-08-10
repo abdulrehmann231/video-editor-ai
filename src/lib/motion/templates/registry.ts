@@ -56,8 +56,8 @@ export const TEMPLATES: EffectTemplate[] = [
     renderer: 'remotion',
     parameters: [
       { name: 'text', type: 'string', default: '', description: 'Whole-phrase fallback text (used when no per-word timing is supplied).' },
-      { name: 'style', type: 'enum', default: 'word_highlight', options: ['word_highlight', 'bold_pop', 'karaoke', 'typewriter'], semanticRole: 'style' },
-      { name: 'size', type: 'number', default: 0.05, min: 0.02, max: 0.1, description: 'Font size as a fraction of frame width.', semanticRole: 'emphasis' },
+      { name: 'style', type: 'enum', default: 'word_highlight', options: ['word_highlight', 'bold_pop', 'karaoke', 'typewriter', 'youtube', 'single_word', 'underline', 'bounce'], semanticRole: 'style' },
+      { name: 'size', type: 'number', default: 0.05, min: 0.02, max: 0.15, description: 'Font size as a fraction of frame width (single-word styles go large).', semanticRole: 'emphasis' },
       { name: 'weight', type: 'number', default: 800, min: 100, max: 900, semanticRole: 'emphasis' },
       { name: 'tracking', type: 'number', default: 0, min: -5, max: 40, description: 'Letter-spacing in px.', semanticRole: 'style' },
       { name: 'placement', type: 'enum', default: 'lower', options: ['lower', 'middle', 'upper'], semanticRole: 'composition' },

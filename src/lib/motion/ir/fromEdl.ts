@@ -3,10 +3,11 @@ import type { TranscriptWord } from '../../analyze/transcribe';
 import { computeKeepSegments, cutRangesFromEdl } from '../../render/segments';
 import { remapRange, buildAutoCaptions } from '../../render/timeline';
 import { IR_VERSION } from './version';
-import type { CaptionStyle, MotionComposition } from './types';
+import type { MotionComposition } from './types';
 import { resolveTemplate } from '../compiler/resolveTemplates';
 import type { BuildCtx } from '../templates/helpers';
 import { DEFAULT_BRAND, type BrandProfile } from '../brand';
+import { resolveCaptionConfig, type CaptionConfig } from '../captions';
 
 /**
  * EDL -> Motion IR adapter (engine plan §50 compatibility layer).
@@ -68,13 +69,19 @@ export function motionFromEdl(
   sourceDurationSec: number,
   canvas: CanvasSpec,
   brand: BrandProfile = DEFAULT_BRAND,
+  /** Per-project caption look (preset name or partial config). When set, it wins
+   * over the per-op caption style so the whole video shares one caption style. */
+  captionConfig?: string | CaptionConfig,
 ): MotionFromEdlResult {
+  const cfg = captionConfig != null ? resolveCaptionConfig(captionConfig) : undefined;
   const keep = computeKeepSegments(sourceDurationSec, cutRangesFromEdl(edl), { minKeepSec: 0.05 });
   const warnings: string[] = [];
   const compositions: MotionComposition[] = [];
   // Caption ops become STYLE hints over cut-time ranges; the actual dense caption
   // coverage is generated from the full transcript below (matches the EDL path).
-  const captionStyleRanges: { start: number; end: number; style: CaptionStyle }[] = [];
+  // Caption ops only carry the original 4 styles (matches buildAutoCaptions);
+  // the richer preset styles arrive via captionConfig, not per-op hints.
+  const captionStyleRanges: { start: number; end: number; style: 'word_highlight' | 'bold_pop' | 'karaoke' | 'typewriter' }[] = [];
 
   for (const op of edl.ops) {
     if (op.type === 'silence_cut') continue; // consumed into the timeline
@@ -120,18 +127,25 @@ export function motionFromEdl(
 
   // Dense word-by-word captions across the whole spoken content (like a real
   // YouTube edit); Gemini caption ops apply their style over their ranges.
-  // Punchy phrases (≤3 words) so few words are on screen at once — reads better
-  // and lets the per-word reveal animation breathe.
-  const captions = buildAutoCaptions(transcript, keep, captionStyleRanges, { maxWords: 3 });
+  // Punchy phrases so few words are on screen at once — reads better and lets the
+  // per-word reveal animation breathe. Phrase length follows the chosen preset.
+  const captions = buildAutoCaptions(transcript, keep, captionStyleRanges, { maxWords: cfg?.maxWords ?? 3 });
   captions.forEach((c, i) => {
     const dur = round(c.end - c.start);
     const words = c.words.map((w) => ({ word: w.word, start: round(w.start - c.start), end: round(w.end - c.start) }));
     const ctx: BuildCtx = { idPrefix: `cap_${i}`, dur, canvas, brand, input: { words } };
-    const { layers, warnings: tplWarnings } = resolveTemplate(
-      'kinetic_text',
-      { style: c.style, placement: edl.captionPlacement ?? 'lower' },
-      ctx,
-    );
+    // Preset (if set) controls the look; otherwise use the per-op style + defaults.
+    const params: Record<string, unknown> = {
+      style: cfg?.style ?? c.style,
+      placement: cfg?.placement ?? edl.captionPlacement ?? 'lower',
+    };
+    if (cfg?.size != null) params.size = cfg.size;
+    if (cfg?.fill) params.fill = cfg.fill;
+    if (cfg?.highlight) params.highlight = cfg.highlight;
+    if (cfg?.fontFamily) params.fontFamily = cfg.fontFamily;
+    if (cfg?.weight != null) params.weight = cfg.weight;
+    if (cfg?.tracking != null) params.tracking = cfg.tracking;
+    const { layers, warnings: tplWarnings } = resolveTemplate('kinetic_text', params, ctx);
     warnings.push(...tplWarnings);
     compositions.push({
       schemaVersion: IR_VERSION,

@@ -190,6 +190,7 @@ export async function runFinalRender(
           fps: editMedia.fps ?? 30,
         },
         project.brand,
+        project.captionStyle,
       );
       // Resolve b-roll (Pexels) into the IR video layers (same resolver the EDL
       // path uses), then render.

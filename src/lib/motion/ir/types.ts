@@ -112,7 +112,15 @@ export interface CaptionWord {
   end: number;
 }
 
-export type CaptionStyle = 'word_highlight' | 'bold_pop' | 'karaoke' | 'typewriter';
+export type CaptionStyle =
+  | 'word_highlight'
+  | 'bold_pop'
+  | 'karaoke'
+  | 'typewriter'
+  | 'youtube'
+  | 'single_word'
+  | 'underline'
+  | 'bounce';
 export type CaptionPlacement = 'lower' | 'middle' | 'upper';
 
 export interface BaseLayer {

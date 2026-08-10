@@ -123,10 +123,12 @@ const transitionZ = base.extend({
   variant: z.enum(['glitch', 'flash', 'zoom_blur']),
 });
 
+const CAPTION_STYLES = ['word_highlight', 'bold_pop', 'karaoke', 'typewriter', 'youtube', 'single_word', 'underline', 'bounce'] as const;
+
 const captionZ = base.extend({
   type: z.literal('caption'),
   words: z.array(z.object({ word: z.string(), start: z.number(), end: z.number() })),
-  style: z.enum(['word_highlight', 'bold_pop', 'karaoke', 'typewriter']),
+  style: z.enum(CAPTION_STYLES),
   placement: z.enum(['lower', 'middle', 'upper']).optional(),
   size: z.number().optional(),
   fill: z.string().optional(),

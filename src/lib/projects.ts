@@ -5,6 +5,7 @@ import type { TranscriptWord } from './analyze/transcribe';
 import type { RenderMeta } from './render/renderCut';
 import type { FinalRenderMeta } from './render/renderFinal';
 import type { BrandProfile } from './motion/brand';
+import type { CaptionConfig } from './motion/captions';
 
 /**
  * Project record store, backed by R2 JSON objects (`projects/<id>.json`).
@@ -92,6 +93,10 @@ export interface Project {
 
   /** Per-project brand colors/fonts for the Motion path (defaults to DEFAULT_BRAND). */
   brand?: BrandProfile;
+
+  /** Per-project caption look: a preset name ('youtube', 'tiktok', 'minimal', …)
+   * or a partial CaptionConfig to fully customize size/position/font/colors. */
+  captionStyle?: string | CaptionConfig;
 
   // ---- Phase 4: automatic pipeline ----
   pipelineStatus?: PipelineStatus;
