@@ -65,6 +65,26 @@ describe('caption config threads into the adapter', () => {
     expect(cap.fill).toBe('#00ffcc');
     expect(cap.family).toBe('Oswald');
   });
+
+  it('makes box / boxColor / boxBlur / maxWidth / outline / highlight all dynamic', () => {
+    const cap = captionLayer('word_highlight', {
+      style: 'word_highlight',
+      highlight: '#ff0066',
+      box: true,
+      boxColor: '#101820cc',
+      boxBlur: 12,
+      maxWidth: 0.6,
+      outlineColor: '#0055ff',
+      outlineWidth: 0.05,
+    }) as Cap & { highlight?: string; box?: boolean; boxColor?: string; boxBlur?: number; maxWidth?: number; outlineColor?: string; outlineWidth?: number };
+    expect(cap.highlight).toBe('#ff0066');
+    expect(cap.box).toBe(true);
+    expect(cap.boxColor).toBe('#101820cc');
+    expect(cap.boxBlur).toBe(12);
+    expect(cap.maxWidth).toBe(0.6);
+    expect(cap.outlineColor).toBe('#0055ff');
+    expect(cap.outlineWidth).toBe(0.05);
+  });
 });
 
 describe('all 8 caption styles are valid IR', () => {

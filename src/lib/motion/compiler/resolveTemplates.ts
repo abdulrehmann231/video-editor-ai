@@ -20,7 +20,9 @@ export function clampParams(template: EffectTemplate, raw: Record<string, unknow
 function coerce(spec: EffectParameter, value: unknown): unknown {
   switch (spec.type) {
     case 'number': {
-      let n = typeof value === 'number' && Number.isFinite(value) ? value : (spec.default as number);
+      const raw = typeof value === 'number' && Number.isFinite(value) ? value : spec.default;
+      if (typeof raw !== 'number') return undefined; // no value + no default -> inherit downstream
+      let n = raw;
       if (typeof spec.min === 'number') n = Math.max(spec.min, n);
       if (typeof spec.max === 'number') n = Math.min(spec.max, n);
       return n;

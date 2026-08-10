@@ -137,6 +137,12 @@ const captionZ = base.extend({
   weight: z.number().optional(),
   tracking: z.number().optional(),
   emphasis: z.array(z.string()).optional(),
+  box: z.boolean().optional(),
+  boxColor: z.string().optional(),
+  boxBlur: z.number().optional(),
+  maxWidth: z.number().optional(),
+  outlineColor: z.string().optional(),
+  outlineWidth: z.number().optional(),
 });
 
 // Recursive: a group holds child layers of any supported type.

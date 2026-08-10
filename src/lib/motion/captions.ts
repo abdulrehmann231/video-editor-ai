@@ -21,6 +21,18 @@ export interface CaptionConfig {
   tracking?: number;
   /** Max words per on-screen phrase. */
   maxWords?: number;
+  /** Draw a background box behind the caption. */
+  box?: boolean;
+  /** Box fill color (hex incl. 8-digit alpha). */
+  boxColor?: string;
+  /** Backdrop blur behind the box, in px. */
+  boxBlur?: number;
+  /** Caption block max width as a fraction of frame width (0..1). */
+  maxWidth?: number;
+  /** Text outline (stroke) color. */
+  outlineColor?: string;
+  /** Outline width as a fraction of font size. */
+  outlineWidth?: number;
 }
 
 /** Built-in caption looks. Users pick one by name (project.captionStyle: 'youtube'). */
@@ -32,6 +44,8 @@ export const CAPTION_PRESETS: Record<string, CaptionConfig> = {
   youtube: { style: 'youtube', size: 0.032, placement: 'lower', maxWords: 6, weight: 500, fontFamily: 'Inter' },
   // Even smaller / tighter YouTube captions.
   youtube_small: { style: 'youtube', size: 0.026, placement: 'lower', maxWords: 7, weight: 500, fontFamily: 'Inter' },
+  // YouTube captions with a frosted (blurred) background box.
+  youtube_blur: { style: 'youtube', size: 0.03, placement: 'lower', maxWords: 6, weight: 500, fontFamily: 'Inter', boxBlur: 10, boxColor: '#0b0d1266' },
   // Big single word centered — TikTok / Hormozi punch.
   tiktok: { style: 'single_word', size: 0.11, placement: 'middle', maxWords: 1 },
   // Rounded accent sticker on the active word.

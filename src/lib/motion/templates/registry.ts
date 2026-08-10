@@ -64,6 +64,12 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'fill', type: 'color', default: undefined, description: 'Text color (defaults to brand text).', semanticRole: 'brand' },
       { name: 'highlight', type: 'color', default: undefined, description: 'Active-word color (defaults to brand accent).', semanticRole: 'brand' },
       { name: 'fontFamily', type: 'string', default: undefined, description: 'Font family (defaults to brand heading).', semanticRole: 'brand' },
+      { name: 'box', type: 'boolean', default: false, description: 'Draw a background box behind the caption.', semanticRole: 'style' },
+      { name: 'boxColor', type: 'color', default: undefined, description: 'Box fill color (8-digit hex for alpha).', semanticRole: 'brand' },
+      { name: 'boxBlur', type: 'number', default: undefined, min: 0, max: 40, description: 'Backdrop blur behind the box (px).', semanticRole: 'style' },
+      { name: 'maxWidth', type: 'number', default: undefined, min: 0.3, max: 1, description: 'Caption block max width (fraction of frame).', semanticRole: 'layout' },
+      { name: 'outlineColor', type: 'color', default: undefined, description: 'Text outline/stroke color.', semanticRole: 'brand' },
+      { name: 'outlineWidth', type: 'number', default: undefined, min: 0, max: 0.3, description: 'Outline width (fraction of font size).', semanticRole: 'style' },
     ],
     build: (p, ctx) => {
       const b = ctx.brand ?? DEFAULT_BRAND;
@@ -89,6 +95,12 @@ export const TEMPLATES: EffectTemplate[] = [
               family: asStr(p.fontFamily, b.fonts.heading),
               weight: asNum(p.weight, 800),
               tracking: asNum(p.tracking, 0),
+              box: p.box === true ? true : undefined,
+              boxColor: asStr(p.boxColor) || undefined,
+              boxBlur: typeof p.boxBlur === 'number' ? p.boxBlur : undefined,
+              maxWidth: typeof p.maxWidth === 'number' ? p.maxWidth : undefined,
+              outlineColor: asStr(p.outlineColor) || undefined,
+              outlineWidth: typeof p.outlineWidth === 'number' ? p.outlineWidth : undefined,
             },
           ],
         };

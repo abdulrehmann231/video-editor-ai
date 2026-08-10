@@ -145,6 +145,12 @@ export function motionFromEdl(
     if (cfg?.fontFamily) params.fontFamily = cfg.fontFamily;
     if (cfg?.weight != null) params.weight = cfg.weight;
     if (cfg?.tracking != null) params.tracking = cfg.tracking;
+    if (cfg?.box != null) params.box = cfg.box;
+    if (cfg?.boxColor) params.boxColor = cfg.boxColor;
+    if (cfg?.boxBlur != null) params.boxBlur = cfg.boxBlur;
+    if (cfg?.maxWidth != null) params.maxWidth = cfg.maxWidth;
+    if (cfg?.outlineColor) params.outlineColor = cfg.outlineColor;
+    if (cfg?.outlineWidth != null) params.outlineWidth = cfg.outlineWidth;
     const { layers, warnings: tplWarnings } = resolveTemplate('kinetic_text', params, ctx);
     warnings.push(...tplWarnings);
     compositions.push({

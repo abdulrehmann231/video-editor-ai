@@ -227,6 +227,18 @@ export interface CaptionLayer extends BaseLayer {
   tracking?: number;
   /** Words to always accent (lower-cased match). */
   emphasis?: string[];
+  /** Draw a background box behind the caption (implied for the 'youtube' style). */
+  box?: boolean;
+  /** Box fill color (hex, incl. 8-digit alpha, e.g. #000000a8). */
+  boxColor?: Color;
+  /** Backdrop blur behind the box, in px. */
+  boxBlur?: number;
+  /** Max caption block width as a fraction of frame width (0..1). */
+  maxWidth?: number;
+  /** Text outline (stroke) color for the sticker look. */
+  outlineColor?: Color;
+  /** Outline width as a fraction of font size. */
+  outlineWidth?: number;
 }
 
 export type MotionLayer =
