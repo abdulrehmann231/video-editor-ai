@@ -1,9 +1,10 @@
 import React from 'react';
-import { AbsoluteFill, OffthreadVideo, Sequence, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import type { Camera } from '../../lib/motion/ir/types';
 import type { MotionRenderProps } from '../../lib/motion/render/props';
 import { ProgressBar } from '../components/ProgressBar';
 import { LayerRenderer } from './LayerRenderer';
+import { resolveSrc } from './src';
 import { sampleVec3 } from './anim/resolveAnimated';
 
 /**
@@ -53,7 +54,7 @@ const CameraVideo: React.FC<{ src: string; cameras: CameraWindow[] }> = ({ src, 
   return (
     <AbsoluteFill style={{ overflow: 'hidden' }}>
       <AbsoluteFill style={{ transform: `scale(${scale})`, transformOrigin: origin }}>
-        <OffthreadVideo src={src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <OffthreadVideo src={resolveSrc(src)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </AbsoluteFill>
     </AbsoluteFill>
   );

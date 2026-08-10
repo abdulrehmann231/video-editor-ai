@@ -54,7 +54,7 @@ function templateForOp(op: EditOp, transcript: TranscriptWord[]): { templateId: 
     case 'title_card':
       return { templateId: 'title_card', params: { heading: op.heading, sub: op.sub, variant: op.variant } };
     case 'transition':
-      return { templateId: 'transition_flash', params: { variant: op.variant } };
+      return { templateId: 'transition', params: { variant: op.variant } };
     case 'broll':
       return { templateId: 'broll', params: { layout: op.layout } };
     case 'lottie':

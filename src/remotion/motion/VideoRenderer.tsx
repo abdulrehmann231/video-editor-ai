@@ -3,6 +3,7 @@ import { AbsoluteFill, OffthreadVideo, useCurrentFrame, useVideoConfig } from 'r
 import type { VideoLayer, ImageLayer } from '../../lib/motion/ir/types';
 import { sampleNumber, sampleVec3 } from './anim/resolveAnimated';
 import { layerDecorations } from './style';
+import { resolveSrc } from './src';
 
 /**
  * Render an IR video/image layer. The source may be a direct `src` (e.g. a
@@ -34,10 +35,10 @@ export const VideoRenderer: React.FC<{ layer: VideoLayer | ImageLayer }> = ({ la
         }}
       >
         {layer.type === 'video' ? (
-          <OffthreadVideo src={src} style={{ width: '100%', height: '100%', objectFit: fit }} />
+          <OffthreadVideo src={resolveSrc(src)} style={{ width: '100%', height: '100%', objectFit: fit }} />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: fit }} />
+          <img src={resolveSrc(src)} alt="" style={{ width: '100%', height: '100%', objectFit: fit }} />
         )}
       </div>
     </AbsoluteFill>

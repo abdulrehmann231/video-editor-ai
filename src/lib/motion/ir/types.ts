@@ -103,7 +103,7 @@ export interface Mask {
 
 // ── Layers ──────────────────────────────────────────────────────────────────
 
-export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group';
+export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition';
 
 export interface BaseLayer {
   id: string;
@@ -183,7 +183,14 @@ export interface GroupLayer extends BaseLayer {
   children: MotionLayer[];
 }
 
-export type MotionLayer = TextLayer | ShapeLayer | VideoLayer | ImageLayer | GroupLayer;
+/** Full-frame scene transition (flash / glitch / zoom-blur). A self-contained
+ * composite effect rather than a primitive; rendered deterministically. */
+export interface TransitionLayer extends BaseLayer {
+  type: 'transition';
+  variant: 'glitch' | 'flash' | 'zoom_blur';
+}
+
+export type MotionLayer = TextLayer | ShapeLayer | VideoLayer | ImageLayer | GroupLayer | TransitionLayer;
 
 // ── Assets & composition ─────────────────────────────────────────────────────
 

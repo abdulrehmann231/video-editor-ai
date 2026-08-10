@@ -26,6 +26,7 @@ export interface LayerRender {
   shape?: string;
   fit?: string;
   hasSrc?: boolean;
+  variant?: string;
   children?: LayerRender[];
 }
 
@@ -59,6 +60,7 @@ export function describeLayer(layer: MotionLayer, compTimeSec: number, fps: numb
     out.fit = layer.fit ?? 'cover';
     out.hasSrc = Boolean(layer.src);
   }
+  if (layer.type === 'transition') out.variant = layer.variant;
   if (layer.type === 'group') {
     out.children = layer.children.map((c) => describeLayer(c, compTimeSec - layer.start, fps));
   }

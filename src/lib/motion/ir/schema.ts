@@ -118,9 +118,14 @@ const imageZ = base.extend({
   fit: z.enum(['cover', 'contain']).optional(),
 });
 
+const transitionZ = base.extend({
+  type: z.literal('transition'),
+  variant: z.enum(['glitch', 'flash', 'zoom_blur']),
+});
+
 // Recursive: a group holds child layers of any supported type.
 const layerZ: z.ZodType<MotionLayer> = z.lazy(() =>
-  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ]),
+  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ]),
 );
 
 const groupZ = base.extend({

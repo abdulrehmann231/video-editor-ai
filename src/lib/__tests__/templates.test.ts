@@ -11,7 +11,7 @@ const CTX = { idPrefix: 'x', dur: 2, canvas: { width: 1280, height: 720, fps: 30
 
 describe('template registry', () => {
   it('registers the migrated effects', () => {
-    for (const id of ['kinetic_text', 'camera_punch', 'lower_third', 'metric_pop', 'title_card', 'transition_flash', 'broll']) {
+    for (const id of ['kinetic_text', 'camera_punch', 'lower_third', 'metric_pop', 'title_card', 'transition', 'broll']) {
       expect(TEMPLATE_IDS).toContain(id);
       expect(getTemplate(id)).toBeDefined();
     }
@@ -35,6 +35,19 @@ describe('clampParams', () => {
     const t = getTemplate('metric_pop')!;
     expect(clampParams(t, { position: 'sideways' }).position).toBe('center');
   });
+
+  it('validates color params (hex only) and falls back to the default', () => {
+    const t = getTemplate('metric_pop')!;
+    expect(clampParams(t, {}).accent).toBe('#ffd60a'); // default
+    expect(clampParams(t, { accent: 'reddish' }).accent).toBe('#ffd60a'); // invalid -> default
+    expect(clampParams(t, { accent: '#6D5DFB' }).accent).toBe('#6D5DFB'); // valid passes
+  });
+
+  it('clamps a fractional size param', () => {
+    const t = getTemplate('kinetic_text')!;
+    expect(clampParams(t, { size: 0.99 }).size).toBe(0.12); // max
+    expect(clampParams(t, { size: 0.001 }).size).toBe(0.02); // min
+  });
 });
 
 describe('resolveTemplate', () => {
@@ -51,6 +64,21 @@ describe('resolveTemplate', () => {
     expect(layers).toHaveLength(0);
     expect(camera?.scale).toBeDefined();
     expect(camera?.focus).toBe('face');
+  });
+
+  it('builds a transition layer honoring the variant (and coercing bad variants)', () => {
+    const glitch = resolveTemplate('transition', { variant: 'glitch' }, CTX);
+    expect(glitch.layers[0].type).toBe('transition');
+    expect((glitch.layers[0] as { variant?: string }).variant).toBe('glitch');
+    const bad = resolveTemplate('transition', { variant: 'bogus' }, CTX);
+    expect((bad.layers[0] as { variant?: string }).variant).toBe('flash'); // default
+  });
+
+  it('threads a brand accent color into metric_pop', () => {
+    const { layers } = resolveTemplate('metric_pop', { value: '3x', accent: '#6D5DFB' }, CTX);
+    const group = layers[0] as { children: { id: string; fill?: string }[] };
+    const accentShape = group.children.find((c) => c.id.endsWith('_accent'));
+    expect(accentShape?.fill).toBe('#6D5DFB');
   });
 
   it('returns a warning (not throw) for an unknown template', () => {

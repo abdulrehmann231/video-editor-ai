@@ -30,7 +30,10 @@ function coerce(spec: EffectParameter, value: unknown): unknown {
       const opts = spec.options ?? [];
       return typeof value === 'string' && opts.includes(value) ? value : spec.default;
     }
-    case 'color':
+    case 'color': {
+      const hex = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+      return typeof value === 'string' && hex.test(value) ? value : (spec.default as unknown);
+    }
     case 'string':
     default:
       return typeof value === 'string' ? value : (spec.default as unknown);

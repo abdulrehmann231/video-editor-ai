@@ -4,6 +4,7 @@ import type { GroupLayer, MotionLayer } from '../../lib/motion/ir/types';
 import { TextRenderer } from './TextRenderer';
 import { ShapeRenderer } from './ShapeRenderer';
 import { VideoRenderer } from './VideoRenderer';
+import { TransitionRenderer } from './TransitionRenderer';
 import { sampleNumber, sampleVec3 } from './anim/resolveAnimated';
 import { layerDecorations } from './style';
 
@@ -59,6 +60,9 @@ export const LayerRenderer: React.FC<{ layer: MotionLayer }> = ({ layer }) => {
       break;
     case 'group':
       inner = <GroupRenderer layer={layer} />;
+      break;
+    case 'transition':
+      inner = <TransitionRenderer layer={layer} />;
       break;
     default:
       inner = null;

@@ -56,9 +56,11 @@ export const TEMPLATES: EffectTemplate[] = [
     parameters: [
       { name: 'text', type: 'string', default: '', description: 'The caption text.' },
       { name: 'style', type: 'enum', default: 'word_highlight', options: ['word_highlight', 'bold_pop', 'karaoke', 'typewriter'], semanticRole: 'style' },
+      { name: 'size', type: 'number', default: 0.05, min: 0.02, max: 0.12, description: 'Font size as a fraction of frame width.', semanticRole: 'emphasis' },
+      { name: 'fill', type: 'color', default: PALETTE.white, semanticRole: 'brand' },
     ],
     build: (p, ctx) => ({
-      layers: [textLayer(`${ctx.idPrefix}_cap`, asStr(p.text), [0.5, 0.82], Math.round(ctx.canvas.width * 0.05), ctx.dur)],
+      layers: [textLayer(`${ctx.idPrefix}_cap`, asStr(p.text), [0.5, 0.82], Math.round(ctx.canvas.width * asNum(p.size, 0.05)), ctx.dur, asStr(p.fill, PALETTE.white))],
     }),
   },
   {
@@ -85,10 +87,12 @@ export const TEMPLATES: EffectTemplate[] = [
     parameters: [
       { name: 'title', type: 'string', default: '' },
       { name: 'subtitle', type: 'string', default: '' },
+      { name: 'accent', type: 'color', default: PALETTE.accent, semanticRole: 'brand' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
       const sub = asStr(p.subtitle);
+      const accent = asStr(p.accent, PALETTE.accent);
       return {
         layers: [
           {
@@ -103,7 +107,7 @@ export const TEMPLATES: EffectTemplate[] = [
                 ctx.dur,
               ),
               textLayer(`${ctx.idPrefix}_title`, asStr(p.title), [0.28, 0.8], Math.round(W * 0.03), ctx.dur),
-              ...(sub ? [textLayer(`${ctx.idPrefix}_sub`, sub, [0.28, 0.86], Math.round(W * 0.02), ctx.dur, PALETTE.accent)] : []),
+              ...(sub ? [textLayer(`${ctx.idPrefix}_sub`, sub, [0.28, 0.86], Math.round(W * 0.02), ctx.dur, accent)] : []),
             ],
           },
         ],
@@ -120,11 +124,13 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'value', type: 'string', default: '' },
       { name: 'label', type: 'string', default: '' },
       { name: 'position', type: 'enum', default: 'center', options: ['center', 'corner'], semanticRole: 'composition' },
+      { name: 'accent', type: 'color', default: PALETTE.accent, semanticRole: 'brand' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
       const [cx, cy] = asStr(p.position, 'center') === 'corner' ? [0.8, 0.2] : [0.5, 0.45];
       const label = asStr(p.label);
+      const accent = asStr(p.accent, PALETTE.accent);
       return {
         layers: [
           {
@@ -135,7 +141,7 @@ export const TEMPLATES: EffectTemplate[] = [
             children: [
               shapeLayer(
                 `${ctx.idPrefix}_accent`,
-                { shape: 'circle', radius: 0.12, fill: PALETTE.accent, opacity: constant(0.18), transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) } },
+                { shape: 'circle', radius: 0.12, fill: accent, opacity: constant(0.18), transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) } },
                 ctx.dur,
               ),
               {
@@ -159,10 +165,13 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'heading', type: 'string', default: '' },
       { name: 'sub', type: 'string', default: '' },
       { name: 'variant', type: 'enum', default: 'intro', options: ['intro', 'cta'], semanticRole: 'role' },
+      { name: 'accent', type: 'color', default: PALETTE.accent, semanticRole: 'brand' },
+      { name: 'dim', type: 'number', default: 0.55, min: 0, max: 1, description: 'Background dim opacity.', semanticRole: 'style' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
       const sub = asStr(p.sub);
+      const accent = asStr(p.accent, PALETTE.accent);
       return {
         layers: [
           {
@@ -171,9 +180,9 @@ export const TEMPLATES: EffectTemplate[] = [
             start: 0,
             duration: ctx.dur,
             children: [
-              shapeLayer(`${ctx.idPrefix}_cbg`, { shape: 'rectangle', size: [1, 1], fill: PALETTE.ink, opacity: constant(0.55), transform: { position: constant<Vec3>([0.5, 0.5, 0]) } }, ctx.dur),
+              shapeLayer(`${ctx.idPrefix}_cbg`, { shape: 'rectangle', size: [1, 1], fill: PALETTE.ink, opacity: constant(asNum(p.dim, 0.55)), transform: { position: constant<Vec3>([0.5, 0.5, 0]) } }, ctx.dur),
               textLayer(`${ctx.idPrefix}_head`, asStr(p.heading), [0.5, 0.44], Math.round(W * 0.08), ctx.dur),
-              ...(sub ? [textLayer(`${ctx.idPrefix}_csub`, sub, [0.5, 0.56], Math.round(W * 0.035), ctx.dur, PALETTE.accent)] : []),
+              ...(sub ? [textLayer(`${ctx.idPrefix}_csub`, sub, [0.5, 0.56], Math.round(W * 0.035), ctx.dur, accent)] : []),
             ],
           },
         ],
@@ -181,25 +190,21 @@ export const TEMPLATES: EffectTemplate[] = [
     },
   },
   {
-    id: 'transition_flash',
+    id: 'transition',
     version: '1.0',
     name: 'Scene transition',
-    whenToUse: 'A brief flash/wipe at a strong topic boundary. Keep rare and short.',
+    whenToUse: 'A brief transition at a strong topic boundary — flash, glitch (RGB split), or zoom-blur. Keep rare and short.',
     renderer: 'remotion',
     parameters: [{ name: 'variant', type: 'enum', default: 'flash', options: ['glitch', 'flash', 'zoom_blur'], semanticRole: 'style' }],
-    build: (_p, ctx) => ({
+    build: (p, ctx) => ({
       layers: [
-        shapeLayer(
-          `${ctx.idPrefix}_flash`,
-          {
-            shape: 'rectangle',
-            size: [1, 1],
-            fill: PALETTE.white,
-            transform: { position: constant<Vec3>([0.5, 0.5, 0]) },
-            opacity: { kind: 'keyframes', keyframes: [{ time: 0, value: 0 }, { time: ctx.dur / 2, value: 0.9 }, { time: ctx.dur, value: 0 }] },
-          },
-          ctx.dur,
-        ),
+        {
+          id: `${ctx.idPrefix}_transition`,
+          type: 'transition',
+          start: 0,
+          duration: ctx.dur,
+          variant: asStr(p.variant, 'flash') as 'glitch' | 'flash' | 'zoom_blur',
+        },
       ],
     }),
   },
