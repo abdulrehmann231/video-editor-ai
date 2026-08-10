@@ -87,6 +87,7 @@ export const TEMPLATES: EffectTemplate[] = [
               fill: asStr(p.fill, b.colors.text),
               highlight: asStr(p.highlight, b.colors.accent),
               family: asStr(p.fontFamily, b.fonts.heading),
+              weight: asNum(p.weight, 800),
               tracking: asNum(p.tracking, 0),
             },
           ],

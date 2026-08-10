@@ -1,7 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from 'remotion';
 import type { CaptionLayer, CaptionPlacement, CaptionStyle, CaptionWord } from '../../lib/motion/ir/types';
-import { FONT_DISPLAY, COLORS, outlineStyle } from '../theme';
+import { FONT_DISPLAY, FONT_BODY, COLORS, outlineStyle } from '../theme';
 
 /**
  * Word-by-word kinetic captions (Phase 4). Eight genuinely distinct styles; all
@@ -48,10 +48,13 @@ export const CaptionRenderer: React.FC<{ layer: CaptionLayer }> = ({ layer }) =>
   if (active < 0) return null;
 
   const style = layer.style;
+  const isYoutube = style === 'youtube';
   const placement = layer.placement ?? 'lower';
   const fill = layer.fill ?? COLORS.white;
   const highlight = layer.highlight ?? COLORS.accent;
-  const family = layer.family ? `${layer.family}, ${FONT_DISPLAY}` : FONT_DISPLAY;
+  // YouTube look uses a clean body font + mixed case; others use the heavy display face.
+  const defaultFace = isYoutube ? FONT_BODY : FONT_DISPLAY;
+  const family = layer.family ? `${layer.family}, ${defaultFace}` : defaultFace;
   const emphasis = new Set((layer.emphasis ?? []).map(key));
   const fontSize = Math.round(width * (layer.size ?? 0.05));
   const stroke = Math.max(3, Math.round(fontSize * 0.09));
@@ -60,14 +63,24 @@ export const CaptionRenderer: React.FC<{ layer: CaptionLayer }> = ({ layer }) =>
     return <Typewriter layer={layer} tAbs={tAbs} active={active} fontSize={fontSize} stroke={stroke} family={family} fill={fill} highlight={highlight} placement={placement} />;
   }
 
-  const baseText: React.CSSProperties = {
-    fontFamily: family,
-    fontSize,
-    lineHeight: 1.06,
-    textTransform: 'uppercase',
-    letterSpacing: layer.tracking ?? 0.5,
-    ...outlineStyle(stroke),
-  };
+  const baseText: React.CSSProperties = isYoutube
+    ? {
+        // Clean, mixed-case, soft shadow (no heavy stroke) — authentic captions.
+        fontFamily: family,
+        fontSize,
+        lineHeight: 1.25,
+        letterSpacing: layer.tracking ?? 0,
+        fontWeight: layer.weight ?? 500,
+        textShadow: '0 2px 6px rgba(0,0,0,0.6)',
+      }
+    : {
+        fontFamily: family,
+        fontSize,
+        lineHeight: 1.06,
+        textTransform: 'uppercase',
+        letterSpacing: layer.tracking ?? 0.5,
+        ...outlineStyle(stroke),
+      };
 
   // single_word: one big word at a time.
   if (style === 'single_word') {
@@ -111,8 +124,9 @@ export const CaptionRenderer: React.FC<{ layer: CaptionLayer }> = ({ layer }) =>
         }
 
         const underline = style === 'underline' && isActive ? { borderBottom: `${Math.max(3, Math.round(fontSize * 0.12))}px solid ${highlight}`, paddingBottom: fontSize * 0.06 } : {};
+        const transform = isYoutube ? 'none' : `translateY(${rise}px) scale(${scale})`;
         return (
-          <span key={idx} style={{ ...baseText, color, transform: `translateY(${rise}px) scale(${scale})`, display: 'inline-block', opacity: revealAll ? 1 : enter, ...underline }}>
+          <span key={idx} style={{ ...baseText, color, transform, display: 'inline-block', opacity: revealAll ? 1 : enter, ...underline, textTransform: isYoutube ? 'none' : 'uppercase' }}>
             {clean(w.word)}
           </span>
         );

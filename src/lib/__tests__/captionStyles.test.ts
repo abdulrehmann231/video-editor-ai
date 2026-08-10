@@ -28,7 +28,7 @@ function captionLayer(opStyle: string, cfg?: unknown): Cap {
 describe('resolveCaptionConfig', () => {
   it('resolves a preset name', () => {
     expect(resolveCaptionConfig('youtube').style).toBe('youtube');
-    expect(resolveCaptionConfig('youtube').size).toBe(0.04);
+    expect(resolveCaptionConfig('youtube').size).toBe(0.032);
     expect(resolveCaptionConfig('tiktok').style).toBe('single_word');
     expect(resolveCaptionConfig('tiktok').placement).toBe('middle');
   });
@@ -48,7 +48,7 @@ describe('caption config threads into the adapter', () => {
   it('a preset overrides the op style and sets size/placement', () => {
     const yt = captionLayer('bold_pop', 'youtube');
     expect(yt.style).toBe('youtube'); // preset wins
-    expect(yt.size).toBe(0.04);
+    expect(yt.size).toBe(0.032);
     expect(yt.placement).toBe('lower');
 
     const tk = captionLayer('word_highlight', 'tiktok');

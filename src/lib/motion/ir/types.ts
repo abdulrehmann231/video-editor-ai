@@ -222,6 +222,7 @@ export interface CaptionLayer extends BaseLayer {
   /** Active/emphasis word color. */
   highlight?: Color;
   family?: string;
+  weight?: number;
   /** Letter-spacing in px. */
   tracking?: number;
   /** Words to always accent (lower-cased match). */

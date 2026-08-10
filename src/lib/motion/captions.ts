@@ -27,8 +27,11 @@ export interface CaptionConfig {
 export const CAPTION_PRESETS: Record<string, CaptionConfig> = {
   // Classic reveal, accent-highlighted active word (default).
   word_highlight: { style: 'word_highlight', size: 0.05, placement: 'lower', maxWords: 3 },
-  // YouTube auto-caption look: whole phrase, white text on a rounded dark box.
-  youtube: { style: 'youtube', size: 0.04, placement: 'lower', maxWords: 6, weight: 700 },
+  // YouTube auto-caption look: whole phrase, clean body font, white text on a
+  // rounded dark box. Small + understated.
+  youtube: { style: 'youtube', size: 0.032, placement: 'lower', maxWords: 6, weight: 500, fontFamily: 'Inter' },
+  // Even smaller / tighter YouTube captions.
+  youtube_small: { style: 'youtube', size: 0.026, placement: 'lower', maxWords: 7, weight: 500, fontFamily: 'Inter' },
   // Big single word centered — TikTok / Hormozi punch.
   tiktok: { style: 'single_word', size: 0.11, placement: 'middle', maxWords: 1 },
   // Rounded accent sticker on the active word.

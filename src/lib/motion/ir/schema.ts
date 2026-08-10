@@ -134,6 +134,7 @@ const captionZ = base.extend({
   fill: z.string().optional(),
   highlight: z.string().optional(),
   family: z.string().optional(),
+  weight: z.number().optional(),
   tracking: z.number().optional(),
   emphasis: z.array(z.string()).optional(),
 });
