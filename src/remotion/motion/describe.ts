@@ -69,7 +69,7 @@ export interface CompositionRender {
   id: string;
   start: number;
   end: number;
-  atFrames: { frame: number; layers: LayerRender[] }[];
+  atFrames: { frame: number; cameraScale?: number; layers: LayerRender[] }[];
 }
 
 /** Describe a composition at the given (composition-relative) frame numbers. */
@@ -80,6 +80,7 @@ export function describeComposition(comp: MotionComposition, frames: number[], f
     end: r3(comp.end),
     atFrames: frames.map((frame) => ({
       frame,
+      cameraScale: comp.camera?.scale ? r3(sampleVec3(comp.camera.scale, frame, fps, [1, 1, 1])[0]) : undefined,
       layers: comp.layers.map((l) => describeLayer(l, frame / fps, fps)),
     })),
   };

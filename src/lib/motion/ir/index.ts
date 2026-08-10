@@ -12,3 +12,12 @@ export { IR_VERSION, BOUNDS, type IrVersion } from './version';
 export { parseMotionComposition, layerZ } from './schema';
 export { motionFromEdl, type CanvasSpec, type MotionFromEdlResult } from './fromEdl';
 export { validateComposition, type ValidationResult } from '../validators/validate';
+export {
+  TEMPLATES,
+  TEMPLATE_IDS,
+  getTemplate,
+  type EffectTemplate,
+  type EffectParameter,
+  type TemplateResult,
+} from '../templates/registry';
+export { resolveTemplate, clampParams, type ResolveResult } from '../compiler/resolveTemplates';

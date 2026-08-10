@@ -95,6 +95,19 @@ describe('motionFromEdl', () => {
     expect(group.children.some((ch) => ch.type === 'text' && ch.content === 'Jane')).toBe(true);
   });
 
+  it('maps zoom_punch to a composition-level camera (no overlay layers)', () => {
+    const { edl } = parseEdl(
+      { ops: [{ id: 'z', type: 'zoom_punch', start: 1, end: 2, reason: 'punch', scale: 1.25, focus: 'face' }] },
+      { durationSec: 10 },
+    );
+    const { compositions } = motionFromEdl(edl, [], 10, CANVAS);
+    const z = compositions[0];
+    expect(z.layers).toHaveLength(0);
+    expect(z.camera?.scale).toBeDefined();
+    expect(z.camera?.focus).toBe('face');
+    expect(validateComposition(z).ok).toBe(true);
+  });
+
   it('drops an op that collapses entirely into a removed segment', () => {
     const { edl } = parseEdl(
       {

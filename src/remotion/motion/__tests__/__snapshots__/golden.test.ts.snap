@@ -4,6 +4,7 @@ exports[`golden render-graph — EDL→IR compositions > describes broll (comp_b
 {
   "atFrames": [
     {
+      "cameraScale": undefined,
       "frame": 0,
       "layers": [
         {
@@ -28,6 +29,7 @@ exports[`golden render-graph — EDL→IR compositions > describes broll (comp_b
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 45,
       "layers": [
         {
@@ -52,6 +54,7 @@ exports[`golden render-graph — EDL→IR compositions > describes broll (comp_b
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 89,
       "layers": [
         {
@@ -86,6 +89,7 @@ exports[`golden render-graph — EDL→IR compositions > describes broll (comp_b
 {
   "atFrames": [
     {
+      "cameraScale": undefined,
       "frame": 0,
       "layers": [
         {
@@ -110,6 +114,7 @@ exports[`golden render-graph — EDL→IR compositions > describes broll (comp_b
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 45,
       "layers": [
         {
@@ -134,6 +139,7 @@ exports[`golden render-graph — EDL→IR compositions > describes broll (comp_b
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 89,
       "layers": [
         {
@@ -168,6 +174,7 @@ exports[`golden render-graph — EDL→IR compositions > describes caption (comp
 {
   "atFrames": [
     {
+      "cameraScale": undefined,
       "frame": 0,
       "layers": [
         {
@@ -191,6 +198,7 @@ exports[`golden render-graph — EDL→IR compositions > describes caption (comp
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 30,
       "layers": [
         {
@@ -214,6 +222,7 @@ exports[`golden render-graph — EDL→IR compositions > describes caption (comp
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 59,
       "layers": [
         {
@@ -247,6 +256,7 @@ exports[`golden render-graph — EDL→IR compositions > describes lower_third (
 {
   "atFrames": [
     {
+      "cameraScale": undefined,
       "frame": 0,
       "layers": [
         {
@@ -325,6 +335,7 @@ exports[`golden render-graph — EDL→IR compositions > describes lower_third (
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 45,
       "layers": [
         {
@@ -403,6 +414,7 @@ exports[`golden render-graph — EDL→IR compositions > describes lower_third (
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 89,
       "layers": [
         {
@@ -491,6 +503,7 @@ exports[`golden render-graph — EDL→IR compositions > describes stat_callout 
 {
   "atFrames": [
     {
+      "cameraScale": undefined,
       "frame": 0,
       "layers": [
         {
@@ -569,6 +582,7 @@ exports[`golden render-graph — EDL→IR compositions > describes stat_callout 
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 30,
       "layers": [
         {
@@ -647,6 +661,7 @@ exports[`golden render-graph — EDL→IR compositions > describes stat_callout 
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 59,
       "layers": [
         {
@@ -735,6 +750,7 @@ exports[`golden render-graph — EDL→IR compositions > describes title_card (c
 {
   "atFrames": [
     {
+      "cameraScale": undefined,
       "frame": 0,
       "layers": [
         {
@@ -795,6 +811,7 @@ exports[`golden render-graph — EDL→IR compositions > describes title_card (c
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 30,
       "layers": [
         {
@@ -855,6 +872,7 @@ exports[`golden render-graph — EDL→IR compositions > describes title_card (c
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 59,
       "layers": [
         {
@@ -925,6 +943,7 @@ exports[`golden render-graph — EDL→IR compositions > describes transition (c
 {
   "atFrames": [
     {
+      "cameraScale": undefined,
       "frame": 0,
       "layers": [
         {
@@ -948,6 +967,7 @@ exports[`golden render-graph — EDL→IR compositions > describes transition (c
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 6,
       "layers": [
         {
@@ -971,6 +991,7 @@ exports[`golden render-graph — EDL→IR compositions > describes transition (c
       ],
     },
     {
+      "cameraScale": undefined,
       "frame": 11,
       "layers": [
         {
@@ -1004,73 +1025,19 @@ exports[`golden render-graph — EDL→IR compositions > describes zoom_punch (c
 {
   "atFrames": [
     {
+      "cameraScale": 1,
       "frame": 0,
-      "layers": [
-        {
-          "active": true,
-          "blendMode": "normal",
-          "children": [],
-          "clipPath": undefined,
-          "id": "z_punch",
-          "opacity": 1,
-          "position": [
-            0.5,
-            0.5,
-          ],
-          "rotationZ": 0,
-          "scale": [
-            1,
-            1,
-          ],
-          "type": "group",
-        },
-      ],
+      "layers": [],
     },
     {
+      "cameraScale": 1.2,
       "frame": 15,
-      "layers": [
-        {
-          "active": true,
-          "blendMode": "normal",
-          "children": [],
-          "clipPath": undefined,
-          "id": "z_punch",
-          "opacity": 1,
-          "position": [
-            0.5,
-            0.5,
-          ],
-          "rotationZ": 0,
-          "scale": [
-            1.2,
-            1.2,
-          ],
-          "type": "group",
-        },
-      ],
+      "layers": [],
     },
     {
+      "cameraScale": 1.044,
       "frame": 29,
-      "layers": [
-        {
-          "active": true,
-          "blendMode": "normal",
-          "children": [],
-          "clipPath": undefined,
-          "id": "z_punch",
-          "opacity": 1,
-          "position": [
-            0.5,
-            0.5,
-          ],
-          "rotationZ": 0,
-          "scale": [
-            1.044,
-            1.044,
-          ],
-          "type": "group",
-        },
-      ],
+      "layers": [],
     },
   ],
   "end": 3,

@@ -149,6 +149,11 @@ const metadataZ = z.object({
   template: z.string().optional(),
 });
 
+const cameraZ = z.object({
+  scale: animatedZ(vec3Z).optional(),
+  focus: z.enum(['center', 'face', 'left', 'right', 'top']).optional(),
+});
+
 /** Top-level composition WITHOUT layers (layers are validated individually). */
 const compositionShellZ = z.object({
   schemaVersion: z.literal(IR_VERSION),
@@ -159,6 +164,7 @@ const compositionShellZ = z.object({
   coordinateSpace: z.enum(['normalized', 'pixels']).default('normalized'),
   canvas: z.object({ width: z.number(), height: z.number(), fps: z.number() }),
   background: z.string().optional(),
+  camera: cameraZ.optional(),
   assets: z.array(assetZ).optional(),
   metadata: metadataZ.optional(),
 });

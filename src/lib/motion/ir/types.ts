@@ -199,6 +199,17 @@ export interface MotionAsset {
 /** Whether the composition's start/end are in source, cut, or relative time. */
 export type TimeBasis = 'source' | 'cut' | 'relative';
 
+/**
+ * Composition-level camera applied to the base footage (e.g. a punch-in zoom).
+ * Kept separate from layer transforms because it moves the underlying video, not
+ * an overlay. `scale` is layer-relative time (0 = composition start). This is the
+ * seed of the 2.5D camera system (later phases add position/rotation/dolly).
+ */
+export interface Camera {
+  scale?: Animated<Vec3>;
+  focus?: 'center' | 'face' | 'left' | 'right' | 'top';
+}
+
 export interface MotionMetadata {
   purpose?: string;
   style?: string[];
@@ -225,6 +236,7 @@ export interface MotionComposition {
   coordinateSpace: 'normalized' | 'pixels';
   canvas: { width: number; height: number; fps: number };
   background?: Color;
+  camera?: Camera;
   layers: MotionLayer[];
   assets?: MotionAsset[];
   metadata?: MotionMetadata;

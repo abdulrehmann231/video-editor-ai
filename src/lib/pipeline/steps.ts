@@ -9,6 +9,7 @@ import { normalizeBrollClips } from '../render/normalizeBroll';
 import { defaultMusicPath } from '../render/music';
 import { deriveProxies } from '../media/derive';
 import { motionFromEdl } from '../motion/ir';
+import { resolveMotionBroll } from '../motion/render/resolveMotionBroll';
 import { renderFinalMotion } from '../motion/renderers/remotion/renderMotion';
 
 /** Resolve which final-render engine to use (project flag wins; env is the fallback). */
@@ -179,12 +180,18 @@ export async function runFinalRender(
       // IR-driven parallel path (Phase 1.5/2).
       const keep = computeKeepSegments(sourceDuration, cutRangesFromEdl(edl), { minKeepSec: 0.05 });
       const outputDurationSec = totalKept(keep);
-      const { compositions, warnings: irWarnings } = motionFromEdl(edl, project.transcript ?? [], sourceDuration, {
+      const ir = motionFromEdl(edl, project.transcript ?? [], sourceDuration, {
         width: isShorts ? 720 : editMedia.width ?? 1280,
         height: isShorts ? 1280 : editMedia.height ?? 720,
         fps: editMedia.fps ?? 30,
       });
-      warnings = irWarnings;
+      // Resolve b-roll (Pexels) into the IR video layers (same resolver the EDL
+      // path uses), then render.
+      const broll = await resolveMotionBroll(ir.compositions, {
+        orientation: isShorts ? 'portrait' : 'landscape',
+        fps: editMedia.fps ?? 30,
+      });
+      warnings = [...ir.warnings, ...broll.warnings];
       result = await renderFinalMotion({
         projectId: project.id,
         cutUrl: cut.url,
@@ -193,7 +200,7 @@ export async function runFinalRender(
           height: editMedia.height ?? undefined,
           fps: editMedia.fps ?? undefined,
         },
-        compositions,
+        compositions: broll.compositions,
         outputDurationSec,
         layout: format,
         musicPath,
