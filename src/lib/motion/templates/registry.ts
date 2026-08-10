@@ -145,13 +145,22 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'title', type: 'string', default: '' },
       { name: 'subtitle', type: 'string', default: '' },
       { name: 'accent', type: 'color', default: undefined, description: 'Subtitle color (defaults to brand accent).', semanticRole: 'brand' },
+      { name: 'textColor', type: 'color', default: undefined, description: 'Title color (defaults to brand text).', semanticRole: 'brand' },
+      { name: 'boxColor', type: 'color', default: undefined, description: 'Box color (defaults to brand background).', semanticRole: 'brand' },
+      { name: 'boxOpacity', type: 'number', default: 0.72, min: 0, max: 1, semanticRole: 'style' },
+      { name: 'fontFamily', type: 'string', default: undefined, semanticRole: 'brand' },
+      { name: 'scale', type: 'number', default: 1, min: 0.5, max: 2, description: 'Text size multiplier.', semanticRole: 'emphasis' },
+      { name: 'align', type: 'enum', default: 'left', options: ['left', 'center', 'right'], semanticRole: 'layout' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
       const b = ctx.brand ?? DEFAULT_BRAND;
       const sub = asStr(p.subtitle);
       const accent = asStr(p.accent, b.colors.accent);
-      const family = b.fonts.heading;
+      const textColor = asStr(p.textColor, b.colors.text);
+      const family = asStr(p.fontFamily, b.fonts.heading);
+      const scale = asNum(p.scale, 1);
+      const cx = asStr(p.align, 'left') === 'center' ? 0.5 : asStr(p.align, 'left') === 'right' ? 0.72 : 0.28;
       return {
         layers: [
           {
@@ -162,11 +171,11 @@ export const TEMPLATES: EffectTemplate[] = [
             children: [
               shapeLayer(
                 `${ctx.idPrefix}_bg`,
-                { shape: 'rounded_rectangle', size: [0.42, 0.14], radius: 0.02, fill: b.colors.background, opacity: constant(0.72), transform: { position: constant<Vec3>([0.28, 0.82, 0]) } },
+                { shape: 'rounded_rectangle', size: [0.42, 0.14], radius: 0.02, fill: asStr(p.boxColor, b.colors.background), opacity: constant(asNum(p.boxOpacity, 0.72)), transform: { position: constant<Vec3>([cx, 0.82, 0]) } },
                 ctx.dur,
               ),
-              textLayer(`${ctx.idPrefix}_title`, asStr(p.title), [0.28, 0.8], Math.round(W * 0.03), ctx.dur, { fill: b.colors.text, family }),
-              ...(sub ? [textLayer(`${ctx.idPrefix}_sub`, sub, [0.28, 0.86], Math.round(W * 0.02), ctx.dur, { fill: accent, family })] : []),
+              textLayer(`${ctx.idPrefix}_title`, asStr(p.title), [cx, 0.8], Math.round(W * 0.03 * scale), ctx.dur, { fill: textColor, family }),
+              ...(sub ? [textLayer(`${ctx.idPrefix}_sub`, sub, [cx, 0.86], Math.round(W * 0.02 * scale), ctx.dur, { fill: accent, family })] : []),
             ],
           },
         ],
@@ -184,6 +193,9 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'label', type: 'string', default: '' },
       { name: 'position', type: 'enum', default: 'center', options: ['center', 'corner'], semanticRole: 'composition' },
       { name: 'accent', type: 'color', default: undefined, description: 'Badge color (defaults to brand accent).', semanticRole: 'brand' },
+      { name: 'textColor', type: 'color', default: undefined, description: 'Value/label color (defaults to brand text).', semanticRole: 'brand' },
+      { name: 'fontFamily', type: 'string', default: undefined, semanticRole: 'brand' },
+      { name: 'scale', type: 'number', default: 1, min: 0.5, max: 2, description: 'Size multiplier.', semanticRole: 'emphasis' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
@@ -191,7 +203,9 @@ export const TEMPLATES: EffectTemplate[] = [
       const [cx, cy] = asStr(p.position, 'center') === 'corner' ? [0.8, 0.2] : [0.5, 0.45];
       const label = asStr(p.label);
       const accent = asStr(p.accent, b.colors.accent);
-      const family = b.fonts.heading;
+      const textColor = asStr(p.textColor, b.colors.text);
+      const family = asStr(p.fontFamily, b.fonts.heading);
+      const scale = asNum(p.scale, 1);
       return {
         layers: [
           {
@@ -202,14 +216,14 @@ export const TEMPLATES: EffectTemplate[] = [
             children: [
               shapeLayer(
                 `${ctx.idPrefix}_accent`,
-                { shape: 'circle', radius: 0.12, fill: accent, opacity: constant(0.18), transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) } },
+                { shape: 'circle', radius: 0.12 * scale, fill: accent, opacity: constant(0.18), transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) } },
                 ctx.dur,
               ),
               {
-                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy], Math.round(W * 0.09), ctx.dur, { fill: b.colors.text, family }),
+                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy], Math.round(W * 0.09 * scale), ctx.dur, { fill: textColor, family }),
                 transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) },
               },
-              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.09], Math.round(W * 0.03), ctx.dur, { fill: b.colors.text, family })] : []),
+              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.09 * scale], Math.round(W * 0.03 * scale), ctx.dur, { fill: textColor, family })] : []),
             ],
           },
         ],
@@ -228,13 +242,18 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'variant', type: 'enum', default: 'intro', options: ['intro', 'cta'], semanticRole: 'role' },
       { name: 'accent', type: 'color', default: undefined, description: 'Subtitle color (defaults to brand accent).', semanticRole: 'brand' },
       { name: 'dim', type: 'number', default: 0.55, min: 0, max: 1, description: 'Background dim opacity.', semanticRole: 'style' },
+      { name: 'textColor', type: 'color', default: undefined, description: 'Heading color (defaults to brand text).', semanticRole: 'brand' },
+      { name: 'fontFamily', type: 'string', default: undefined, semanticRole: 'brand' },
+      { name: 'scale', type: 'number', default: 1, min: 0.5, max: 2, description: 'Text size multiplier.', semanticRole: 'emphasis' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
       const b = ctx.brand ?? DEFAULT_BRAND;
       const sub = asStr(p.sub);
       const accent = asStr(p.accent, b.colors.accent);
-      const family = b.fonts.heading;
+      const textColor = asStr(p.textColor, b.colors.text);
+      const family = asStr(p.fontFamily, b.fonts.heading);
+      const scale = asNum(p.scale, 1);
       return {
         layers: [
           {
@@ -244,8 +263,8 @@ export const TEMPLATES: EffectTemplate[] = [
             duration: ctx.dur,
             children: [
               shapeLayer(`${ctx.idPrefix}_cbg`, { shape: 'rectangle', size: [1, 1], fill: b.colors.background, opacity: constant(asNum(p.dim, 0.55)), transform: { position: constant<Vec3>([0.5, 0.5, 0]) } }, ctx.dur),
-              textLayer(`${ctx.idPrefix}_head`, asStr(p.heading), [0.5, 0.44], Math.round(W * 0.08), ctx.dur, { fill: b.colors.text, family }),
-              ...(sub ? [textLayer(`${ctx.idPrefix}_csub`, sub, [0.5, 0.56], Math.round(W * 0.035), ctx.dur, { fill: accent, family })] : []),
+              textLayer(`${ctx.idPrefix}_head`, asStr(p.heading), [0.5, 0.44], Math.round(W * 0.08 * scale), ctx.dur, { fill: textColor, family }),
+              ...(sub ? [textLayer(`${ctx.idPrefix}_csub`, sub, [0.5, 0.56], Math.round(W * 0.035 * scale), ctx.dur, { fill: accent, family })] : []),
             ],
           },
         ],

@@ -1,15 +1,23 @@
 import React from 'react';
 import { useVideoConfig } from 'remotion';
 import type { TextLayer } from '../../lib/motion/ir/types';
-import { FONT_DISPLAY, COLORS, outlineStyle } from '../theme';
+import { FONT_DISPLAY, COLORS } from '../theme';
 import { useLayerStyle } from './style';
 
-/** Render an IR text layer (whole-layer text in Phase 1). */
+/** Render an IR text layer. Outline/stroke color + width are dynamic via
+ * layer.stroke; everything else (font, size, weight, tracking, color, position)
+ * comes from the layer. */
 export const TextRenderer: React.FC<{ layer: TextLayer }> = ({ layer }) => {
   const { width } = useVideoConfig();
   const style = useLayerStyle(layer);
   const size = layer.font?.size ?? Math.round(width * 0.05);
-  const stroke = Math.max(3, Math.round(size * 0.08));
+  // Dynamic outline: use layer.stroke if provided, else a default ink outline.
+  const strokeWidth = layer.stroke ? layer.stroke.width : Math.max(3, Math.round(size * 0.08));
+  const strokeColor = layer.stroke?.color ?? COLORS.ink;
+  const outline: React.CSSProperties =
+    strokeWidth > 0
+      ? { WebkitTextStroke: `${strokeWidth}px ${strokeColor}`, paintOrder: 'stroke fill', textShadow: '0 6px 22px rgba(0,0,0,0.55), 0 2px 3px rgba(0,0,0,0.8)' }
+      : { textShadow: '0 4px 14px rgba(0,0,0,0.5)' };
 
   return (
     <div
@@ -25,7 +33,7 @@ export const TextRenderer: React.FC<{ layer: TextLayer }> = ({ layer }) => {
         lineHeight: 1.05,
         textTransform: 'uppercase',
         color: layer.fill ?? COLORS.white,
-        ...outlineStyle(stroke),
+        ...outline,
       }}
     >
       {layer.content}

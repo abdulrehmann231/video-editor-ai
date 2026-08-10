@@ -23,3 +23,4 @@ export {
 export { resolveTemplate, clampParams, type ResolveResult } from '../compiler/resolveTemplates';
 export { DEFAULT_BRAND, type BrandProfile, type BrandColors, type BrandFonts } from '../brand';
 export { CAPTION_PRESETS, CAPTION_PRESET_IDS, resolveCaptionConfig, type CaptionConfig } from '../captions';
+export { type EffectStyle, type LowerThirdStyle, type StatStyle, type TitleCardStyle } from '../effects';

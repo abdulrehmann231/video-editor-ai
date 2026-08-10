@@ -8,6 +8,7 @@ import { resolveTemplate } from '../compiler/resolveTemplates';
 import type { BuildCtx } from '../templates/helpers';
 import { DEFAULT_BRAND, type BrandProfile } from '../brand';
 import { resolveCaptionConfig, type CaptionConfig } from '../captions';
+import { compact, type EffectStyle } from '../effects';
 
 /**
  * EDL -> Motion IR adapter (engine plan §50 compatibility layer).
@@ -35,17 +36,18 @@ export interface MotionFromEdlResult {
 const round = (n: number): number => Math.round(n * 1000) / 1000;
 
 /** Map a non-caption EDL op to the effect template + params that realize it.
+ * Per-project effectStyle overrides are merged in (they win over EDL values).
  * (Captions are generated densely from the transcript, not per-op.) */
-function templateForOp(op: EditOp): { templateId: string; params: Record<string, unknown> } {
+function templateForOp(op: EditOp, effectStyle?: EffectStyle): { templateId: string; params: Record<string, unknown> } {
   switch (op.type) {
     case 'zoom_punch':
       return { templateId: 'camera_punch', params: { scale: op.scale, focus: op.focus } };
     case 'lower_third':
-      return { templateId: 'lower_third', params: { title: op.title, subtitle: op.subtitle } };
+      return { templateId: 'lower_third', params: { title: op.title, subtitle: op.subtitle, ...compact(effectStyle?.lowerThird) } };
     case 'stat_callout':
-      return { templateId: 'metric_pop', params: { value: op.value, label: op.label, position: op.position } };
+      return { templateId: 'metric_pop', params: { value: op.value, label: op.label, position: op.position, ...compact(effectStyle?.stat) } };
     case 'title_card':
-      return { templateId: 'title_card', params: { heading: op.heading, sub: op.sub, variant: op.variant } };
+      return { templateId: 'title_card', params: { heading: op.heading, sub: op.sub, variant: op.variant, ...compact(effectStyle?.titleCard) } };
     case 'transition':
       return { templateId: 'transition', params: { variant: op.variant } };
     case 'broll':
@@ -72,6 +74,8 @@ export function motionFromEdl(
   /** Per-project caption look (preset name or partial config). When set, it wins
    * over the per-op caption style so the whole video shares one caption style. */
   captionConfig?: string | CaptionConfig,
+  /** Per-project overrides for the other overlay effects (size/colors/font/pos). */
+  effectStyle?: EffectStyle,
 ): MotionFromEdlResult {
   const cfg = captionConfig != null ? resolveCaptionConfig(captionConfig) : undefined;
   const keep = computeKeepSegments(sourceDurationSec, cutRangesFromEdl(edl), { minKeepSec: 0.05 });
@@ -99,7 +103,7 @@ export function motionFromEdl(
 
     const dur = round(mapped.end - mapped.start);
     const ctx: BuildCtx = { idPrefix: op.id, dur, canvas, brand };
-    const { templateId, params } = templateForOp(op);
+    const { templateId, params } = templateForOp(op, effectStyle);
     const { layers, camera, warnings: tplWarnings } = resolveTemplate(templateId, params, ctx);
     warnings.push(...tplWarnings);
 

@@ -6,6 +6,7 @@ import type { RenderMeta } from './render/renderCut';
 import type { FinalRenderMeta } from './render/renderFinal';
 import type { BrandProfile } from './motion/brand';
 import type { CaptionConfig } from './motion/captions';
+import type { EffectStyle } from './motion/effects';
 
 /**
  * Project record store, backed by R2 JSON objects (`projects/<id>.json`).
@@ -97,6 +98,10 @@ export interface Project {
   /** Per-project caption look: a preset name ('youtube', 'tiktok', 'minimal', …)
    * or a partial CaptionConfig to fully customize size/position/font/colors. */
   captionStyle?: string | CaptionConfig;
+
+  /** Per-project style overrides for the other overlay effects (lower-third,
+   * stat, title card): size/position/colors/fonts. */
+  effectStyle?: EffectStyle;
 
   // ---- Phase 4: automatic pipeline ----
   pipelineStatus?: PipelineStatus;
