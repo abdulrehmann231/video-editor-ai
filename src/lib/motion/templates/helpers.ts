@@ -1,4 +1,4 @@
-import type { Animated, MotionLayer, ShapeLayer, TextLayer, Vec3 } from '../ir/types';
+import type { Animated, CaptionWord, MotionLayer, ShapeLayer, TextLayer, Vec3 } from '../ir/types';
 import type { BrandProfile } from '../brand';
 
 /**
@@ -22,6 +22,9 @@ export interface BuildCtx {
   canvas: { width: number; height: number; fps: number };
   /** Brand colors/fonts; resolveTemplate injects DEFAULT_BRAND when unset. */
   brand?: BrandProfile;
+  /** Pipeline-injected structured inputs (not AI-tunable params), e.g. transcript
+   * words for kinetic captions. */
+  input?: { words?: CaptionWord[] };
 }
 
 export interface TextOpts {

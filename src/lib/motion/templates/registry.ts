@@ -55,22 +55,49 @@ export const TEMPLATES: EffectTemplate[] = [
     whenToUse: 'Bold word captions over a spoken passage (hook, key point). Phase 4 upgrades this to true word-by-word.',
     renderer: 'remotion',
     parameters: [
-      { name: 'text', type: 'string', default: '', description: 'The caption text.' },
+      { name: 'text', type: 'string', default: '', description: 'Whole-phrase fallback text (used when no per-word timing is supplied).' },
       { name: 'style', type: 'enum', default: 'word_highlight', options: ['word_highlight', 'bold_pop', 'karaoke', 'typewriter'], semanticRole: 'style' },
       { name: 'size', type: 'number', default: 0.042, min: 0.02, max: 0.1, description: 'Font size as a fraction of frame width.', semanticRole: 'emphasis' },
       { name: 'weight', type: 'number', default: 800, min: 100, max: 900, semanticRole: 'emphasis' },
       { name: 'tracking', type: 'number', default: 0, min: -5, max: 40, description: 'Letter-spacing in px.', semanticRole: 'style' },
       { name: 'placement', type: 'enum', default: 'lower', options: ['lower', 'middle', 'upper'], semanticRole: 'composition' },
       { name: 'fill', type: 'color', default: undefined, description: 'Text color (defaults to brand text).', semanticRole: 'brand' },
+      { name: 'highlight', type: 'color', default: undefined, description: 'Active-word color (defaults to brand accent).', semanticRole: 'brand' },
       { name: 'fontFamily', type: 'string', default: undefined, description: 'Font family (defaults to brand heading).', semanticRole: 'brand' },
     ],
     build: (p, ctx) => {
       const b = ctx.brand ?? DEFAULT_BRAND;
-      const placement = asStr(p.placement, 'lower');
+      const placement = asStr(p.placement, 'lower') as 'lower' | 'middle' | 'upper';
+      const sizeFrac = asNum(p.size, 0.042);
+      const words = ctx.input?.words;
+
+      // Word-by-word kinetic caption when transcript timing is injected.
+      if (words && words.length > 0) {
+        return {
+          layers: [
+            {
+              id: `${ctx.idPrefix}_cap`,
+              type: 'caption',
+              start: 0,
+              duration: ctx.dur,
+              words,
+              style: asStr(p.style, 'word_highlight') as 'word_highlight' | 'bold_pop' | 'karaoke' | 'typewriter',
+              placement,
+              size: sizeFrac,
+              fill: asStr(p.fill, b.colors.text),
+              highlight: asStr(p.highlight, b.colors.accent),
+              family: asStr(p.fontFamily, b.fonts.heading),
+              tracking: asNum(p.tracking, 0),
+            },
+          ],
+        };
+      }
+
+      // Fallback: static whole-phrase text (direct template use / no transcript).
       const y = placement === 'upper' ? 0.15 : placement === 'middle' ? 0.5 : 0.82;
       return {
         layers: [
-          textLayer(`${ctx.idPrefix}_cap`, asStr(p.text), [0.5, y], Math.round(ctx.canvas.width * asNum(p.size, 0.042)), ctx.dur, {
+          textLayer(`${ctx.idPrefix}_cap`, asStr(p.text), [0.5, y], Math.round(ctx.canvas.width * sizeFrac), ctx.dur, {
             fill: asStr(p.fill, b.colors.text),
             family: asStr(p.fontFamily, b.fonts.heading),
             weight: asNum(p.weight, 800),

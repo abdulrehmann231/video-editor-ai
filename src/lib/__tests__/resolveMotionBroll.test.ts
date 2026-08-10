@@ -15,7 +15,7 @@ function ir() {
   const { edl } = parseEdl(
     {
       ops: [
-        { id: 'cap', type: 'caption', start: 0, end: 1, reason: 'hook', style: 'bold_pop' },
+        { id: 'lt', type: 'lower_third', start: 0, end: 1, reason: 'name', title: 'Jane' },
         { id: 'br', type: 'broll', start: 2, end: 5, reason: 'illustrate', query: 'city skyline', layout: 'full' },
       ],
     },
@@ -46,8 +46,8 @@ describe('resolveMotionBroll', () => {
     expect(warnings).toEqual(['resolved', 'normalized']);
 
     // Non-broll compositions are untouched.
-    const capComp = out.find((c) => c.metadata?.sourceOpType === 'caption')!;
-    expect(capComp).toBeDefined();
+    const ltComp = out.find((c) => c.metadata?.sourceOpType === 'lower_third')!;
+    expect(ltComp).toBeDefined();
   });
 
   it('passes the query and inferred layout through to the resolver', async () => {

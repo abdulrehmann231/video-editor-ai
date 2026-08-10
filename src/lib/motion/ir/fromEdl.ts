@@ -1,9 +1,9 @@
 import type { Edl, EditOp } from '../../edl/schema';
 import type { TranscriptWord } from '../../analyze/transcribe';
 import { computeKeepSegments, cutRangesFromEdl } from '../../render/segments';
-import { remapRange } from '../../render/timeline';
+import { remapRange, buildAutoCaptions } from '../../render/timeline';
 import { IR_VERSION } from './version';
-import type { MotionComposition } from './types';
+import type { CaptionStyle, MotionComposition } from './types';
 import { resolveTemplate } from '../compiler/resolveTemplates';
 import type { BuildCtx } from '../templates/helpers';
 import { DEFAULT_BRAND, type BrandProfile } from '../brand';
@@ -33,26 +33,10 @@ export interface MotionFromEdlResult {
 
 const round = (n: number): number => Math.round(n * 1000) / 1000;
 
-function wordsInRange(transcript: TranscriptWord[], start: number, end: number): string {
-  return transcript
-    .filter((w) => w.end > start && w.start < end)
-    .map((w) => w.word.trim())
-    .filter(Boolean)
-    .join(' ');
-}
-
-/** Map an EDL op to the effect template + params that realize it. */
-function templateForOp(
-  op: EditOp,
-  transcript: TranscriptWord[],
-  captionPlacement?: 'lower' | 'middle' | 'upper',
-): { templateId: string; params: Record<string, unknown> } {
+/** Map a non-caption EDL op to the effect template + params that realize it.
+ * (Captions are generated densely from the transcript, not per-op.) */
+function templateForOp(op: EditOp): { templateId: string; params: Record<string, unknown> } {
   switch (op.type) {
-    case 'caption':
-      return {
-        templateId: 'kinetic_text',
-        params: { text: wordsInRange(transcript, op.start, op.end), style: op.style, placement: captionPlacement ?? 'lower' },
-      };
     case 'zoom_punch':
       return { templateId: 'camera_punch', params: { scale: op.scale, focus: op.focus } };
     case 'lower_third':
@@ -88,6 +72,9 @@ export function motionFromEdl(
   const keep = computeKeepSegments(sourceDurationSec, cutRangesFromEdl(edl), { minKeepSec: 0.05 });
   const warnings: string[] = [];
   const compositions: MotionComposition[] = [];
+  // Caption ops become STYLE hints over cut-time ranges; the actual dense caption
+  // coverage is generated from the full transcript below (matches the EDL path).
+  const captionStyleRanges: { start: number; end: number; style: CaptionStyle }[] = [];
 
   for (const op of edl.ops) {
     if (op.type === 'silence_cut') continue; // consumed into the timeline
@@ -97,9 +84,15 @@ export function motionFromEdl(
       warnings.push(`Dropped ${op.type} (${op.id}) — collapsed into a removed segment`);
       continue;
     }
+
+    if (op.type === 'caption') {
+      captionStyleRanges.push({ start: mapped.start, end: mapped.end, style: op.style });
+      continue; // consumed as a style hint
+    }
+
     const dur = round(mapped.end - mapped.start);
     const ctx: BuildCtx = { idPrefix: op.id, dur, canvas, brand };
-    const { templateId, params } = templateForOp(op, transcript, edl.captionPlacement);
+    const { templateId, params } = templateForOp(op);
     const { layers, camera, warnings: tplWarnings } = resolveTemplate(templateId, params, ctx);
     warnings.push(...tplWarnings);
 
@@ -124,6 +117,32 @@ export function motionFromEdl(
       },
     });
   }
+
+  // Dense word-by-word captions across the whole spoken content (like a real
+  // YouTube edit); Gemini caption ops apply their style over their ranges.
+  const captions = buildAutoCaptions(transcript, keep, captionStyleRanges);
+  captions.forEach((c, i) => {
+    const dur = round(c.end - c.start);
+    const words = c.words.map((w) => ({ word: w.word, start: round(w.start - c.start), end: round(w.end - c.start) }));
+    const ctx: BuildCtx = { idPrefix: `cap_${i}`, dur, canvas, brand, input: { words } };
+    const { layers, warnings: tplWarnings } = resolveTemplate(
+      'kinetic_text',
+      { style: c.style, placement: edl.captionPlacement ?? 'lower' },
+      ctx,
+    );
+    warnings.push(...tplWarnings);
+    compositions.push({
+      schemaVersion: IR_VERSION,
+      id: `comp_cap_${i}`,
+      start: c.start,
+      end: c.end,
+      timeBasis: 'cut',
+      coordinateSpace: 'normalized',
+      canvas,
+      layers,
+      metadata: { sourceOpType: 'caption', reason: 'Auto caption from transcript', template: 'kinetic_text' },
+    });
+  });
 
   return { compositions, warnings };
 }

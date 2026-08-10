@@ -103,7 +103,17 @@ export interface Mask {
 
 // ── Layers ──────────────────────────────────────────────────────────────────
 
-export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition';
+export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption';
+
+/** A transcript word with times RELATIVE to the caption layer's start (seconds). */
+export interface CaptionWord {
+  word: string;
+  start: number;
+  end: number;
+}
+
+export type CaptionStyle = 'word_highlight' | 'bold_pop' | 'karaoke' | 'typewriter';
+export type CaptionPlacement = 'lower' | 'middle' | 'upper';
 
 export interface BaseLayer {
   id: string;
@@ -190,7 +200,34 @@ export interface TransitionLayer extends BaseLayer {
   variant: 'glitch' | 'flash' | 'zoom_blur';
 }
 
-export type MotionLayer = TextLayer | ShapeLayer | VideoLayer | ImageLayer | GroupLayer | TransitionLayer;
+/** Word-by-word kinetic captions (the professional caption engine). Carries its
+ * own word timing so the renderer can animate per word/character. */
+export interface CaptionLayer extends BaseLayer {
+  type: 'caption';
+  words: CaptionWord[];
+  style: CaptionStyle;
+  placement?: CaptionPlacement;
+  /** Font size as a fraction of frame width. */
+  size?: number;
+  /** Base (inactive) word color. */
+  fill?: Color;
+  /** Active/emphasis word color. */
+  highlight?: Color;
+  family?: string;
+  /** Letter-spacing in px. */
+  tracking?: number;
+  /** Words to always accent (lower-cased match). */
+  emphasis?: string[];
+}
+
+export type MotionLayer =
+  | TextLayer
+  | ShapeLayer
+  | VideoLayer
+  | ImageLayer
+  | GroupLayer
+  | TransitionLayer
+  | CaptionLayer;
 
 // ── Assets & composition ─────────────────────────────────────────────────────
 

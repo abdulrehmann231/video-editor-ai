@@ -123,9 +123,22 @@ const transitionZ = base.extend({
   variant: z.enum(['glitch', 'flash', 'zoom_blur']),
 });
 
+const captionZ = base.extend({
+  type: z.literal('caption'),
+  words: z.array(z.object({ word: z.string(), start: z.number(), end: z.number() })),
+  style: z.enum(['word_highlight', 'bold_pop', 'karaoke', 'typewriter']),
+  placement: z.enum(['lower', 'middle', 'upper']).optional(),
+  size: z.number().optional(),
+  fill: z.string().optional(),
+  highlight: z.string().optional(),
+  family: z.string().optional(),
+  tracking: z.number().optional(),
+  emphasis: z.array(z.string()).optional(),
+});
+
 // Recursive: a group holds child layers of any supported type.
 const layerZ: z.ZodType<MotionLayer> = z.lazy(() =>
-  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ]),
+  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ]),
 );
 
 const groupZ = base.extend({

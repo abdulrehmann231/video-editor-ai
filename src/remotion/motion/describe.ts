@@ -27,6 +27,10 @@ export interface LayerRender {
   fit?: string;
   hasSrc?: boolean;
   variant?: string;
+  style?: string;
+  placement?: string;
+  wordCount?: number;
+  activeWord?: string;
   children?: LayerRender[];
 }
 
@@ -61,6 +65,17 @@ export function describeLayer(layer: MotionLayer, compTimeSec: number, fps: numb
     out.hasSrc = Boolean(layer.src);
   }
   if (layer.type === 'transition') out.variant = layer.variant;
+  if (layer.type === 'caption') {
+    out.style = layer.style;
+    out.placement = layer.placement ?? 'lower';
+    out.wordCount = layer.words.length;
+    // Active word at this frame (layer-relative) — covers per-word timing.
+    const localT = compTimeSec - layer.start;
+    let active = -1;
+    for (let i = 0; i < layer.words.length; i++) if (localT >= layer.words[i].start && localT <= layer.words[i].end) active = i;
+    if (active < 0) for (let i = 0; i < layer.words.length; i++) if (layer.words[i].start <= localT) active = i;
+    out.activeWord = active >= 0 ? layer.words[active].word : undefined;
+  }
   if (layer.type === 'group') {
     out.children = layer.children.map((c) => describeLayer(c, compTimeSec - layer.start, fps));
   }

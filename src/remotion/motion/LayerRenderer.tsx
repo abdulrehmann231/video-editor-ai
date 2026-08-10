@@ -5,6 +5,7 @@ import { TextRenderer } from './TextRenderer';
 import { ShapeRenderer } from './ShapeRenderer';
 import { VideoRenderer } from './VideoRenderer';
 import { TransitionRenderer } from './TransitionRenderer';
+import { CaptionRenderer } from './CaptionRenderer';
 import { sampleNumber, sampleVec3 } from './anim/resolveAnimated';
 import { layerDecorations } from './style';
 
@@ -63,6 +64,9 @@ export const LayerRenderer: React.FC<{ layer: MotionLayer }> = ({ layer }) => {
       break;
     case 'transition':
       inner = <TransitionRenderer layer={layer} />;
+      break;
+    case 'caption':
+      inner = <CaptionRenderer layer={layer} />;
       break;
     default:
       inner = null;

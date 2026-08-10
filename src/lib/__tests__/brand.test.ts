@@ -77,8 +77,9 @@ describe('adapter threads brand + caption placement', () => {
       { durationSec: 5 },
     );
     const { compositions } = motionFromEdl(edl, [{ word: 'hi', start: 0.1, end: 0.5 }], 5, CANVAS);
-    const cap = compositions[0].layers[0] as AnyLayer;
-    expect(cap.transform?.position?.value?.[1]).toBe(0.15); // upper
+    const cap = compositions[0].layers[0] as AnyLayer & { type?: string; placement?: string };
+    expect(cap.type).toBe('caption');
+    expect(cap.placement).toBe('upper');
   });
 
   it('passes a custom brand through to templates', () => {

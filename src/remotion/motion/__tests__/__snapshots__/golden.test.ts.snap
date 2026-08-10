@@ -170,7 +170,7 @@ exports[`golden render-graph — EDL→IR compositions > describes broll (comp_b
 }
 `;
 
-exports[`golden render-graph — EDL→IR compositions > describes caption (comp_c) consistently 1`] = `
+exports[`golden render-graph — EDL→IR compositions > describes caption (comp_cap_0) consistently 1`] = `
 {
   "atFrames": [
     {
@@ -179,76 +179,85 @@ exports[`golden render-graph — EDL→IR compositions > describes caption (comp
       "layers": [
         {
           "active": true,
+          "activeWord": "this",
           "blendMode": "normal",
           "clipPath": undefined,
-          "content": "this changes everything",
-          "id": "c_cap",
-          "opacity": 0,
+          "id": "cap_0_cap",
+          "opacity": 1,
+          "placement": "lower",
           "position": [
             0.5,
-            0.82,
+            0.5,
           ],
           "rotationZ": 0,
           "scale": [
             1,
             1,
           ],
-          "type": "text",
+          "style": "bold_pop",
+          "type": "caption",
+          "wordCount": 3,
         },
       ],
     },
     {
       "cameraScale": undefined,
-      "frame": 30,
+      "frame": 25,
       "layers": [
         {
           "active": true,
+          "activeWord": "everything",
           "blendMode": "normal",
           "clipPath": undefined,
-          "content": "this changes everything",
-          "id": "c_cap",
+          "id": "cap_0_cap",
           "opacity": 1,
+          "placement": "lower",
           "position": [
             0.5,
-            0.82,
+            0.5,
           ],
           "rotationZ": 0,
           "scale": [
             1,
             1,
           ],
-          "type": "text",
+          "style": "bold_pop",
+          "type": "caption",
+          "wordCount": 3,
         },
       ],
     },
     {
       "cameraScale": undefined,
-      "frame": 59,
+      "frame": 49,
       "layers": [
         {
           "active": true,
+          "activeWord": "everything",
           "blendMode": "normal",
           "clipPath": undefined,
-          "content": "this changes everything",
-          "id": "c_cap",
+          "id": "cap_0_cap",
           "opacity": 1,
+          "placement": "lower",
           "position": [
             0.5,
-            0.82,
+            0.5,
           ],
           "rotationZ": 0,
           "scale": [
             1,
             1,
           ],
-          "type": "text",
+          "style": "bold_pop",
+          "type": "caption",
+          "wordCount": 3,
         },
       ],
     },
   ],
-  "end": 2,
-  "id": "comp_c",
-  "start": 0,
+  "end": 1.75,
+  "id": "comp_cap_0",
+  "start": 0.1,
 }
 `;
 
