@@ -88,6 +88,19 @@ export type BlendMode =
   | 'darken'
   | 'lighten';
 
+/**
+ * Basic clip/mask (Phase 2). A layer is clipped to the mask region; content
+ * outside it is hidden. `rect` is normalized (0..1) over the frame; defaults to
+ * the full frame. Advanced alpha/luma/track mattes come in a later phase.
+ */
+export interface Mask {
+  shape: 'rectangle' | 'rounded_rectangle' | 'circle';
+  /** Normalized region kept, over the frame. Defaults to the whole frame. */
+  rect?: { x: number; y: number; width: number; height: number };
+  /** Corner radius (rounded_rectangle) / circle radius, fraction of frame width. */
+  radius?: number;
+}
+
 // ── Layers ──────────────────────────────────────────────────────────────────
 
 export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group';
@@ -102,6 +115,7 @@ export interface BaseLayer {
   transform?: Transform;
   opacity?: Animated<number>;
   blendMode?: BlendMode;
+  mask?: Mask;
   zIndex?: number;
   parentId?: string;
 }

@@ -2,11 +2,21 @@ import type React from 'react';
 import { useCurrentFrame, useVideoConfig } from 'remotion';
 import type { MotionLayer } from '../../lib/motion/ir/types';
 import { sampleNumber, sampleVec3 } from './anim/resolveAnimated';
+import { cssBlendMode, clipPathFromMask } from './decorations';
 
 /**
- * Compute the CSS transform/opacity for a layer at the current (layer-relative)
- * frame. Coordinates are normalized (0..1) with a center anchor, so the same
- * composition adapts to any output aspect ratio.
+ * CSS decorations (blend mode + clip mask) for a layer — frame-independent, so
+ * both self-positioning layers (text/shape) and wrapper layers (video/group) can
+ * apply them uniformly.
+ */
+export function layerDecorations(layer: MotionLayer): React.CSSProperties {
+  return { mixBlendMode: cssBlendMode(layer.blendMode), clipPath: clipPathFromMask(layer.mask) };
+}
+
+/**
+ * Compute the CSS transform/opacity (+ decorations) for a layer at the current
+ * (layer-relative) frame. Coordinates are normalized (0..1) with a center
+ * anchor, so the same composition adapts to any output aspect ratio.
  */
 export function useLayerStyle(layer: MotionLayer): React.CSSProperties {
   const frame = useCurrentFrame();
@@ -23,5 +33,6 @@ export function useLayerStyle(layer: MotionLayer): React.CSSProperties {
     top: `${py * 100}%`,
     transform: `translate(-50%, -50%) scale(${sx}, ${sy}) rotate(${rz}deg)`,
     opacity,
+    ...layerDecorations(layer),
   };
 }

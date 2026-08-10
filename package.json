@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:visual": "RUN_VISUAL=1 vitest run src/remotion/motion/__tests__/visual.golden.test.ts",
     "smoke": "tsx scripts/smoke-test.ts",
     "lambda:deploy": "tsx scripts/lambda-deploy.ts"
   },
@@ -36,9 +37,11 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/three": "^0.169.0",
+    "pngjs": "^7.0.0",
     "tsx": "^4.19.1",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

@@ -5,16 +5,27 @@ import { TextRenderer } from './TextRenderer';
 import { ShapeRenderer } from './ShapeRenderer';
 import { VideoRenderer } from './VideoRenderer';
 import { sampleNumber, sampleVec3 } from './anim/resolveAnimated';
+import { layerDecorations } from './style';
 
-/** A group applies its own transform/opacity to a full-frame wrapper, then
- * renders its child layers (which position themselves within it). */
+/** A group applies its own transform/opacity/mask to a full-frame wrapper, then
+ * renders its child layers (which position themselves within it). A mask clips
+ * the children (overflow hidden). */
 const GroupRenderer: React.FC<{ layer: GroupLayer }> = ({ layer }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const opacity = sampleNumber(layer.opacity, frame, fps, 1);
   const [sx, sy] = sampleVec3(layer.transform?.scale, frame, fps, [1, 1, 1]);
+  const deco = layerDecorations(layer);
   return (
-    <AbsoluteFill style={{ opacity, transform: `scale(${sx}, ${sy})`, transformOrigin: 'center' }}>
+    <AbsoluteFill
+      style={{
+        opacity,
+        transform: `scale(${sx}, ${sy})`,
+        transformOrigin: 'center',
+        overflow: deco.clipPath ? 'hidden' : undefined,
+        ...deco,
+      }}
+    >
       {layer.children.map((c) => (
         <LayerRenderer key={c.id} layer={c} />
       ))}

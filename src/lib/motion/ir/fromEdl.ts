@@ -224,6 +224,8 @@ function layersForOp(op: EditOp, dur: number, canvas: CanvasSpec, transcript: Tr
             position: constant<Vec3>(full ? [0.5, 0.5, 0] : [0.72, 0.28, 0]),
             scale: constant<Vec3>(full ? [1, 1, 1] : [0.36, 0.36, 1]),
           },
+          // Rounded-corner card for picture-in-picture b-roll.
+          ...(full ? {} : { mask: { shape: 'rounded_rectangle', rect: { x: 0.54, y: 0.1, width: 0.36, height: 0.36 }, radius: 0.02 } as const }),
         },
       ];
     }

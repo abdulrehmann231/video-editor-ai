@@ -1,0 +1,1080 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden render-graph — EDL→IR compositions > describes broll (comp_brf) consistently 1`] = `
+{
+  "atFrames": [
+    {
+      "frame": 0,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "fit": "cover",
+          "hasSrc": false,
+          "id": "brf_broll",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "video",
+        },
+      ],
+    },
+    {
+      "frame": 45,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "fit": "cover",
+          "hasSrc": false,
+          "id": "brf_broll",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "video",
+        },
+      ],
+    },
+    {
+      "frame": 89,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "fit": "cover",
+          "hasSrc": false,
+          "id": "brf_broll",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "video",
+        },
+      ],
+    },
+  ],
+  "end": 14,
+  "id": "comp_brf",
+  "start": 11,
+}
+`;
+
+exports[`golden render-graph — EDL→IR compositions > describes broll (comp_brp) consistently 1`] = `
+{
+  "atFrames": [
+    {
+      "frame": 0,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": "inset(10% 10% 54% 54% round 2%)",
+          "fit": "contain",
+          "hasSrc": false,
+          "id": "brp_broll",
+          "opacity": 1,
+          "position": [
+            0.72,
+            0.28,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            0.36,
+            0.36,
+          ],
+          "type": "video",
+        },
+      ],
+    },
+    {
+      "frame": 45,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": "inset(10% 10% 54% 54% round 2%)",
+          "fit": "contain",
+          "hasSrc": false,
+          "id": "brp_broll",
+          "opacity": 1,
+          "position": [
+            0.72,
+            0.28,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            0.36,
+            0.36,
+          ],
+          "type": "video",
+        },
+      ],
+    },
+    {
+      "frame": 89,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": "inset(10% 10% 54% 54% round 2%)",
+          "fit": "contain",
+          "hasSrc": false,
+          "id": "brp_broll",
+          "opacity": 1,
+          "position": [
+            0.72,
+            0.28,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            0.36,
+            0.36,
+          ],
+          "type": "video",
+        },
+      ],
+    },
+  ],
+  "end": 17,
+  "id": "comp_brp",
+  "start": 14,
+}
+`;
+
+exports[`golden render-graph — EDL→IR compositions > describes caption (comp_c) consistently 1`] = `
+{
+  "atFrames": [
+    {
+      "frame": 0,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "content": "this changes everything",
+          "id": "c_cap",
+          "opacity": 0,
+          "position": [
+            0.5,
+            0.82,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "text",
+        },
+      ],
+    },
+    {
+      "frame": 30,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "content": "this changes everything",
+          "id": "c_cap",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.82,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "text",
+        },
+      ],
+    },
+    {
+      "frame": 59,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "content": "this changes everything",
+          "id": "c_cap",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.82,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "text",
+        },
+      ],
+    },
+  ],
+  "end": 2,
+  "id": "comp_c",
+  "start": 0,
+}
+`;
+
+exports[`golden render-graph — EDL→IR compositions > describes lower_third (comp_lt) consistently 1`] = `
+{
+  "atFrames": [
+    {
+      "frame": 0,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "lt_bg",
+              "opacity": 0.72,
+              "position": [
+                0.28,
+                0.82,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "shape": "rounded_rectangle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "Jane",
+              "id": "lt_title",
+              "opacity": 0,
+              "position": [
+                0.28,
+                0.8,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "CEO",
+              "id": "lt_sub",
+              "opacity": 0,
+              "position": [
+                0.28,
+                0.86,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "lt_lt",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+    {
+      "frame": 45,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "lt_bg",
+              "opacity": 0.72,
+              "position": [
+                0.28,
+                0.82,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "shape": "rounded_rectangle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "Jane",
+              "id": "lt_title",
+              "opacity": 1,
+              "position": [
+                0.28,
+                0.8,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "CEO",
+              "id": "lt_sub",
+              "opacity": 1,
+              "position": [
+                0.28,
+                0.86,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "lt_lt",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+    {
+      "frame": 89,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "lt_bg",
+              "opacity": 0.72,
+              "position": [
+                0.28,
+                0.82,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "shape": "rounded_rectangle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "Jane",
+              "id": "lt_title",
+              "opacity": 1,
+              "position": [
+                0.28,
+                0.8,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "CEO",
+              "id": "lt_sub",
+              "opacity": 1,
+              "position": [
+                0.28,
+                0.86,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "lt_lt",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+  ],
+  "end": 6,
+  "id": "comp_lt",
+  "start": 3,
+}
+`;
+
+exports[`golden render-graph — EDL→IR compositions > describes stat_callout (comp_st) consistently 1`] = `
+{
+  "atFrames": [
+    {
+      "frame": 0,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "st_accent",
+              "opacity": 0.18,
+              "position": [
+                0.5,
+                0.45,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                0,
+                0,
+              ],
+              "shape": "circle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "43%",
+              "id": "st_val",
+              "opacity": 0,
+              "position": [
+                0.5,
+                0.45,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                0,
+                0,
+              ],
+              "type": "text",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "growth",
+              "id": "st_lbl",
+              "opacity": 0,
+              "position": [
+                0.5,
+                0.54,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "st_stat",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+    {
+      "frame": 30,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "st_accent",
+              "opacity": 0.18,
+              "position": [
+                0.5,
+                0.45,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "shape": "circle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "43%",
+              "id": "st_val",
+              "opacity": 1,
+              "position": [
+                0.5,
+                0.45,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "growth",
+              "id": "st_lbl",
+              "opacity": 1,
+              "position": [
+                0.5,
+                0.54,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "st_stat",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+    {
+      "frame": 59,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "st_accent",
+              "opacity": 0.18,
+              "position": [
+                0.5,
+                0.45,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "shape": "circle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "43%",
+              "id": "st_val",
+              "opacity": 1,
+              "position": [
+                0.5,
+                0.45,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "growth",
+              "id": "st_lbl",
+              "opacity": 1,
+              "position": [
+                0.5,
+                0.54,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "st_stat",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+  ],
+  "end": 8,
+  "id": "comp_st",
+  "start": 6,
+}
+`;
+
+exports[`golden render-graph — EDL→IR compositions > describes title_card (comp_tc) consistently 1`] = `
+{
+  "atFrames": [
+    {
+      "frame": 0,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "tc_cbg",
+              "opacity": 0.55,
+              "position": [
+                0.5,
+                0.5,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "shape": "rectangle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "Q3 Results",
+              "id": "tc_head",
+              "opacity": 0,
+              "position": [
+                0.5,
+                0.44,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "tc_card",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+    {
+      "frame": 30,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "tc_cbg",
+              "opacity": 0.55,
+              "position": [
+                0.5,
+                0.5,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "shape": "rectangle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "Q3 Results",
+              "id": "tc_head",
+              "opacity": 1,
+              "position": [
+                0.5,
+                0.44,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "tc_card",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+    {
+      "frame": 59,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "id": "tc_cbg",
+              "opacity": 0.55,
+              "position": [
+                0.5,
+                0.5,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "shape": "rectangle",
+              "type": "shape",
+            },
+            {
+              "active": true,
+              "blendMode": "normal",
+              "clipPath": undefined,
+              "content": "Q3 Results",
+              "id": "tc_head",
+              "opacity": 1,
+              "position": [
+                0.5,
+                0.44,
+              ],
+              "rotationZ": 0,
+              "scale": [
+                1,
+                1,
+              ],
+              "type": "text",
+            },
+          ],
+          "clipPath": undefined,
+          "id": "tc_card",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+  ],
+  "end": 10,
+  "id": "comp_tc",
+  "start": 8,
+}
+`;
+
+exports[`golden render-graph — EDL→IR compositions > describes transition (comp_tr) consistently 1`] = `
+{
+  "atFrames": [
+    {
+      "frame": 0,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "id": "tr_flash",
+          "opacity": 0,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "shape": "rectangle",
+          "type": "shape",
+        },
+      ],
+    },
+    {
+      "frame": 6,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "id": "tr_flash",
+          "opacity": 0.9,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "shape": "rectangle",
+          "type": "shape",
+        },
+      ],
+    },
+    {
+      "frame": 11,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "clipPath": undefined,
+          "id": "tr_flash",
+          "opacity": 0.15,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "shape": "rectangle",
+          "type": "shape",
+        },
+      ],
+    },
+  ],
+  "end": 10.4,
+  "id": "comp_tr",
+  "start": 10,
+}
+`;
+
+exports[`golden render-graph — EDL→IR compositions > describes zoom_punch (comp_z) consistently 1`] = `
+{
+  "atFrames": [
+    {
+      "frame": 0,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [],
+          "clipPath": undefined,
+          "id": "z_punch",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1,
+            1,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+    {
+      "frame": 15,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [],
+          "clipPath": undefined,
+          "id": "z_punch",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1.2,
+            1.2,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+    {
+      "frame": 29,
+      "layers": [
+        {
+          "active": true,
+          "blendMode": "normal",
+          "children": [],
+          "clipPath": undefined,
+          "id": "z_punch",
+          "opacity": 1,
+          "position": [
+            0.5,
+            0.5,
+          ],
+          "rotationZ": 0,
+          "scale": [
+            1.044,
+            1.044,
+          ],
+          "type": "group",
+        },
+      ],
+    },
+  ],
+  "end": 3,
+  "id": "comp_z",
+  "start": 2,
+}
+`;

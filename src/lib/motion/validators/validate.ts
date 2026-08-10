@@ -98,6 +98,14 @@ export function validateComposition(comp: MotionComposition): ValidationResult {
     const stroke = (l as { stroke?: { color?: string } }).stroke;
     if (stroke?.color && !isHexColor(stroke.color)) errors.push(`layer ${l.id}: invalid stroke color "${stroke.color}"`);
 
+    // Mask region must be non-degenerate.
+    if (l.mask?.rect) {
+      const r = l.mask.rect;
+      if (!(r.width > 0) || !(r.height > 0)) {
+        errors.push(`layer ${l.id}: mask rect must have positive width/height`);
+      }
+    }
+
     // Asset resolution.
     const assetId = (l as { assetId?: string }).assetId;
     if (assetId && !assetIds.has(assetId)) errors.push(`layer ${l.id}: references missing asset "${assetId}"`);

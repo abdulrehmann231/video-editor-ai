@@ -2,6 +2,7 @@ import React from 'react';
 import { AbsoluteFill, OffthreadVideo, useCurrentFrame, useVideoConfig } from 'remotion';
 import type { VideoLayer, ImageLayer } from '../../lib/motion/ir/types';
 import { sampleNumber, sampleVec3 } from './anim/resolveAnimated';
+import { layerDecorations } from './style';
 
 /**
  * Render an IR video/image layer. The source may be a direct `src` (e.g. a
@@ -20,7 +21,7 @@ export const VideoRenderer: React.FC<{ layer: VideoLayer | ImageLayer }> = ({ la
   const fit = layer.fit ?? 'cover';
 
   return (
-    <AbsoluteFill style={{ opacity }}>
+    <AbsoluteFill style={{ opacity, ...layerDecorations(layer) }}>
       <div
         style={{
           position: 'absolute',

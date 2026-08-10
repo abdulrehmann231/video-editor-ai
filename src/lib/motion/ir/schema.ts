@@ -50,6 +50,11 @@ const transformZ = z.object({
 
 const blendZ = z.enum(['normal', 'multiply', 'screen', 'overlay', 'soft_light', 'add', 'darken', 'lighten']);
 const strokeZ = z.object({ color: z.string(), width: z.number() });
+const maskZ = z.object({
+  shape: z.enum(['rectangle', 'rounded_rectangle', 'circle']),
+  rect: z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() }).optional(),
+  radius: z.number().optional(),
+});
 
 const baseFields = {
   id: z.string().min(1),
@@ -59,6 +64,7 @@ const baseFields = {
   transform: transformZ.optional(),
   opacity: animatedZ(z.number()).optional(),
   blendMode: blendZ.optional(),
+  mask: maskZ.optional(),
   zIndex: z.number().optional(),
   parentId: z.string().optional(),
 };
