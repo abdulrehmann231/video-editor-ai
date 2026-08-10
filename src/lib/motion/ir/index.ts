@@ -1,0 +1,14 @@
+/**
+ * Motion Graphics IR — public entry point (Phase 1).
+ *
+ * The IR is the canonical, renderer-independent representation of a visual
+ * composition. Phase 1 introduces the types, a zod schema + self-healing parser,
+ * a semantic validator, and an EDL -> IR adapter. Nothing is wired into the
+ * render path yet (no visual change).
+ */
+
+export * from './types';
+export { IR_VERSION, BOUNDS, type IrVersion } from './version';
+export { parseMotionComposition, layerZ } from './schema';
+export { motionFromEdl, type CanvasSpec, type MotionFromEdlResult } from './fromEdl';
+export { validateComposition, type ValidationResult } from '../validators/validate';

@@ -1,0 +1,217 @@
+/**
+ * Motion Graphics IR — canonical, renderer-independent representation of a
+ * visual composition (the "AI After Effects" program the AI emits and the
+ * deterministic renderers execute).
+ *
+ * IMPORTANT: this module has ZERO imports on purpose. Like `src/remotion/types.ts`,
+ * it must stay importable from the Remotion webpack bundle without dragging any
+ * Node-only dependency (zod/ffmpeg/aws-sdk) into the browser. `schema.ts` (zod)
+ * lives on the Node side and mirrors these shapes.
+ *
+ * Phase-1 supported subset only: layer types text|shape|video|image|group,
+ * animation kinds constant|keyframes|spring. Advanced layer/animation kinds are
+ * introduced in later phases and rejected by the validator until then.
+ */
+
+export type Vec2 = [number, number];
+export type Vec3 = [number, number, number];
+/** #rgb / #rrggbb / #rrggbbaa hex color. */
+export type Color = string;
+
+export type IrVersion = '1.0';
+
+// ── Animation ───────────────────────────────────────────────────────────────
+
+export type EasingType =
+  | 'linear'
+  | 'easeIn'
+  | 'easeOut'
+  | 'easeInOut'
+  | 'bezier'
+  | 'back'
+  | 'elastic';
+
+export type Easing =
+  | { type: 'linear' }
+  | { type: 'easeIn' }
+  | { type: 'easeOut' }
+  | { type: 'easeInOut' }
+  | { type: 'bezier'; x1: number; y1: number; x2: number; y2: number }
+  | { type: 'back'; amount: number }
+  | { type: 'elastic'; amplitude: number; period: number };
+
+export interface SpringConfig {
+  mass: number;
+  stiffness: number;
+  damping: number;
+  initialVelocity?: number;
+}
+
+export interface Keyframe<T> {
+  /** Seconds, relative to the layer start. */
+  time: number;
+  value: T;
+  easing?: Easing;
+}
+
+export type AnimatedKind = 'constant' | 'keyframes' | 'spring';
+
+/** A value that is either constant or varies over time. */
+export interface Animated<T> {
+  kind: AnimatedKind;
+  /** Constant value, and the target value for a spring. */
+  value?: T;
+  /** Optional start value for a spring. */
+  from?: T;
+  keyframes?: Keyframe<T>[];
+  spring?: SpringConfig;
+}
+
+// ── Transform ─────────────────────────────────────────────────────────────---
+
+export interface Transform {
+  position?: Animated<Vec3>;
+  scale?: Animated<Vec3>;
+  /** Rotation in DEGREES; 2D uses z. */
+  rotation?: Animated<Vec3>;
+  anchor?: Animated<Vec3>;
+  skew?: Animated<Vec2>;
+}
+
+export type BlendMode =
+  | 'normal'
+  | 'multiply'
+  | 'screen'
+  | 'overlay'
+  | 'soft_light'
+  | 'add'
+  | 'darken'
+  | 'lighten';
+
+// ── Layers ──────────────────────────────────────────────────────────────────
+
+export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group';
+
+export interface BaseLayer {
+  id: string;
+  type: LayerType;
+  /** Seconds, relative to the composition start. */
+  start: number;
+  duration: number;
+  visible?: boolean;
+  transform?: Transform;
+  opacity?: Animated<number>;
+  blendMode?: BlendMode;
+  zIndex?: number;
+  parentId?: string;
+}
+
+export interface TextFont {
+  family?: string;
+  weight?: number;
+  size?: number;
+  tracking?: number;
+  leading?: number;
+}
+
+export interface Stroke {
+  color: Color;
+  width: number;
+}
+
+/** Whole-layer text in Phase 1; per-word/char kinetic targeting lands in Phase 4. */
+export interface Kinetic {
+  target: 'word' | 'char' | 'line' | 'layer';
+  enter?: string;
+  emphasis?: string[];
+  stagger?: number;
+}
+
+export interface TextLayer extends BaseLayer {
+  type: 'text';
+  content: string;
+  font?: TextFont;
+  align?: 'left' | 'center' | 'right';
+  fill?: Color;
+  stroke?: Stroke;
+  kinetic?: Kinetic;
+}
+
+export type ShapeKind = 'rectangle' | 'rounded_rectangle' | 'circle' | 'ellipse' | 'line';
+
+export interface ShapeLayer extends BaseLayer {
+  type: 'shape';
+  shape: ShapeKind;
+  size?: Vec2;
+  radius?: number;
+  fill?: Color;
+  stroke?: Stroke;
+}
+
+export interface VideoLayer extends BaseLayer {
+  type: 'video';
+  /** Reference into composition.assets, resolved at compile time. */
+  assetId?: string;
+  /** Direct URL (e.g. resolved Pexels clip); may be filled in later. */
+  src?: string;
+  fit?: 'cover' | 'contain';
+}
+
+export interface ImageLayer extends BaseLayer {
+  type: 'image';
+  assetId?: string;
+  src?: string;
+  fit?: 'cover' | 'contain';
+}
+
+export interface GroupLayer extends BaseLayer {
+  type: 'group';
+  children: MotionLayer[];
+}
+
+export type MotionLayer = TextLayer | ShapeLayer | VideoLayer | ImageLayer | GroupLayer;
+
+// ── Assets & composition ─────────────────────────────────────────────────────
+
+export type AssetType = 'video' | 'image' | 'audio' | 'font' | 'lottie';
+
+export interface MotionAsset {
+  id: string;
+  type: AssetType;
+  uri: string;
+  metadata?: Record<string, unknown>;
+}
+
+/** Whether the composition's start/end are in source, cut, or relative time. */
+export type TimeBasis = 'source' | 'cut' | 'relative';
+
+export interface MotionMetadata {
+  purpose?: string;
+  style?: string[];
+  references?: string[];
+  confidence?: number;
+  generatedBy?: string;
+  // Provenance carried from the EDL so the decision log stays populated.
+  sourceOpId?: string;
+  sourceOpType?: string;
+  reason?: string;
+  // Placeholders carried forward for later-phase mapping.
+  variant?: string;
+  query?: string;
+  template?: string;
+}
+
+export interface MotionComposition {
+  schemaVersion: IrVersion;
+  id: string;
+  /** Composition window in `timeBasis` seconds. */
+  start: number;
+  end: number;
+  timeBasis: TimeBasis;
+  coordinateSpace: 'normalized' | 'pixels';
+  canvas: { width: number; height: number; fps: number };
+  background?: Color;
+  layers: MotionLayer[];
+  assets?: MotionAsset[];
+  metadata?: MotionMetadata;
+}
