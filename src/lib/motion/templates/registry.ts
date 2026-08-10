@@ -1,5 +1,6 @@
 import type { Camera, MotionLayer, Vec3 } from '../ir/types';
-import { BuildCtx, PALETTE, constant, punchScale, scalePop, shapeLayer, textLayer } from './helpers';
+import { DEFAULT_BRAND } from '../brand';
+import { BuildCtx, constant, punchScale, scalePop, shapeLayer, textLayer } from './helpers';
 
 /**
  * Effect template registry — the reusable, parameterized effects the AI/adapter
@@ -56,12 +57,28 @@ export const TEMPLATES: EffectTemplate[] = [
     parameters: [
       { name: 'text', type: 'string', default: '', description: 'The caption text.' },
       { name: 'style', type: 'enum', default: 'word_highlight', options: ['word_highlight', 'bold_pop', 'karaoke', 'typewriter'], semanticRole: 'style' },
-      { name: 'size', type: 'number', default: 0.05, min: 0.02, max: 0.12, description: 'Font size as a fraction of frame width.', semanticRole: 'emphasis' },
-      { name: 'fill', type: 'color', default: PALETTE.white, semanticRole: 'brand' },
+      { name: 'size', type: 'number', default: 0.042, min: 0.02, max: 0.1, description: 'Font size as a fraction of frame width.', semanticRole: 'emphasis' },
+      { name: 'weight', type: 'number', default: 800, min: 100, max: 900, semanticRole: 'emphasis' },
+      { name: 'tracking', type: 'number', default: 0, min: -5, max: 40, description: 'Letter-spacing in px.', semanticRole: 'style' },
+      { name: 'placement', type: 'enum', default: 'lower', options: ['lower', 'middle', 'upper'], semanticRole: 'composition' },
+      { name: 'fill', type: 'color', default: undefined, description: 'Text color (defaults to brand text).', semanticRole: 'brand' },
+      { name: 'fontFamily', type: 'string', default: undefined, description: 'Font family (defaults to brand heading).', semanticRole: 'brand' },
     ],
-    build: (p, ctx) => ({
-      layers: [textLayer(`${ctx.idPrefix}_cap`, asStr(p.text), [0.5, 0.82], Math.round(ctx.canvas.width * asNum(p.size, 0.05)), ctx.dur, asStr(p.fill, PALETTE.white))],
-    }),
+    build: (p, ctx) => {
+      const b = ctx.brand ?? DEFAULT_BRAND;
+      const placement = asStr(p.placement, 'lower');
+      const y = placement === 'upper' ? 0.15 : placement === 'middle' ? 0.5 : 0.82;
+      return {
+        layers: [
+          textLayer(`${ctx.idPrefix}_cap`, asStr(p.text), [0.5, y], Math.round(ctx.canvas.width * asNum(p.size, 0.042)), ctx.dur, {
+            fill: asStr(p.fill, b.colors.text),
+            family: asStr(p.fontFamily, b.fonts.heading),
+            weight: asNum(p.weight, 800),
+            tracking: asNum(p.tracking, 0),
+          }),
+        ],
+      };
+    },
   },
   {
     id: 'camera_punch',
@@ -87,12 +104,14 @@ export const TEMPLATES: EffectTemplate[] = [
     parameters: [
       { name: 'title', type: 'string', default: '' },
       { name: 'subtitle', type: 'string', default: '' },
-      { name: 'accent', type: 'color', default: PALETTE.accent, semanticRole: 'brand' },
+      { name: 'accent', type: 'color', default: undefined, description: 'Subtitle color (defaults to brand accent).', semanticRole: 'brand' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
+      const b = ctx.brand ?? DEFAULT_BRAND;
       const sub = asStr(p.subtitle);
-      const accent = asStr(p.accent, PALETTE.accent);
+      const accent = asStr(p.accent, b.colors.accent);
+      const family = b.fonts.heading;
       return {
         layers: [
           {
@@ -103,11 +122,11 @@ export const TEMPLATES: EffectTemplate[] = [
             children: [
               shapeLayer(
                 `${ctx.idPrefix}_bg`,
-                { shape: 'rounded_rectangle', size: [0.42, 0.14], radius: 0.02, fill: PALETTE.ink, opacity: constant(0.72), transform: { position: constant<Vec3>([0.28, 0.82, 0]) } },
+                { shape: 'rounded_rectangle', size: [0.42, 0.14], radius: 0.02, fill: b.colors.background, opacity: constant(0.72), transform: { position: constant<Vec3>([0.28, 0.82, 0]) } },
                 ctx.dur,
               ),
-              textLayer(`${ctx.idPrefix}_title`, asStr(p.title), [0.28, 0.8], Math.round(W * 0.03), ctx.dur),
-              ...(sub ? [textLayer(`${ctx.idPrefix}_sub`, sub, [0.28, 0.86], Math.round(W * 0.02), ctx.dur, accent)] : []),
+              textLayer(`${ctx.idPrefix}_title`, asStr(p.title), [0.28, 0.8], Math.round(W * 0.03), ctx.dur, { fill: b.colors.text, family }),
+              ...(sub ? [textLayer(`${ctx.idPrefix}_sub`, sub, [0.28, 0.86], Math.round(W * 0.02), ctx.dur, { fill: accent, family })] : []),
             ],
           },
         ],
@@ -124,13 +143,15 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'value', type: 'string', default: '' },
       { name: 'label', type: 'string', default: '' },
       { name: 'position', type: 'enum', default: 'center', options: ['center', 'corner'], semanticRole: 'composition' },
-      { name: 'accent', type: 'color', default: PALETTE.accent, semanticRole: 'brand' },
+      { name: 'accent', type: 'color', default: undefined, description: 'Badge color (defaults to brand accent).', semanticRole: 'brand' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
+      const b = ctx.brand ?? DEFAULT_BRAND;
       const [cx, cy] = asStr(p.position, 'center') === 'corner' ? [0.8, 0.2] : [0.5, 0.45];
       const label = asStr(p.label);
-      const accent = asStr(p.accent, PALETTE.accent);
+      const accent = asStr(p.accent, b.colors.accent);
+      const family = b.fonts.heading;
       return {
         layers: [
           {
@@ -145,10 +166,10 @@ export const TEMPLATES: EffectTemplate[] = [
                 ctx.dur,
               ),
               {
-                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy], Math.round(W * 0.09), ctx.dur),
+                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy], Math.round(W * 0.09), ctx.dur, { fill: b.colors.text, family }),
                 transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) },
               },
-              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.09], Math.round(W * 0.03), ctx.dur)] : []),
+              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.09], Math.round(W * 0.03), ctx.dur, { fill: b.colors.text, family })] : []),
             ],
           },
         ],
@@ -165,13 +186,15 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'heading', type: 'string', default: '' },
       { name: 'sub', type: 'string', default: '' },
       { name: 'variant', type: 'enum', default: 'intro', options: ['intro', 'cta'], semanticRole: 'role' },
-      { name: 'accent', type: 'color', default: PALETTE.accent, semanticRole: 'brand' },
+      { name: 'accent', type: 'color', default: undefined, description: 'Subtitle color (defaults to brand accent).', semanticRole: 'brand' },
       { name: 'dim', type: 'number', default: 0.55, min: 0, max: 1, description: 'Background dim opacity.', semanticRole: 'style' },
     ],
     build: (p, ctx) => {
       const W = ctx.canvas.width;
+      const b = ctx.brand ?? DEFAULT_BRAND;
       const sub = asStr(p.sub);
-      const accent = asStr(p.accent, PALETTE.accent);
+      const accent = asStr(p.accent, b.colors.accent);
+      const family = b.fonts.heading;
       return {
         layers: [
           {
@@ -180,9 +203,9 @@ export const TEMPLATES: EffectTemplate[] = [
             start: 0,
             duration: ctx.dur,
             children: [
-              shapeLayer(`${ctx.idPrefix}_cbg`, { shape: 'rectangle', size: [1, 1], fill: PALETTE.ink, opacity: constant(asNum(p.dim, 0.55)), transform: { position: constant<Vec3>([0.5, 0.5, 0]) } }, ctx.dur),
-              textLayer(`${ctx.idPrefix}_head`, asStr(p.heading), [0.5, 0.44], Math.round(W * 0.08), ctx.dur),
-              ...(sub ? [textLayer(`${ctx.idPrefix}_csub`, sub, [0.5, 0.56], Math.round(W * 0.035), ctx.dur, accent)] : []),
+              shapeLayer(`${ctx.idPrefix}_cbg`, { shape: 'rectangle', size: [1, 1], fill: b.colors.background, opacity: constant(asNum(p.dim, 0.55)), transform: { position: constant<Vec3>([0.5, 0.5, 0]) } }, ctx.dur),
+              textLayer(`${ctx.idPrefix}_head`, asStr(p.heading), [0.5, 0.44], Math.round(W * 0.08), ctx.dur, { fill: b.colors.text, family }),
+              ...(sub ? [textLayer(`${ctx.idPrefix}_csub`, sub, [0.5, 0.56], Math.round(W * 0.035), ctx.dur, { fill: accent, family })] : []),
             ],
           },
         ],

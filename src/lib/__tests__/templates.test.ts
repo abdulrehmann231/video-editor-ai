@@ -36,16 +36,20 @@ describe('clampParams', () => {
     expect(clampParams(t, { position: 'sideways' }).position).toBe('center');
   });
 
-  it('validates color params (hex only) and falls back to the default', () => {
+  it('validates color params (hex only); brand supplies the fallback at build time', () => {
     const t = getTemplate('metric_pop')!;
-    expect(clampParams(t, {}).accent).toBe('#ffd60a'); // default
-    expect(clampParams(t, { accent: 'reddish' }).accent).toBe('#ffd60a'); // invalid -> default
+    expect(clampParams(t, {}).accent).toBeUndefined(); // no static default -> inherit brand
+    expect(clampParams(t, { accent: 'reddish' }).accent).toBeUndefined(); // invalid -> undefined
     expect(clampParams(t, { accent: '#6D5DFB' }).accent).toBe('#6D5DFB'); // valid passes
+    // With no accent param, the built layer uses the default brand accent.
+    const { layers } = resolveTemplate('metric_pop', { value: '9%' }, CTX);
+    const g = layers[0] as { children: { id: string; fill?: string }[] };
+    expect(g.children.find((c) => c.id.endsWith('_accent'))?.fill).toBe('#ffd60a');
   });
 
   it('clamps a fractional size param', () => {
     const t = getTemplate('kinetic_text')!;
-    expect(clampParams(t, { size: 0.99 }).size).toBe(0.12); // max
+    expect(clampParams(t, { size: 0.99 }).size).toBe(0.1); // max
     expect(clampParams(t, { size: 0.001 }).size).toBe(0.02); // min
   });
 });

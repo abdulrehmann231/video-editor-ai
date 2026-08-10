@@ -1,4 +1,5 @@
 import type { BuildCtx } from '../templates/helpers';
+import { DEFAULT_BRAND } from '../brand';
 import { getTemplate, type EffectParameter, type EffectTemplate, type TemplateResult } from '../templates/registry';
 
 /**
@@ -52,6 +53,7 @@ export function resolveTemplate(templateId: string, rawParams: Record<string, un
     return { layers: [], warnings: [`Unknown template "${templateId}"`] };
   }
   const params = clampParams(template, rawParams ?? {});
-  const result = template.build(params, ctx);
+  const fullCtx: BuildCtx = { ...ctx, brand: ctx.brand ?? DEFAULT_BRAND };
+  const result = template.build(params, fullCtx);
   return { layers: result.layers, camera: result.camera, warnings: [] };
 }

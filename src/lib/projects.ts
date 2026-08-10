@@ -4,6 +4,7 @@ import type { AnalysisMeta, Edl } from './edl/schema';
 import type { TranscriptWord } from './analyze/transcribe';
 import type { RenderMeta } from './render/renderCut';
 import type { FinalRenderMeta } from './render/renderFinal';
+import type { BrandProfile } from './motion/brand';
 
 /**
  * Project record store, backed by R2 JSON objects (`projects/<id>.json`).
@@ -88,6 +89,9 @@ export interface Project {
    * When unset, MOTION_ENGINE=1 in the environment selects 'motion'.
    */
   renderEngine?: 'edl' | 'motion';
+
+  /** Per-project brand colors/fonts for the Motion path (defaults to DEFAULT_BRAND). */
+  brand?: BrandProfile;
 
   // ---- Phase 4: automatic pipeline ----
   pipelineStatus?: PipelineStatus;

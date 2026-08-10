@@ -6,6 +6,7 @@ import { IR_VERSION } from './version';
 import type { MotionComposition } from './types';
 import { resolveTemplate } from '../compiler/resolveTemplates';
 import type { BuildCtx } from '../templates/helpers';
+import { DEFAULT_BRAND, type BrandProfile } from '../brand';
 
 /**
  * EDL -> Motion IR adapter (engine plan §50 compatibility layer).
@@ -41,10 +42,17 @@ function wordsInRange(transcript: TranscriptWord[], start: number, end: number):
 }
 
 /** Map an EDL op to the effect template + params that realize it. */
-function templateForOp(op: EditOp, transcript: TranscriptWord[]): { templateId: string; params: Record<string, unknown> } {
+function templateForOp(
+  op: EditOp,
+  transcript: TranscriptWord[],
+  captionPlacement?: 'lower' | 'middle' | 'upper',
+): { templateId: string; params: Record<string, unknown> } {
   switch (op.type) {
     case 'caption':
-      return { templateId: 'kinetic_text', params: { text: wordsInRange(transcript, op.start, op.end), style: op.style } };
+      return {
+        templateId: 'kinetic_text',
+        params: { text: wordsInRange(transcript, op.start, op.end), style: op.style, placement: captionPlacement ?? 'lower' },
+      };
     case 'zoom_punch':
       return { templateId: 'camera_punch', params: { scale: op.scale, focus: op.focus } };
     case 'lower_third':
@@ -75,6 +83,7 @@ export function motionFromEdl(
   transcript: TranscriptWord[],
   sourceDurationSec: number,
   canvas: CanvasSpec,
+  brand: BrandProfile = DEFAULT_BRAND,
 ): MotionFromEdlResult {
   const keep = computeKeepSegments(sourceDurationSec, cutRangesFromEdl(edl), { minKeepSec: 0.05 });
   const warnings: string[] = [];
@@ -89,8 +98,8 @@ export function motionFromEdl(
       continue;
     }
     const dur = round(mapped.end - mapped.start);
-    const ctx: BuildCtx = { idPrefix: op.id, dur, canvas };
-    const { templateId, params } = templateForOp(op, transcript);
+    const ctx: BuildCtx = { idPrefix: op.id, dur, canvas, brand };
+    const { templateId, params } = templateForOp(op, transcript, edl.captionPlacement);
     const { layers, camera, warnings: tplWarnings } = resolveTemplate(templateId, params, ctx);
     warnings.push(...tplWarnings);
 

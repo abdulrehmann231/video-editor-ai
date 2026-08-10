@@ -1,4 +1,5 @@
 import type { Animated, MotionLayer, ShapeLayer, TextLayer, Vec3 } from '../ir/types';
+import type { BrandProfile } from '../brand';
 
 /**
  * Pure builder helpers shared by effect templates (and the EDL adapter). Kept
@@ -19,6 +20,16 @@ export interface BuildCtx {
   /** Composition duration in seconds. */
   dur: number;
   canvas: { width: number; height: number; fps: number };
+  /** Brand colors/fonts; resolveTemplate injects DEFAULT_BRAND when unset. */
+  brand?: BrandProfile;
+}
+
+export interface TextOpts {
+  fill?: string;
+  family?: string;
+  weight?: number;
+  /** Letter-spacing in px. */
+  tracking?: number;
 }
 
 export const constant = <T>(value: T): Animated<T> => ({ kind: 'constant', value });
@@ -66,7 +77,7 @@ export function textLayer(
   pos: [number, number],
   size: number,
   dur: number,
-  fill: string = PALETTE.white,
+  opts: TextOpts = {},
 ): TextLayer {
   return {
     id,
@@ -76,9 +87,14 @@ export function textLayer(
     duration: dur,
     opacity: fadeIn(dur),
     transform: { position: constant<Vec3>([pos[0], pos[1], 0]) },
-    font: { family: 'Anton', weight: 800, size },
+    font: {
+      family: opts.family ?? 'Anton',
+      weight: opts.weight ?? 800,
+      size,
+      ...(opts.tracking != null ? { tracking: opts.tracking } : {}),
+    },
     align: 'center',
-    fill,
+    fill: opts.fill ?? PALETTE.white,
   };
 }
 

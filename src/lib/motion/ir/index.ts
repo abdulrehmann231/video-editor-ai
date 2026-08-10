@@ -21,3 +21,4 @@ export {
   type TemplateResult,
 } from '../templates/registry';
 export { resolveTemplate, clampParams, type ResolveResult } from '../compiler/resolveTemplates';
+export { DEFAULT_BRAND, type BrandProfile, type BrandColors, type BrandFonts } from '../brand';
