@@ -35,3 +35,8 @@ next-env.d.ts
 # crash/core dumps (never commit — may contain secrets from memory)
 core
 core.*
+
+# local test footage & demo render outputs (never pushed)
+/testing
+/testframes
+/public/testclips/demo.mp4
