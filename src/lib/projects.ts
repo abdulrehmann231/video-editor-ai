@@ -81,6 +81,14 @@ export interface Project {
   /** Background-music bed (default on). */
   music?: boolean;
 
+  /**
+   * Which render path to use for the final render:
+   * 'edl' (default) = the existing Remotion "Edit" composition;
+   * 'motion' = the parallel IR-driven "Motion" composition (Phase 1.5/2).
+   * When unset, MOTION_ENGINE=1 in the environment selects 'motion'.
+   */
+  renderEngine?: 'edl' | 'motion';
+
   // ---- Phase 4: automatic pipeline ----
   pipelineStatus?: PipelineStatus;
   pipelineStep?: PipelineStep;

@@ -3,10 +3,19 @@ import { analyzeVideo } from '../analyze/analyzeVideo';
 import { renderCut } from '../render/renderCut';
 import { renderFinal, type OutputLayout } from '../render/renderFinal';
 import { buildOverlayPlan } from '../render/timeline';
+import { computeKeepSegments, cutRangesFromEdl, totalKept } from '../render/segments';
 import { resolveBroll } from '../render/resolveBroll';
 import { normalizeBrollClips } from '../render/normalizeBroll';
 import { defaultMusicPath } from '../render/music';
 import { deriveProxies } from '../media/derive';
+import { motionFromEdl } from '../motion/ir';
+import { renderFinalMotion } from '../motion/renderers/remotion/renderMotion';
+
+/** Resolve which final-render engine to use (project flag wins; env is the fallback). */
+export function resolveRenderEngine(project: Project): 'edl' | 'motion' {
+  if (project.renderEngine) return project.renderEngine;
+  return process.env.MOTION_ENGINE ? 'motion' : 'edl';
+}
 
 /**
  * Derive the small 480p proxy + 1080p mezzanine from the (possibly huge) source
@@ -159,31 +168,62 @@ export async function runFinalRender(
       renderMeta: cut.meta,
     });
 
-    // 2. Overlay plan + b-roll (orientation matches the OUTPUT format).
-    const plan = buildOverlayPlan(edl, project.transcript ?? [], sourceDuration);
-    const { resolved, warnings } = await resolveBroll(plan.brolls, {
-      orientation: isShorts ? 'portrait' : 'landscape',
-    });
-    // Normalize each clip to the composition's integer fps (same rate renderFinal
-    // uses). Stock clips are commonly 23.976 fps; played in a 24 fps composition
-    // they crash Remotion with "No frame found at position …". Re-encode to CFR
-    // integer fps (cached in R2) so every source maps 1:1 to the timeline.
-    const norm = await normalizeBrollClips(resolved, editMedia.fps ?? 30);
-    plan.brolls = norm.brolls;
-    warnings.push(...norm.warnings);
+    // 2 + 3. Composite over the cut (+ music ducking). Two engines share the same
+    // cut, b-roll orientation, and music; the default 'edl' path is unchanged.
+    const engine = resolveRenderEngine(project);
+    const musicPath = musicOn ? defaultMusicPath() ?? undefined : undefined;
+    let result: { finalKey: string; url: string; meta: NonNullable<Project['finalMeta']> };
+    let warnings: string[];
 
-    // 3. Composite (+ music ducking).
-    const result = await renderFinal({
-      projectId: project.id,
-      cutUrl: cut.url,
-      width: editMedia.width ?? 1280,
-      height: editMedia.height ?? 720,
-      fps: editMedia.fps ?? 30,
-      plan,
-      layout: format,
-      musicPath: musicOn ? defaultMusicPath() ?? undefined : undefined,
-      hasAudio: editMedia.hasAudio,
-    });
+    if (engine === 'motion') {
+      // IR-driven parallel path (Phase 1.5/2).
+      const keep = computeKeepSegments(sourceDuration, cutRangesFromEdl(edl), { minKeepSec: 0.05 });
+      const outputDurationSec = totalKept(keep);
+      const { compositions, warnings: irWarnings } = motionFromEdl(edl, project.transcript ?? [], sourceDuration, {
+        width: isShorts ? 720 : editMedia.width ?? 1280,
+        height: isShorts ? 1280 : editMedia.height ?? 720,
+        fps: editMedia.fps ?? 30,
+      });
+      warnings = irWarnings;
+      result = await renderFinalMotion({
+        projectId: project.id,
+        cutUrl: cut.url,
+        editMedia: {
+          width: editMedia.width ?? undefined,
+          height: editMedia.height ?? undefined,
+          fps: editMedia.fps ?? undefined,
+        },
+        compositions,
+        outputDurationSec,
+        layout: format,
+        musicPath,
+        hasAudio: editMedia.hasAudio,
+      });
+    } else {
+      // Default EDL-driven path (unchanged).
+      const plan = buildOverlayPlan(edl, project.transcript ?? [], sourceDuration);
+      const broll = await resolveBroll(plan.brolls, { orientation: isShorts ? 'portrait' : 'landscape' });
+      warnings = broll.warnings;
+      // Normalize each clip to the composition's integer fps (same rate renderFinal
+      // uses). Stock clips are commonly 23.976 fps; played in a 24 fps composition
+      // they crash Remotion with "No frame found at position …". Re-encode to CFR
+      // integer fps (cached in R2) so every source maps 1:1 to the timeline.
+      const norm = await normalizeBrollClips(broll.resolved, editMedia.fps ?? 30);
+      plan.brolls = norm.brolls;
+      warnings.push(...norm.warnings);
+
+      result = await renderFinal({
+        projectId: project.id,
+        cutUrl: cut.url,
+        width: editMedia.width ?? 1280,
+        height: editMedia.height ?? 720,
+        fps: editMedia.fps ?? 30,
+        plan,
+        layout: format,
+        musicPath,
+        hasAudio: editMedia.hasAudio,
+      });
+    }
 
     const saved = await saveProject(
       isShorts
