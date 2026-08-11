@@ -2,15 +2,15 @@ import type React from 'react';
 import { useCurrentFrame, useVideoConfig } from 'remotion';
 import type { MotionLayer } from '../../lib/motion/ir/types';
 import { sampleNumber, sampleVec3 } from './anim/resolveAnimated';
-import { cssBlendMode, clipPathFromMask } from './decorations';
+import { cssBlendMode, maskDecoration } from './decorations';
 
 /**
- * CSS decorations (blend mode + clip mask) for a layer — frame-independent, so
- * both self-positioning layers (text/shape) and wrapper layers (video/group) can
- * apply them uniformly.
+ * CSS decorations (blend mode + mask) for a layer — frame-independent, so both
+ * self-positioning layers (text/shape) and wrapper layers (video/group) can apply
+ * them uniformly. Masks use clip-path (simple) or an SVG mask (inverted/feather).
  */
 export function layerDecorations(layer: MotionLayer): React.CSSProperties {
-  return { mixBlendMode: cssBlendMode(layer.blendMode), clipPath: clipPathFromMask(layer.mask) };
+  return { mixBlendMode: cssBlendMode(layer.blendMode), ...maskDecoration(layer.mask) };
 }
 
 /**

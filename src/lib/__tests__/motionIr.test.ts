@@ -147,4 +147,13 @@ describe('validateComposition', () => {
     const res = validateComposition(c);
     expect(res.ok).toBe(false);
   });
+
+  it('accepts advanced masks (inverted + feather) on a layer', () => {
+    const c = validComp();
+    c.layers[0].mask = { shape: 'circle', rect: { x: 0.3, y: 0.3, width: 0.4, height: 0.4 }, inverted: true, feather: 0.1 };
+    const { comp, warnings } = parseMotionComposition(c);
+    expect(warnings).toHaveLength(0);
+    expect(comp.layers[0].mask?.inverted).toBe(true);
+    expect(validateComposition(comp).ok).toBe(true);
+  });
 });

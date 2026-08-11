@@ -87,8 +87,8 @@ describe('caption config threads into the adapter', () => {
   });
 });
 
-describe('all 8 caption styles are valid IR', () => {
-  const STYLES = ['word_highlight', 'bold_pop', 'karaoke', 'typewriter', 'youtube', 'single_word', 'underline', 'bounce'];
+describe('all caption styles are valid IR', () => {
+  const STYLES = ['word_highlight', 'bold_pop', 'karaoke', 'typewriter', 'youtube', 'single_word', 'underline', 'bounce', 'char_reveal', 'scramble', 'mask_reveal', 'tracking_in'];
   it('parses a caption layer for each style without dropping it', () => {
     for (const style of STYLES) {
       const raw: MotionComposition = {

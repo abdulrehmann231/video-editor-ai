@@ -35,6 +35,7 @@ function outline(px: number, color: string): React.CSSProperties {
 const clean = (w: string): string => w.replace(/^\s+|\s+$/g, '');
 const key = (w: string): string => clean(w).toLowerCase().replace(/[^a-z0-9]/g, '');
 const REVEAL_ALL: CaptionStyle[] = ['youtube', 'karaoke'];
+const SCRAMBLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 export const CaptionRenderer: React.FC<{ layer: CaptionLayer }> = ({ layer }) => {
   const frame = useCurrentFrame();
@@ -124,9 +125,35 @@ export const CaptionRenderer: React.FC<{ layer: CaptionLayer }> = ({ layer }) =>
         }
         const underline = style === 'underline' && isActive ? { borderBottom: `${Math.max(3, Math.round(fontSize * 0.12))}px solid ${highlight}`, paddingBottom: fontSize * 0.06 } : {};
         const transform = isYoutube ? 'none' : `translateY(${rise}px) scale(${scale})`;
+
+        // Per-character / reveal styles.
+        const text = clean(w.word);
+        const p = Math.min(1, Math.max(0, (tAbs - w.start) / Math.max(0.001, w.end - w.start)));
+        const extra: React.CSSProperties = {};
+        let content: React.ReactNode = text;
+        if (style === 'mask_reveal') {
+          const shown = spoken ? 1 : p;
+          extra.clipPath = `inset(0 ${Math.round((1 - shown) * 100)}% 0 0)`;
+        }
+        if (style === 'tracking_in' && isActive) {
+          extra.letterSpacing = (1 - Math.min(1, enter)) * fontSize * 0.5 + (typeof layer.tracking === 'number' ? layer.tracking : 0.5);
+        }
+        if ((style === 'char_reveal' || style === 'scramble') && isActive) {
+          const upTo = Math.ceil(text.length * p);
+          content = text.split('').map((ch, ci) => {
+            const shownCh = ci < upTo;
+            if (style === 'scramble') return <span key={ci}>{shownCh ? ch : SCRAMBLE[(frame * 7 + idx * 13 + ci * 29) % SCRAMBLE.length]}</span>;
+            return (
+              <span key={ci} style={{ opacity: shownCh ? 1 : 0 }}>
+                {ch}
+              </span>
+            );
+          });
+        }
+
         return (
-          <span key={idx} style={{ ...baseText, color, transform, display: 'inline-block', opacity: revealAll ? 1 : enter, textTransform: isYoutube ? 'none' : 'uppercase', ...underline }}>
-            {clean(w.word)}
+          <span key={idx} style={{ ...baseText, color, transform, display: 'inline-block', opacity: revealAll ? 1 : enter, textTransform: isYoutube ? 'none' : 'uppercase', ...underline, ...extra }}>
+            {content}
           </span>
         );
       })}

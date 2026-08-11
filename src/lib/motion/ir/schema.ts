@@ -54,6 +54,8 @@ const maskZ = z.object({
   shape: z.enum(['rectangle', 'rounded_rectangle', 'circle']),
   rect: z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() }).optional(),
   radius: z.number().optional(),
+  inverted: z.boolean().optional(),
+  feather: z.number().optional(),
 });
 
 const baseFields = {
@@ -123,7 +125,7 @@ const transitionZ = base.extend({
   variant: z.enum(['glitch', 'flash', 'zoom_blur']),
 });
 
-const CAPTION_STYLES = ['word_highlight', 'bold_pop', 'karaoke', 'typewriter', 'youtube', 'single_word', 'underline', 'bounce'] as const;
+const CAPTION_STYLES = ['word_highlight', 'bold_pop', 'karaoke', 'typewriter', 'youtube', 'single_word', 'underline', 'bounce', 'char_reveal', 'scramble', 'mask_reveal', 'tracking_in'] as const;
 
 const captionZ = base.extend({
   type: z.literal('caption'),

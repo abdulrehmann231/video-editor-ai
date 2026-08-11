@@ -60,6 +60,14 @@ export const CAPTION_PRESETS: Record<string, CaptionConfig> = {
   bounce: { style: 'bounce', size: 0.055, placement: 'lower', maxWords: 3 },
   // Small, restrained, thin — minimal lower-thirds subtitle.
   minimal: { style: 'word_highlight', size: 0.034, placement: 'lower', weight: 600, maxWords: 4 },
+  // Per-character reveal (active word types in char-by-char).
+  char_reveal: { style: 'char_reveal', size: 0.05, placement: 'lower', maxWords: 3 },
+  // Letters scramble then settle to the real word.
+  scramble: { style: 'scramble', size: 0.05, placement: 'lower', maxWords: 3 },
+  // Each word wipes in left-to-right (mask reveal).
+  mask_reveal: { style: 'mask_reveal', size: 0.05, placement: 'lower', maxWords: 3 },
+  // Active word's letter-spacing expands into place.
+  tracking_in: { style: 'tracking_in', size: 0.05, placement: 'lower', maxWords: 3 },
 };
 
 export const CAPTION_PRESET_IDS = Object.keys(CAPTION_PRESETS);

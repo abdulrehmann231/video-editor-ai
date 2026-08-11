@@ -99,6 +99,10 @@ export interface Mask {
   rect?: { x: number; y: number; width: number; height: number };
   /** Corner radius (rounded_rectangle) / circle radius, fraction of frame width. */
   radius?: number;
+  /** Hide inside the region and show outside (a "hole"). */
+  inverted?: boolean;
+  /** Soft-edge amount (0..1 fraction of frame) — a luma-style feathered edge. */
+  feather?: number;
 }
 
 // ── Layers ──────────────────────────────────────────────────────────────────
@@ -120,7 +124,11 @@ export type CaptionStyle =
   | 'youtube'
   | 'single_word'
   | 'underline'
-  | 'bounce';
+  | 'bounce'
+  | 'char_reveal'
+  | 'scramble'
+  | 'mask_reveal'
+  | 'tracking_in';
 export type CaptionPlacement = 'lower' | 'middle' | 'upper';
 
 export interface BaseLayer {

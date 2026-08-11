@@ -6,7 +6,7 @@ import { PNG } from 'pngjs';
 import { parseEdl } from '../../../lib/edl/schema';
 import { motionFromEdl } from '../../../lib/motion/ir';
 import { buildMotionProps } from '../../../lib/motion/render/props';
-import type { MotionComposition } from '../../../lib/motion/ir';
+import type { MotionComposition, CaptionStyle } from '../../../lib/motion/ir';
 
 /**
  * Pixel-frame golden tests (OPT-IN). Render real frames of the "Motion"
@@ -139,4 +139,51 @@ describe.skipIf(!RUN)('pixel golden — Motion composition', () => {
     },
     120_000,
   );
+
+  const WORDS = [
+    { word: 'THIS', start: 0, end: 0.5 },
+    { word: 'CHANGES', start: 0.5, end: 1.1 },
+    { word: 'EVERYTHING', start: 1.1, end: 1.9 },
+  ];
+  const capComps = (style: CaptionStyle) => {
+    const { edl } = parseEdl({ ops: [{ id: 'c', type: 'caption', start: 0, end: 3, reason: 's', style: 'word_highlight' }] }, { durationSec: 5 });
+    return motionFromEdl(edl, WORDS, 5, MEDIA, undefined, { style, size: 0.055, placement: 'lower' }).compositions;
+  };
+
+  for (const [name, style, frame] of [
+    ['motion-cap-youtube', 'youtube', 40],
+    ['motion-cap-boldpop', 'bold_pop', 22],
+    ['motion-cap-charreveal', 'char_reveal', 22],
+  ] as const) {
+    it(`caption style "${style}" matches the reference`, async () => {
+      await renderAndCompare(name, 'public/testclips/base.mp4', capComps(style), frame);
+    }, 120_000);
+  }
+
+  it('masked shape (feathered circle) matches the reference', async () => {
+    const comp: MotionComposition = {
+      schemaVersion: '1.0',
+      id: 'm',
+      start: 0,
+      end: 1,
+      timeBasis: 'cut',
+      coordinateSpace: 'normalized',
+      canvas: MEDIA,
+      layers: [
+        {
+          id: 's',
+          type: 'shape',
+          shape: 'rectangle',
+          start: 0,
+          duration: 1,
+          size: [1, 1],
+          fill: '#3b82f6',
+          opacity: { kind: 'constant', value: 0.9 },
+          transform: { position: { kind: 'constant', value: [0.5, 0.5, 0] } },
+          mask: { shape: 'circle', rect: { x: 0.3, y: 0.2, width: 0.4, height: 0.6 }, feather: 0.1 },
+        },
+      ],
+    };
+    await renderAndCompare('motion-mask-feather', 'public/testclips/base.mp4', [comp], 20);
+  }, 120_000);
 });
