@@ -44,7 +44,7 @@ describe('clampParams', () => {
     // With no accent param, the built layer uses the default brand accent.
     const { layers } = resolveTemplate('metric_pop', { value: '9%' }, CTX);
     const g = layers[0] as { children: { id: string; fill?: string }[] };
-    expect(g.children.find((c) => c.id.endsWith('_accent'))?.fill).toBe('#ffd60a');
+    expect(g.children.find((c) => c.id.endsWith('_bar'))?.fill).toBe('#ffd60a');
   });
 
   it('clamps a fractional size param', () => {
@@ -81,7 +81,7 @@ describe('resolveTemplate', () => {
   it('threads a brand accent color into metric_pop', () => {
     const { layers } = resolveTemplate('metric_pop', { value: '3x', accent: '#6D5DFB' }, CTX);
     const group = layers[0] as { children: { id: string; fill?: string }[] };
-    const accentShape = group.children.find((c) => c.id.endsWith('_accent'));
+    const accentShape = group.children.find((c) => c.id.endsWith('_bar'));
     expect(accentShape?.fill).toBe('#6D5DFB');
   });
 

@@ -1,6 +1,7 @@
 import type { VaultRef } from '../../vault';
 import { LOTTIE_IDS } from '../../render/lottieRegistry';
 import { THREE_IDS } from '../../render/threeRegistry';
+import { searchable, enrichParams } from './params';
 
 /**
  * Phase 5 — map each Inspiration Vault reference to an EXECUTABLE template family
@@ -43,13 +44,6 @@ export interface ReferenceMapping {
 
 const has = (s: string, ...words: string[]): boolean => words.some((w) => s.includes(w));
 
-function searchable(ref: VaultRef): string {
-  return [ref.name, ref.what, ref.use, ref.motion, (ref.tags ?? []).join(' '), ref.b2b, ref.cat]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-}
-
 const lottieId = (s: string): string => {
   if (has(s, 'confetti', 'celebration', 'party')) return 'confetti';
   if (has(s, 'checkmark', 'check mark', 'tick', 'success check')) return 'checkmark';
@@ -67,8 +61,8 @@ const captionStyle = (s: string): string => {
   return 'word_highlight';
 };
 
-/** Classify one vault reference into an executable mapping. */
-export function classifyReference(ref: VaultRef): ReferenceMapping {
+/** Classify one vault reference into a base template family + params. */
+function classifyBase(ref: VaultRef): ReferenceMapping {
   const s = searchable(ref);
   const is3d = has(s, '3d', 'orb', 'sphere', 'glass', 'extrude', 'volumetric', 'three-dimensional');
   const isHeavy = has(s, 'particle', 'bokeh', 'light leak', 'light streak', 'plexus', 'smoke', 'fluid', 'liquid simulation', 'chromatic', 'rgb split', 'film grain', 'shader', 'displacement', 'parallax', 'depth of field', 'ray trace', 'lens flare');
@@ -133,4 +127,14 @@ export function classifyReference(ref: VaultRef): ReferenceMapping {
   // Otherwise: an arbitrary graphic reveal we don't confidently map — leave it for
   // the advanced/custom backend rather than forcing a wrong template.
   return { family: 'other', renderer: 'remotion', requiresAdvanced: true, complexity: 'medium' };
+}
+
+/**
+ * Classify a reference AND extract its per-reference params (accent color, size,
+ * font, box) so different references in the same family render distinctly.
+ */
+export function classifyReference(ref: VaultRef): ReferenceMapping {
+  const base = classifyBase(ref);
+  if (!base.templateId) return base;
+  return { ...base, params: { ...(base.params ?? {}), ...enrichParams(ref, base.family) } };
 }

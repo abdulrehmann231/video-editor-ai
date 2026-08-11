@@ -103,7 +103,10 @@ const shapeZ = base.extend({
   size: vec2Z.optional(),
   radius: z.number().optional(),
   fill: z.string().optional(),
+  gradient: z.tuple([z.string(), z.string()]).optional(),
+  gradientAngle: z.number().optional(),
   stroke: strokeZ.optional(),
+  shadow: z.number().optional(),
 });
 
 const videoZ = base.extend({

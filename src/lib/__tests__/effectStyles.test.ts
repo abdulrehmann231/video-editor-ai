@@ -23,17 +23,18 @@ describe('stat (metric_pop) style overrides', () => {
 
   it('defaults come from the brand', () => {
     const c = stat();
-    expect(c.find((x) => x.id.endsWith('_accent'))?.fill).toBe('#ffd60a');
-    expect(c.find((x) => x.id.endsWith('_val'))?.font?.size).toBe(Math.round(1280 * 0.09));
+    expect(c.find((x) => x.id.endsWith('_bar'))?.fill).toBe('#ffd60a'); // accent underline bar
+    expect(c.find((x) => x.id.endsWith('_val'))?.font?.size).toBe(Math.round(1280 * 0.082));
   });
 
-  it('scale multiplies size + accent radius; colors + position are dynamic', () => {
-    const c = stat({ scale: 1.5, accent: '#00ff00', textColor: '#ff00ff', position: 'corner' });
-    expect(c.find((x) => x.id.endsWith('_val'))?.font?.size).toBe(Math.round(1280 * 0.09 * 1.5));
-    expect(c.find((x) => x.id.endsWith('_accent'))?.radius).toBeCloseTo(0.18, 5);
-    expect(c.find((x) => x.id.endsWith('_accent'))?.fill).toBe('#00ff00');
+  it('scale multiplies size; colors + position are dynamic', () => {
+    const c = stat({ scale: 1.5, accent: '#00ff00', textColor: '#ff00ff' });
+    expect(c.find((x) => x.id.endsWith('_val'))?.font?.size).toBe(Math.round(1280 * 0.082 * 1.5));
+    expect(c.find((x) => x.id.endsWith('_bar'))?.fill).toBe('#00ff00'); // accent bar
     expect(c.find((x) => x.id.endsWith('_val'))?.fill).toBe('#ff00ff');
-    expect(c.find((x) => x.id.endsWith('_val'))?.transform?.position?.value?.[0]).toBe(0.8); // corner
+
+    const corner = stat({ position: 'corner' });
+    expect(corner.find((x) => x.id.endsWith('_val'))?.transform?.position?.value?.[0]).toBe(0.8); // corner
   });
 });
 
@@ -42,7 +43,7 @@ describe('lower_third style overrides', () => {
 
   it('align moves the block; scale resizes; colors/boxOpacity dynamic', () => {
     const c = lt({ align: 'center', scale: 1.2, accent: '#00ffcc', textColor: '#ffffff', boxColor: '#101820', boxOpacity: 0.4 });
-    expect(c.find((x) => x.id.endsWith('_title'))?.transform?.position?.value?.[0]).toBe(0.5); // center
+    expect(c.find((x) => x.id.endsWith('_title'))?.transform?.position?.value?.[0]).toBeCloseTo(0.51, 5); // center (+ stripe offset)
     expect(c.find((x) => x.id.endsWith('_title'))?.font?.size).toBe(Math.round(1280 * 0.03 * 1.2));
     expect(c.find((x) => x.id.endsWith('_title'))?.fill).toBe('#ffffff');
     expect(c.find((x) => x.id.endsWith('_sub'))?.fill).toBe('#00ffcc');

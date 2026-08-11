@@ -33,17 +33,17 @@ describe('brand-driven templates', () => {
     const g = layers[0] as AnyLayer;
     const title = g.children!.find((c) => c.id.endsWith('_title'))!;
     const sub = g.children!.find((c) => c.id.endsWith('_sub'))!;
-    const bg = g.children!.find((c) => c.id.endsWith('_bg'))!;
+    const stripe = g.children!.find((c) => c.id.endsWith('_stripe'))!;
     expect(title.fill).toBe('#ff00ff'); // brand text
     expect(title.font?.family).toBe('Oswald'); // brand heading
     expect(sub.fill).toBe('#00ff00'); // brand accent
-    expect(bg.fill).toBe('#000000'); // brand background
+    expect(stripe.fill).toBe('#00ff00'); // accent stripe = brand accent
   });
 
   it('an explicit param still overrides the brand', () => {
     const { layers } = resolveTemplate('metric_pop', { value: '3x', accent: '#123456' }, { ...CTX, brand: BRAND });
     const g = layers[0] as AnyLayer;
-    expect(g.children!.find((c) => c.id.endsWith('_accent'))?.fill).toBe('#123456');
+    expect(g.children!.find((c) => c.id.endsWith('_bar'))?.fill).toBe('#123456');
   });
 });
 

@@ -26,15 +26,20 @@ export const ShapeRenderer: React.FC<{ layer: ShapeLayer }> = ({ layer }) => {
       ? (layer.radius ?? 0.02) * width
       : 0;
 
+  const background = layer.gradient
+    ? `linear-gradient(${layer.gradientAngle ?? 135}deg, ${layer.gradient[0]}, ${layer.gradient[1]})`
+    : layer.fill ?? COLORS.blue;
+
   return (
     <div
       style={{
         ...style,
         width: w,
         height: h,
-        background: layer.fill ?? COLORS.blue,
+        background,
         borderRadius,
         border: layer.stroke && layer.shape !== 'line' ? `${layer.stroke.width}px solid ${layer.stroke.color}` : undefined,
+        boxShadow: layer.shadow ? `0 ${Math.round(layer.shadow * 0.4)}px ${layer.shadow}px rgba(0,0,0,0.45)` : undefined,
       }}
     />
   );

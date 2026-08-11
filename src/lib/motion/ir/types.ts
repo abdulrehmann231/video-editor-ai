@@ -185,7 +185,13 @@ export interface ShapeLayer extends BaseLayer {
   size?: Vec2;
   radius?: number;
   fill?: Color;
+  /** Optional 2-stop linear gradient fill (overrides `fill`). */
+  gradient?: [Color, Color];
+  /** Gradient angle in degrees (default 135). */
+  gradientAngle?: number;
   stroke?: Stroke;
+  /** Drop-shadow blur in px (0 = none). */
+  shadow?: number;
 }
 
 export interface VideoLayer extends BaseLayer {

@@ -170,13 +170,29 @@ export const TEMPLATES: EffectTemplate[] = [
             start: 0,
             duration: ctx.dur,
             children: [
+              // Gradient bar + drop shadow (fill overrides the gradient if the
+              // user set an explicit boxColor).
               shapeLayer(
                 `${ctx.idPrefix}_bg`,
-                { shape: 'rounded_rectangle', size: [0.42, 0.14], radius: 0.02, fill: asStr(p.boxColor, b.colors.background), opacity: constant(asNum(p.boxOpacity, 0.72)), transform: { position: constant<Vec3>([cx, 0.82, 0]) } },
+                {
+                  shape: 'rounded_rectangle',
+                  size: [0.44, 0.14],
+                  radius: 0.018,
+                  ...(p.boxColor ? { fill: asStr(p.boxColor) } : { gradient: ['#1b2130', '#0b0d12'] as [string, string], gradientAngle: 150 }),
+                  shadow: Math.round(W * 0.02),
+                  opacity: constant(asNum(p.boxOpacity, 0.94)),
+                  transform: { position: constant<Vec3>([cx, 0.83, 0]) },
+                },
                 ctx.dur,
               ),
-              textLayer(`${ctx.idPrefix}_title`, asStr(p.title), [cx, 0.8], Math.round(W * 0.03 * scale), ctx.dur, { fill: textColor, family }),
-              ...(sub ? [textLayer(`${ctx.idPrefix}_sub`, sub, [cx, 0.86], Math.round(W * 0.02 * scale), ctx.dur, { fill: accent, family })] : []),
+              // Left accent stripe.
+              shapeLayer(
+                `${ctx.idPrefix}_stripe`,
+                { shape: 'rounded_rectangle', size: [0.008, 0.1], radius: 0.004, fill: accent, transform: { position: constant<Vec3>([cx - 0.2, 0.83, 0]) } },
+                ctx.dur,
+              ),
+              textLayer(`${ctx.idPrefix}_title`, asStr(p.title), [cx + 0.01, 0.81], Math.round(W * 0.03 * scale), ctx.dur, { fill: textColor, family }),
+              ...(sub ? [textLayer(`${ctx.idPrefix}_sub`, sub, [cx + 0.01, 0.865], Math.round(W * 0.019 * scale), ctx.dur, { fill: accent, family })] : []),
             ],
           },
         ],
@@ -201,12 +217,16 @@ export const TEMPLATES: EffectTemplate[] = [
     build: (p, ctx) => {
       const W = ctx.canvas.width;
       const b = ctx.brand ?? DEFAULT_BRAND;
-      const [cx, cy] = asStr(p.position, 'center') === 'corner' ? [0.8, 0.2] : [0.5, 0.45];
+      const corner = asStr(p.position, 'center') === 'corner';
+      const [cx, cy] = corner ? [0.8, 0.22] : [0.5, 0.45];
       const label = asStr(p.label);
       const accent = asStr(p.accent, b.colors.accent);
       const textColor = asStr(p.textColor, b.colors.text);
       const family = asStr(p.fontFamily, b.fonts.heading);
-      const scale = asNum(p.scale, 1);
+      const scale = asNum(p.scale, 1) * (corner ? 0.8 : 1);
+      const cardW = 0.3 * scale;
+      const cardH = 0.24 * scale;
+      const pop = () => scalePop(1);
       return {
         layers: [
           {
@@ -215,16 +235,25 @@ export const TEMPLATES: EffectTemplate[] = [
             start: 0,
             duration: ctx.dur,
             children: [
+              // Premium dark card with a subtle gradient + drop shadow.
               shapeLayer(
-                `${ctx.idPrefix}_accent`,
-                { shape: 'circle', radius: 0.12 * scale, fill: accent, opacity: constant(0.18), transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) } },
+                `${ctx.idPrefix}_card`,
+                { shape: 'rounded_rectangle', size: [cardW, cardH], radius: 0.03, gradient: ['#1b2130', '#0b0d12'], gradientAngle: 150, shadow: Math.round(W * 0.03), opacity: constant(0.95), transform: { position: constant<Vec3>([cx, cy, 0]), scale: pop() } },
                 ctx.dur,
               ),
+              // Big number.
               {
-                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy], Math.round(W * 0.09 * scale), ctx.dur, { fill: textColor, family }),
-                transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) },
+                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy - 0.025 * scale], Math.round(W * 0.082 * scale), ctx.dur, { fill: textColor, family }),
+                transform: { position: constant<Vec3>([cx, cy - 0.025 * scale, 0]), scale: pop() },
               },
-              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.09 * scale], Math.round(W * 0.03 * scale), ctx.dur, { fill: textColor, family })] : []),
+              // Accent underline bar.
+              shapeLayer(
+                `${ctx.idPrefix}_bar`,
+                { shape: 'rounded_rectangle', size: [cardW * 0.42, 0.012 * scale], radius: 0.006, fill: accent, transform: { position: constant<Vec3>([cx, cy + 0.03 * scale, 0]), scale: pop() } },
+                ctx.dur,
+              ),
+              // Label.
+              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.08 * scale], Math.round(W * 0.024 * scale), ctx.dur, { fill: accent, family })] : []),
             ],
           },
         ],

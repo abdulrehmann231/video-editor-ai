@@ -62,6 +62,22 @@ describe('every executable reference builds valid IR', () => {
   });
 });
 
+describe('per-reference diversity (extracted params)', () => {
+  it('executable refs render as MANY distinct looks, not a handful', () => {
+    const ex = executableReferences();
+    const distinct = new Set(ex.map((r) => r.mapping.templateId + JSON.stringify(r.mapping.params ?? {})));
+    // Before per-ref param extraction this collapsed to ~20; now it's much higher.
+    expect(distinct.size).toBeGreaterThanOrEqual(100);
+  });
+
+  it('extracts an accent color and size from a reference name', () => {
+    const green = enrichedVault().find((r) => /green/i.test(r.name) && r.mapping.templateId === 'metric_pop');
+    if (green) expect(typeof green.mapping.params?.accent).toBe('string');
+    const bold = enrichedVault().find((r) => /\bbold\b/i.test(r.name) && r.mapping.params?.scale != null);
+    if (bold) expect(bold.mapping.params?.scale).toBeGreaterThan(1);
+  });
+});
+
 describe('reference mappings are sensible for anchors', () => {
   it('maps a 3D money orb to three:stat_orb', () => {
     const orb = enrichedVault().find((r) => r.i === 1)!;
