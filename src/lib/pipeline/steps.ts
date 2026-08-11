@@ -12,10 +12,14 @@ import { motionFromEdl } from '../motion/ir';
 import { resolveMotionBroll } from '../motion/render/resolveMotionBroll';
 import { renderFinalMotion } from '../motion/renderers/remotion/renderMotion';
 
-/** Resolve which final-render engine to use (project flag wins; env is the fallback). */
+/**
+ * Resolve which final-render engine to use. The IR-driven 'motion' engine is now
+ * the DEFAULT; a project can opt back to the legacy 'edl' path via
+ * project.renderEngine or RENDER_ENGINE=edl (kept as a fallback for one release).
+ */
 export function resolveRenderEngine(project: Project): 'edl' | 'motion' {
   if (project.renderEngine) return project.renderEngine;
-  return process.env.MOTION_ENGINE ? 'motion' : 'edl';
+  return process.env.RENDER_ENGINE === 'edl' ? 'edl' : 'motion';
 }
 
 /**

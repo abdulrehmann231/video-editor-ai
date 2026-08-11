@@ -1,12 +1,12 @@
 import { join } from 'node:path';
 import { readFile, stat, mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { bundle } from '@remotion/bundler';
 import { selectComposition, renderMedia, ensureBrowser } from '@remotion/renderer';
 import { putObject, publicUrl } from '../r2';
 import type { OverlayPlan } from './timeline';
 import { mixMusicDucked } from './music';
 import { useLambda, renderOnLambda } from './lambda';
+import { getRemotionBundle } from './remotionBundle';
 
 export type OutputLayout = 'landscape' | 'shorts';
 
@@ -60,18 +60,6 @@ export interface FinalRenderResult {
   meta: FinalRenderMeta;
 }
 
-// Bundle once per process; Remotion serve URL is reusable across renders.
-let bundlePromise: Promise<string> | null = null;
-function getBundle(): Promise<string> {
-  if (!bundlePromise) {
-    bundlePromise = bundle({
-      entryPoint: join(process.cwd(), 'src/remotion/index.ts'),
-      // keep webpack defaults; Remotion handles tsx/ts
-    });
-  }
-  return bundlePromise;
-}
-
 /**
  * Phase 3 render: composite captions/zooms/lower-thirds/b-roll over the cut
  * video with Remotion (headless Chromium) and upload the final mp4 to R2.
@@ -123,7 +111,7 @@ export async function renderFinal(input: FinalRenderInput): Promise<FinalRenderR
     // (Lambda already uses swangle by default.)
     const chromiumOptions = input.plan.threes.length > 0 ? ({ gl: 'swangle' } as const) : undefined;
     await ensureBrowser();
-    const serveUrl = await getBundle();
+    const serveUrl = await getRemotionBundle();
     const composition = await selectComposition({
       serveUrl,
       id: 'Edit',

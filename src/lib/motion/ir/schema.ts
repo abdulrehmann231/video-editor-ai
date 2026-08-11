@@ -145,9 +145,22 @@ const captionZ = base.extend({
   outlineWidth: z.number().optional(),
 });
 
+const lottieZ = base.extend({
+  type: z.literal('lottie'),
+  template: z.string(),
+  position: z.enum(['full', 'center', 'corner']).optional(),
+});
+
+const threeZ = base.extend({
+  type: z.literal('three'),
+  template: z.string(),
+  value: z.string().optional(),
+  label: z.string().optional(),
+});
+
 // Recursive: a group holds child layers of any supported type.
 const layerZ: z.ZodType<MotionLayer> = z.lazy(() =>
-  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ]),
+  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ, lottieZ, threeZ]),
 );
 
 const groupZ = base.extend({

@@ -92,6 +92,16 @@ export function validateComposition(comp: MotionComposition): ValidationResult {
       }
     }
 
+    if (l.transform?.rotation) {
+      for (const arr of collectVectors(l.transform.rotation as Animated<number[]>)) {
+        for (const v of arr) {
+          if (v < BOUNDS.rotationDeg.min - EPS || v > BOUNDS.rotationDeg.max + EPS) {
+            errors.push(`layer ${l.id}: rotation ${v} out of [${BOUNDS.rotationDeg.min}, ${BOUNDS.rotationDeg.max}]`);
+          }
+        }
+      }
+    }
+
     // Fill/stroke colors.
     const fill = (l as { fill?: string }).fill;
     if (fill && !isHexColor(fill)) errors.push(`layer ${l.id}: invalid fill color "${fill}"`);

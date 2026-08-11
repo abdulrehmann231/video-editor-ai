@@ -1,7 +1,7 @@
 import React from 'react';
 import { useVideoConfig } from 'remotion';
 import type { TextLayer } from '../../lib/motion/ir/types';
-import { FONT_DISPLAY, COLORS } from '../theme';
+import { FONT_DISPLAY, COLORS, resolveFontFamily } from '../theme';
 import { useLayerStyle } from './style';
 
 /** Render an IR text layer. Outline/stroke color + width are dynamic via
@@ -26,7 +26,7 @@ export const TextRenderer: React.FC<{ layer: TextLayer }> = ({ layer }) => {
         whiteSpace: 'pre-wrap',
         textAlign: layer.align ?? 'center',
         maxWidth: '90%',
-        fontFamily: layer.font?.family ? `${layer.font.family}, ${FONT_DISPLAY}` : FONT_DISPLAY,
+        fontFamily: resolveFontFamily(layer.font?.family, FONT_DISPLAY),
         fontWeight: layer.font?.weight ?? 800,
         fontSize: size,
         letterSpacing: layer.font?.tracking,

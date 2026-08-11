@@ -1,7 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from 'remotion';
 import type { CaptionLayer, CaptionPlacement, CaptionStyle, CaptionWord } from '../../lib/motion/ir/types';
-import { FONT_DISPLAY, FONT_BODY, COLORS } from '../theme';
+import { FONT_DISPLAY, FONT_BODY, COLORS, resolveFontFamily } from '../theme';
 
 /**
  * Word-by-word kinetic captions (Phase 4). Eight distinct styles, and EVERY
@@ -50,7 +50,7 @@ export const CaptionRenderer: React.FC<{ layer: CaptionLayer }> = ({ layer }) =>
   const fill = layer.fill ?? COLORS.white;
   const highlight = layer.highlight ?? COLORS.accent;
   const defaultFace = isYoutube ? FONT_BODY : FONT_DISPLAY;
-  const family = layer.family ? `${layer.family}, ${defaultFace}` : defaultFace;
+  const family = resolveFontFamily(layer.family, defaultFace);
   const emphasis = new Set((layer.emphasis ?? []).map(key));
   const fontSize = Math.round(width * (layer.size ?? 0.05));
 

@@ -53,8 +53,9 @@ function templateForOp(op: EditOp, effectStyle?: EffectStyle): { templateId: str
     case 'broll':
       return { templateId: 'broll', params: { layout: op.layout } };
     case 'lottie':
+      return { templateId: 'lottie', params: { template: op.template, position: op.position } };
     case 'three':
-      return { templateId: 'placeholder', params: {} };
+      return { templateId: 'three', params: { template: op.template, value: op.value, label: op.label } };
     default:
       return { templateId: 'placeholder', params: {} };
   }
@@ -86,6 +87,7 @@ export function motionFromEdl(
   // Caption ops only carry the original 4 styles (matches buildAutoCaptions);
   // the richer preset styles arrive via captionConfig, not per-op hints.
   const captionStyleRanges: { start: number; end: number; style: 'word_highlight' | 'bold_pop' | 'karaoke' | 'typewriter' }[] = [];
+  const captionEmphasis = new Set<string>();
 
   for (const op of edl.ops) {
     if (op.type === 'silence_cut') continue; // consumed into the timeline
@@ -98,6 +100,7 @@ export function motionFromEdl(
 
     if (op.type === 'caption') {
       captionStyleRanges.push({ start: mapped.start, end: mapped.end, style: op.style });
+      for (const w of op.emphasis ?? []) captionEmphasis.add(w);
       continue; // consumed as a style hint
     }
 
@@ -137,7 +140,7 @@ export function motionFromEdl(
   captions.forEach((c, i) => {
     const dur = round(c.end - c.start);
     const words = c.words.map((w) => ({ word: w.word, start: round(w.start - c.start), end: round(w.end - c.start) }));
-    const ctx: BuildCtx = { idPrefix: `cap_${i}`, dur, canvas, brand, input: { words } };
+    const ctx: BuildCtx = { idPrefix: `cap_${i}`, dur, canvas, brand, input: { words, emphasis: captionEmphasis.size > 0 ? [...captionEmphasis] : undefined } };
     // Preset (if set) controls the look; otherwise use the per-op style + defaults.
     const params: Record<string, unknown> = {
       style: cfg?.style ?? c.style,

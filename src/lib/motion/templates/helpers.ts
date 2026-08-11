@@ -23,8 +23,8 @@ export interface BuildCtx {
   /** Brand colors/fonts; resolveTemplate injects DEFAULT_BRAND when unset. */
   brand?: BrandProfile;
   /** Pipeline-injected structured inputs (not AI-tunable params), e.g. transcript
-   * words for kinetic captions. */
-  input?: { words?: CaptionWord[] };
+   * words for kinetic captions and emphasis words. */
+  input?: { words?: CaptionWord[]; emphasis?: string[] };
 }
 
 export interface TextOpts {

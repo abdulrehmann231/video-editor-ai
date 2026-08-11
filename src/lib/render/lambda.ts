@@ -74,7 +74,7 @@ export function useLambda(): boolean {
 export async function renderOnLambda(
   inputProps: Record<string, unknown>,
   outPath: string,
-  opts: { durationInFrames: number; pollMs?: number; timeoutMs?: number; frameTimeoutMs?: number } = {
+  opts: { durationInFrames: number; pollMs?: number; timeoutMs?: number; frameTimeoutMs?: number; compositionId?: string } = {
     durationInFrames: 1,
   },
 ): Promise<void> {
@@ -85,7 +85,7 @@ export async function renderOnLambda(
     region: cfg.region as Parameters<typeof renderMediaOnLambda>[0]['region'],
     functionName: cfg.functionName,
     serveUrl: cfg.serveUrl,
-    composition: 'Edit',
+    composition: opts.compositionId ?? 'Edit',
     inputProps,
     codec: 'h264',
     imageFormat: 'jpeg',

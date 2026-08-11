@@ -65,6 +65,7 @@ export function describeLayer(layer: MotionLayer, compTimeSec: number, fps: numb
     out.hasSrc = Boolean(layer.src);
   }
   if (layer.type === 'transition') out.variant = layer.variant;
+  if (layer.type === 'lottie' || layer.type === 'three') out.content = layer.template;
   if (layer.type === 'caption') {
     out.style = layer.style;
     out.placement = layer.placement ?? 'lower';

@@ -86,9 +86,9 @@ export interface Project {
 
   /**
    * Which render path to use for the final render:
-   * 'edl' (default) = the existing Remotion "Edit" composition;
-   * 'motion' = the parallel IR-driven "Motion" composition (Phase 1.5/2).
-   * When unset, MOTION_ENGINE=1 in the environment selects 'motion'.
+   * 'motion' (DEFAULT) = the IR-driven "Motion" composition;
+   * 'edl' = the legacy Remotion "Edit" composition (fallback).
+   * When unset, defaults to 'motion' (RENDER_ENGINE=edl forces the legacy path).
    */
   renderEngine?: 'edl' | 'motion';
 

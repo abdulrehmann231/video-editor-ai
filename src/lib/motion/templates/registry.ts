@@ -65,10 +65,10 @@ export const TEMPLATES: EffectTemplate[] = [
       { name: 'highlight', type: 'color', default: undefined, description: 'Active-word color (defaults to brand accent).', semanticRole: 'brand' },
       { name: 'fontFamily', type: 'string', default: undefined, description: 'Font family (defaults to brand heading).', semanticRole: 'brand' },
       { name: 'box', type: 'boolean', default: false, description: 'Draw a background box behind the caption.', semanticRole: 'style' },
-      { name: 'boxColor', type: 'color', default: undefined, description: 'Box fill color (8-digit hex for alpha).', semanticRole: 'brand' },
+      { name: 'boxColor', type: 'string', default: undefined, description: 'Box fill color (any CSS color incl. rgba()).', semanticRole: 'brand' },
       { name: 'boxBlur', type: 'number', default: undefined, min: 0, max: 40, description: 'Backdrop blur behind the box (px).', semanticRole: 'style' },
       { name: 'maxWidth', type: 'number', default: undefined, min: 0.3, max: 1, description: 'Caption block max width (fraction of frame).', semanticRole: 'layout' },
-      { name: 'outlineColor', type: 'color', default: undefined, description: 'Text outline/stroke color.', semanticRole: 'brand' },
+      { name: 'outlineColor', type: 'string', default: undefined, description: 'Text outline/stroke color (any CSS color).', semanticRole: 'brand' },
       { name: 'outlineWidth', type: 'number', default: undefined, min: 0, max: 0.3, description: 'Outline width (fraction of font size).', semanticRole: 'style' },
     ],
     build: (p, ctx) => {
@@ -95,6 +95,7 @@ export const TEMPLATES: EffectTemplate[] = [
               family: asStr(p.fontFamily, b.fonts.heading),
               weight: asNum(p.weight, 800),
               tracking: asNum(p.tracking, 0),
+              emphasis: ctx.input?.emphasis && ctx.input.emphasis.length > 0 ? ctx.input.emphasis : undefined,
               box: p.box === true ? true : undefined,
               boxColor: asStr(p.boxColor) || undefined,
               boxBlur: typeof p.boxBlur === 'number' ? p.boxBlur : undefined,
@@ -319,10 +320,39 @@ export const TEMPLATES: EffectTemplate[] = [
     },
   },
   {
+    id: 'lottie',
+    version: '1.0',
+    name: 'Lottie overlay',
+    whenToUse: 'A polished animated graphic (confetti, checkmark, underline, wipe) on a beat.',
+    renderer: 'remotion',
+    parameters: [
+      { name: 'template', type: 'string', default: '' },
+      { name: 'position', type: 'enum', default: 'center', options: ['full', 'center', 'corner'], semanticRole: 'layout' },
+    ],
+    build: (p, ctx) => ({
+      layers: [{ id: `${ctx.idPrefix}_lottie`, type: 'lottie', start: 0, duration: ctx.dur, template: asStr(p.template), position: asStr(p.position, 'center') as 'full' | 'center' | 'corner' }],
+    }),
+  },
+  {
+    id: 'three',
+    version: '1.0',
+    name: 'Real 3D effect',
+    whenToUse: 'A premium 3D moment (stat orb / flip card) for a standout number or headline.',
+    renderer: 'remotion',
+    parameters: [
+      { name: 'template', type: 'string', default: '' },
+      { name: 'value', type: 'string', default: '' },
+      { name: 'label', type: 'string', default: '' },
+    ],
+    build: (p, ctx) => ({
+      layers: [{ id: `${ctx.idPrefix}_three`, type: 'three', start: 0, duration: ctx.dur, template: asStr(p.template), value: asStr(p.value) || undefined, label: asStr(p.label) || undefined }],
+    }),
+  },
+  {
     id: 'placeholder',
     version: '1.0',
     name: 'Placeholder',
-    whenToUse: 'Reserved slot for effects not yet mapped to an executable template (e.g. lottie/three until Phase 5).',
+    whenToUse: 'Reserved slot for effects not yet mapped to an executable template.',
     renderer: 'remotion',
     parameters: [],
     build: (_p, ctx) => ({

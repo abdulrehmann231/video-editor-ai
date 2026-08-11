@@ -103,7 +103,7 @@ export interface Mask {
 
 // ── Layers ──────────────────────────────────────────────────────────────────
 
-export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption';
+export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three';
 
 /** A transcript word with times RELATIVE to the caption layer's start (seconds). */
 export interface CaptionWord {
@@ -241,6 +241,21 @@ export interface CaptionLayer extends BaseLayer {
   outlineWidth?: number;
 }
 
+/** Pro Lottie animation overlay (reuses the bundled lottie registry). */
+export interface LottieLayer extends BaseLayer {
+  type: 'lottie';
+  template: string;
+  position?: 'full' | 'center' | 'corner';
+}
+
+/** Real 3D effect (Three.js) from the 3D registry. */
+export interface ThreeLayer extends BaseLayer {
+  type: 'three';
+  template: string;
+  value?: string;
+  label?: string;
+}
+
 export type MotionLayer =
   | TextLayer
   | ShapeLayer
@@ -248,7 +263,9 @@ export type MotionLayer =
   | ImageLayer
   | GroupLayer
   | TransitionLayer
-  | CaptionLayer;
+  | CaptionLayer
+  | LottieLayer
+  | ThreeLayer;
 
 // ── Assets & composition ─────────────────────────────────────────────────────
 

@@ -1,12 +1,13 @@
 import { join } from 'node:path';
 import { readFile, stat, mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { bundle } from '@remotion/bundler';
 import { selectComposition, renderMedia, ensureBrowser } from '@remotion/renderer';
 import { putObject, publicUrl } from '../../../r2';
 import { mixMusicDucked } from '../../../render/music';
 import type { FinalRenderMeta, OutputLayout } from '../../../render/renderFinal';
-import type { MotionComposition } from '../../ir/types';
+import { useLambda, renderOnLambda } from '../../../render/lambda';
+import { getRemotionBundle } from '../../../render/remotionBundle';
+import type { MotionComposition, MotionLayer } from '../../ir/types';
 import { buildMotionProps } from '../../render/props';
 
 /**
@@ -36,18 +37,16 @@ export interface MotionRenderResult {
   meta: FinalRenderMeta;
 }
 
-// Bundle once per process (separate from renderFinal's bundle; same entry).
-let motionBundlePromise: Promise<string> | null = null;
-function getBundle(): Promise<string> {
-  if (!motionBundlePromise) {
-    motionBundlePromise = bundle({ entryPoint: join(process.cwd(), 'src/remotion/index.ts') });
-  }
-  return motionBundlePromise;
-}
-
 /** Count compositions by their originating EDL op type (for the meta panel). */
 function countByType(comps: MotionComposition[], type: string): number {
   return comps.filter((c) => c.metadata?.sourceOpType === type).length;
+}
+
+/** True if any layer (recursively) is a 3D (three) layer — needs a GL backend. */
+function hasThree(comps: MotionComposition[]): boolean {
+  const scan = (layers: MotionLayer[]): boolean =>
+    layers.some((l) => l.type === 'three' || (l.type === 'group' && scan(l.children)));
+  return comps.some((c) => scan(c.layers));
 }
 
 export async function renderFinalMotion(input: MotionRenderInput): Promise<MotionRenderResult> {
@@ -67,23 +66,34 @@ export async function renderFinalMotion(input: MotionRenderInput): Promise<Motio
   const dir = await mkdtemp(join(tmpdir(), 'edit-ai-motion-'));
   const renderedPath = join(dir, 'render.mp4');
 
-  await ensureBrowser();
-  const serveUrl = await getBundle();
-  const composition = await selectComposition({
-    serveUrl,
-    id: 'Motion',
-    inputProps,
-    timeoutInMilliseconds: fetchTimeoutMs,
-  });
-  await renderMedia({
-    composition,
-    serveUrl,
-    codec: 'h264',
-    outputLocation: renderedPath,
-    inputProps,
-    timeoutInMilliseconds: fetchTimeoutMs,
-    offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
-  });
+  const durationInFrames = Math.max(1, Math.round(input.outputDurationSec * (input.editMedia.fps ?? 30)));
+
+  if (useLambda()) {
+    // Parallel cloud render on the "Motion" composition.
+    await renderOnLambda(inputProps, renderedPath, { durationInFrames, frameTimeoutMs: fetchTimeoutMs, compositionId: 'Motion' });
+  } else {
+    // 3D (three) layers need a GL backend; 'swangle' is software WebGL (no GPU).
+    const chromiumOptions = hasThree(input.compositions) ? ({ gl: 'swangle' } as const) : undefined;
+    await ensureBrowser();
+    const serveUrl = await getRemotionBundle();
+    const composition = await selectComposition({
+      serveUrl,
+      id: 'Motion',
+      inputProps,
+      timeoutInMilliseconds: fetchTimeoutMs,
+      chromiumOptions,
+    });
+    await renderMedia({
+      composition,
+      serveUrl,
+      codec: 'h264',
+      outputLocation: renderedPath,
+      inputProps,
+      timeoutInMilliseconds: fetchTimeoutMs,
+      chromiumOptions,
+      offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
+    });
+  }
 
   // Optional background-music ducking pass (same as the Edit path).
   let outPath = renderedPath;
