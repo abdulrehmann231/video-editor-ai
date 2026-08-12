@@ -56,6 +56,18 @@ function templateForOp(op: EditOp, effectStyle?: EffectStyle): { templateId: str
       return { templateId: 'lottie', params: { template: op.template, position: op.position } };
     case 'three':
       return { templateId: 'three', params: { template: op.template, value: op.value, label: op.label } };
+    case 'annotate':
+      return { templateId: 'annotate', params: { annotation: op.annotation, x: op.x, y: op.y, w: op.w, h: op.h, fromX: op.fromX, fromY: op.fromY, color: op.color } };
+    case 'name_tag':
+      return { templateId: 'name_tag', params: { text: op.text, targetX: op.targetX, targetY: op.targetY, side: op.side } };
+    case 'checklist':
+      return { templateId: 'checklist', params: { title: op.title, items: op.items, position: op.position } };
+    case 'comparison':
+      return { templateId: 'comparison', params: { leftTitle: op.leftTitle, rightTitle: op.rightTitle, leftItems: op.leftItems, rightItems: op.rightItems, leftTone: op.leftTone, rightTone: op.rightTone } };
+    case 'stack_list':
+      return { templateId: 'stack_list', params: { items: op.listItems, variant: op.variant, position: op.position } };
+    case 'progress':
+      return { templateId: 'progress', params: { variant: op.variant, value: op.amount, from: op.from, label: op.label, suffix: op.suffix, position: op.position } };
     default:
       return { templateId: 'placeholder', params: {} };
   }

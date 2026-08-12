@@ -95,6 +95,53 @@ export const CATALOG: CatalogEntry[] = [
       '\n    Use rarely — only for a standout number or headline. Keep it ~1.5–2.5s.',
     params: `template: one of [${THREE_IDS.join(', ')}]. value (big text/number), label (small text).`,
   },
+  {
+    type: 'annotate',
+    title: 'Hand-drawn marker annotation',
+    whenToUse:
+      'THE signature vault move — draw ON the frame like a human editor. A curved ARROW pointing at the speaker/an object, a rough CIRCLE around a face/thing, an UNDERLINE/BOX/STRIKE, a bright CHECKMARK or CROSS, or a highlighter SCRIBBLE. Use whenever the speaker points at, references, or emphasizes something on screen.',
+    params:
+      'annotation: arrow | circle | underline | box | strike | scribble | checkmark | cross. x,y,w,h: normalized 0–1 target region to point at / circle / mark. fromX,fromY: arrow tail (arrow only). color (optional hex).',
+  },
+  {
+    type: 'name_tag',
+    title: 'Name-tag callout',
+    whenToUse:
+      'Label a person or object on screen: a bright pill tag (e.g. "YOUNG MARK", "S&P 500") with a hand-drawn arrow pointing at them. Great for naming a subject or flagging a detail.',
+    params: 'text (the label). targetX,targetY: normalized 0–1 point the arrow points at. side: below | left | right.',
+  },
+  {
+    type: 'checklist',
+    title: 'Checklist / do-and-dont (✓/✗)',
+    whenToUse:
+      'A punchy list that reveals row-by-row, each with a bright green CHECK, red CROSS, or DOT — e.g. "EXPERTISE ✓ / LABOUR ✗", good-vs-bad, or a set of points. High-retention vault staple. Bold italic text, no card.',
+    params:
+      'items: array of { text, mark } where mark is check | cross | dot (2–5 rows). title (optional). position: center | left.',
+  },
+  {
+    type: 'comparison',
+    title: 'Two-column comparison',
+    whenToUse:
+      'Contrast two things side-by-side with directional arrows — e.g. "You lose $$$" (red, down) vs "They make $$$" (green, up), old vs new, us vs them. Reveals both panels.',
+    params:
+      'leftTitle, rightTitle. leftItems, rightItems: arrays of short strings (≤4 each). leftTone, rightTone: bad | good | neutral (sets color + arrow direction).',
+  },
+  {
+    type: 'stack_list',
+    title: 'Stacking list (steps / options / to-do)',
+    whenToUse:
+      'A vertical list that stacks in row-by-row — outlined pills (an enumeration like "OLD B2B / SOFTWARE / LOGISTICS"), a NUMBERED steps list, or a top-left to-do checklist. Use for agendas, steps, options, or lists of things.',
+    params:
+      'listItems: array of short strings (2–6). variant: outline | number | bullet. position: center | left | topleft (topleft = to-do style).',
+  },
+  {
+    type: 'progress',
+    title: 'Progress bar / meter / counter',
+    whenToUse:
+      'Animate a data widget: a labeled horizontal PROGRESS BAR (e.g. "70% happy customers"), a vertical red→green GAUGE (e.g. "CONFIDENCE" filling up), or a big COUNTER that counts up/down (countdowns, growing numbers). Use for stats, momentum, or tension.',
+    params:
+      'variant: bar | gauge | counter. amount: fill % 0–100 for bar/gauge, or the end number for counter. from: counter start (counter only). label (optional). suffix: e.g. "%","x","s" (counter). position: lower | center | corner | left | right.',
+  },
 ];
 
 export function buildCatalogText(): string {
@@ -145,13 +192,53 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           subtitle: { type: SchemaType.STRING },
           query: { type: SchemaType.STRING },
           layout: { type: SchemaType.STRING, format: 'enum', enum: ['full', 'pip'] },
-          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta', 'glitch', 'flash', 'zoom_blur'] },
+          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta', 'glitch', 'flash', 'zoom_blur', 'outline', 'number', 'bullet', 'bar', 'gauge', 'counter'] },
           heading: { type: SchemaType.STRING },
           sub: { type: SchemaType.STRING },
           value: { type: SchemaType.STRING },
           label: { type: SchemaType.STRING },
-          position: { type: SchemaType.STRING, format: 'enum', enum: ['center', 'corner', 'full'] },
+          position: { type: SchemaType.STRING, format: 'enum', enum: ['center', 'corner', 'full', 'left', 'right', 'topleft', 'lower'] },
           template: { type: SchemaType.STRING, format: 'enum', enum: [...LOTTIE_IDS, ...THREE_IDS] },
+          // annotate
+          annotation: { type: SchemaType.STRING, format: 'enum', enum: ['arrow', 'circle', 'underline', 'box', 'strike', 'scribble', 'checkmark', 'cross'] },
+          x: { type: SchemaType.NUMBER },
+          y: { type: SchemaType.NUMBER },
+          w: { type: SchemaType.NUMBER },
+          h: { type: SchemaType.NUMBER },
+          fromX: { type: SchemaType.NUMBER },
+          fromY: { type: SchemaType.NUMBER },
+          color: { type: SchemaType.STRING, description: 'Hex color like #ffd60a.' },
+          // name_tag
+          text: { type: SchemaType.STRING },
+          targetX: { type: SchemaType.NUMBER },
+          targetY: { type: SchemaType.NUMBER },
+          side: { type: SchemaType.STRING, format: 'enum', enum: ['below', 'left', 'right'] },
+          // checklist
+          items: {
+            type: SchemaType.ARRAY,
+            description: 'checklist rows',
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                text: { type: SchemaType.STRING },
+                mark: { type: SchemaType.STRING, format: 'enum', enum: ['check', 'cross', 'dot'] },
+              },
+              required: ['text'],
+            },
+          },
+          // comparison
+          leftTitle: { type: SchemaType.STRING },
+          rightTitle: { type: SchemaType.STRING },
+          leftItems: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          rightItems: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          leftTone: { type: SchemaType.STRING, format: 'enum', enum: ['bad', 'good', 'neutral'] },
+          rightTone: { type: SchemaType.STRING, format: 'enum', enum: ['bad', 'good', 'neutral'] },
+          // stack_list
+          listItems: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, description: 'stacking-list rows' },
+          // progress
+          amount: { type: SchemaType.NUMBER, description: 'progress fill % (0-100) or counter end number' },
+          from: { type: SchemaType.NUMBER, description: 'counter start value' },
+          suffix: { type: SchemaType.STRING, description: 'counter suffix e.g. %, x, s' },
         },
         required: ['id', 'type', 'start', 'end', 'reason'],
       },

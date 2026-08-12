@@ -37,6 +37,8 @@ function coerce(spec: EffectParameter, value: unknown): unknown {
       const hex = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
       return typeof value === 'string' && hex.test(value) ? value : (spec.default as unknown);
     }
+    case 'list':
+      return Array.isArray(value) ? value : Array.isArray(spec.default) ? spec.default : [];
     case 'string':
     default:
       return typeof value === 'string' ? value : (spec.default as unknown);

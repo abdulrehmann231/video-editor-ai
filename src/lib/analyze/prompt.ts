@@ -52,15 +52,22 @@ ${references.map(refLine).join('\n')}
 Map each reference idea to the CLOSEST catalog op you can actually render:
 - kinetic typography / typewriter / word pop / caption reveal → caption
 - scale pop / punch-in / zoom / camera push → zoom_punch
-- lower-third / name tag / title bar → lower_third
-- stat callout / badge / big number / concept card / intro-outro → title_card
+- lower-third / title bar → lower_third
+- arrow / circle / underline / marker drawn on the frame / pointing at something → annotate
+- pill label + arrow naming a person or object on screen → name_tag
+- ✓/✗ list / do-and-dont / good-vs-bad points → checklist
+- side-by-side / this-vs-that / lose-vs-win → comparison
+- numbered steps / bullet list / options / to-do / agenda → stack_list
+- progress bar / meter / gauge / countdown / counting number → progress
+- big number / metric / price / % / multiple the speaker says → stat_callout
+- concept card / intro-outro / topic title → title_card
 - b-roll / screen-capture / overlay footage → broll
 For each op, end its "reason" with the reference that inspired it, e.g. "(ref: Bold Word Pop)".
 Be RICH and varied: draw on as many of these references as genuinely fit — vary caption
-styles (word_highlight / bold_pop / karaoke / typewriter), pop a stat_callout on any number
-or metric the speaker says, add a short transition at a clear section change, and use
-lower thirds / title cards / b-roll where they help. Aim to reference many techniques across
-the video, but NEVER force an effect where it doesn't fit the moment.\n`
+styles, pop a stat_callout on numbers, DRAW ON the frame with annotate (arrows/circles/checks)
+when the speaker points at or emphasizes something, use checklist/comparison/stack_list for
+lists and contrasts, and progress bars/counters for stats or tension. Aim to reference many
+techniques across the video, but NEVER force an effect where it doesn't fit the moment.\n`
       : '';
 
   const userBlock = userPrompt?.trim()

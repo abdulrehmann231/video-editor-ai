@@ -106,3 +106,70 @@ describe('resolveTemplate', () => {
     expect(validateComposition(comp).ok).toBe(true);
   });
 });
+
+// deep-collect every layer (through group children) for assertions.
+function flatten(layers: { type: string; children?: unknown[] }[]): { type: string; [k: string]: unknown }[] {
+  const out: { type: string; [k: string]: unknown }[] = [];
+  for (const l of layers as { type: string; children?: unknown[] }[]) {
+    out.push(l as { type: string });
+    if (Array.isArray(l.children)) out.push(...flatten(l.children as { type: string; children?: unknown[] }[]));
+  }
+  return out;
+}
+
+function wrap(layers: MotionComposition['layers']): MotionComposition {
+  return { schemaVersion: '1.0', id: 'c', start: 0, end: CTX.dur, timeBasis: 'cut', coordinateSpace: 'normalized', canvas: CTX.canvas, layers };
+}
+
+describe('vault effect templates', () => {
+  it('registers the new vault templates', () => {
+    for (const id of ['annotate', 'name_tag', 'checklist', 'comparison', 'stack_list', 'progress']) {
+      expect(TEMPLATE_IDS).toContain(id);
+    }
+  });
+
+  it('checklist renders bold-italic rows with bright check/cross marks (no dark card)', () => {
+    const { layers } = resolveTemplate('checklist', { items: [{ text: 'EXPERTISE', mark: 'check' }, { text: 'LABOUR', mark: 'cross' }] }, CTX);
+    const all = flatten(layers);
+    const texts = all.filter((l) => l.type === 'text');
+    expect(texts.some((t) => t.content === 'EXPERTISE' && t.italic === true)).toBe(true);
+    const marks = all.filter((l) => l.type === 'annotation');
+    expect(marks.map((m) => m.annotation).sort()).toEqual(['checkmark', 'cross']);
+    // green check + red cross
+    expect(marks.find((m) => m.annotation === 'checkmark')?.color).toBe('#28d17c');
+    expect(marks.find((m) => m.annotation === 'cross')?.color).toBe('#ff3b30');
+    expect(validateComposition(wrap(layers)).ok).toBe(true);
+  });
+
+  it('stack_list builds one row per item, staggered, and validates', () => {
+    const { layers } = resolveTemplate('stack_list', { items: ['ALPHA', 'BETA', 'GAMMA'], variant: 'number' }, CTX);
+    const all = flatten(layers);
+    // number variant → a numbered badge + index text + row text per item
+    expect(all.filter((l) => l.type === 'text' && l.content === '1').length).toBe(1);
+    expect(all.filter((l) => l.type === 'text' && ['ALPHA', 'BETA', 'GAMMA'].includes(l.content as string)).length).toBe(3);
+    // rows reveal in sequence (increasing start times)
+    const rowTexts = all.filter((l) => l.type === 'text' && ['ALPHA', 'BETA', 'GAMMA'].includes(l.content as string));
+    expect((rowTexts[1].start as number) > (rowTexts[0].start as number)).toBe(true);
+    expect(validateComposition(wrap(layers)).ok).toBe(true);
+  });
+
+  it('progress builds a meter layer per variant with the right fill/value', () => {
+    // The template param is `value` (EDL maps op.amount→value); pass it directly.
+    const barRes = resolveTemplate('progress', { variant: 'bar', value: 70 }, CTX);
+    const meter = flatten(barRes.layers).find((l) => l.type === 'meter');
+    expect(meter?.variant).toBe('bar');
+    expect(meter?.value).toBeCloseTo(0.7); // 70% -> 0..1 fill
+    const counter = flatten(resolveTemplate('progress', { variant: 'counter', value: 14, from: 23 }, CTX).layers).find((l) => l.type === 'meter');
+    expect(counter?.value).toBe(14);
+    expect(counter?.from).toBe(23);
+    expect(validateComposition(wrap(barRes.layers)).ok).toBe(true);
+  });
+
+  it('comparison reveals two toned columns with directional arrows', () => {
+    const { layers } = resolveTemplate('comparison', { leftTitle: 'YOU', rightTitle: 'THEM', leftItems: ['a'], rightItems: ['b'], leftTone: 'bad', rightTone: 'good' }, CTX);
+    const all = flatten(layers);
+    const arrows = all.filter((l) => l.type === 'annotation' && l.annotation === 'arrow');
+    expect(arrows.length).toBe(2);
+    expect(validateComposition(wrap(layers)).ok).toBe(true);
+  });
+});

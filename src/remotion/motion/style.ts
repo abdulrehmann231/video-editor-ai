@@ -18,7 +18,7 @@ export function layerDecorations(layer: MotionLayer): React.CSSProperties {
  * (layer-relative) frame. Coordinates are normalized (0..1) with a center
  * anchor, so the same composition adapts to any output aspect ratio.
  */
-export function useLayerStyle(layer: MotionLayer): React.CSSProperties {
+export function useLayerStyle(layer: MotionLayer, anchorX: 'left' | 'center' | 'right' = 'center'): React.CSSProperties {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -27,11 +27,15 @@ export function useLayerStyle(layer: MotionLayer): React.CSSProperties {
   const [, , rz] = sampleVec3(layer.transform?.rotation, frame, fps, [0, 0, 0]);
   const opacity = sampleNumber(layer.opacity, frame, fps, 1);
 
+  // Anchor the element's box horizontally so left/right-aligned text stacks
+  // cleanly at a fixed x (position.x is the left edge / right edge / center).
+  const tx = anchorX === 'left' ? '0%' : anchorX === 'right' ? '-100%' : '-50%';
+
   return {
     position: 'absolute',
     left: `${px * 100}%`,
     top: `${py * 100}%`,
-    transform: `translate(-50%, -50%) scale(${sx}, ${sy}) rotate(${rz}deg)`,
+    transform: `translate(${tx}, -50%) scale(${sx}, ${sy}) rotate(${rz}deg)`,
     opacity,
     ...layerDecorations(layer),
   };

@@ -107,7 +107,7 @@ export interface Mask {
 
 // ── Layers ──────────────────────────────────────────────────────────────────
 
-export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three';
+export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three' | 'annotation' | 'meter';
 
 /** A transcript word with times RELATIVE to the caption layer's start (seconds). */
 export interface CaptionWord {
@@ -175,6 +175,10 @@ export interface TextLayer extends BaseLayer {
   fill?: Color;
   stroke?: Stroke;
   kinetic?: Kinetic;
+  /** Italic (slanted) — the vault's bold-italic emphasis look. */
+  italic?: boolean;
+  /** Force letter case. Default 'upper' (matches the display look). */
+  textCase?: 'upper' | 'lower' | 'none';
 }
 
 export type ShapeKind = 'rectangle' | 'rounded_rectangle' | 'circle' | 'ellipse' | 'line';
@@ -270,6 +274,69 @@ export interface ThreeLayer extends BaseLayer {
   label?: string;
 }
 
+export type AnnotationKind =
+  | 'arrow'
+  | 'circle'
+  | 'underline'
+  | 'box'
+  | 'strike'
+  | 'scribble'
+  | 'checkmark'
+  | 'cross';
+
+/**
+ * Hand-drawn marker annotation (arrow, circle, underline, box, strike, scribble,
+ * check, cross) — the signature "editor drew on the frame" look from the vault.
+ * Rendered as a rough SVG stroke that DRAWS ON (stroke-dashoffset) over `drawIn`
+ * seconds. Fully deterministic (jitter seeded from the layer id).
+ */
+export interface AnnotationLayer extends BaseLayer {
+  type: 'annotation';
+  annotation: AnnotationKind;
+  /** Normalized start point (arrow/strike/underline). */
+  from?: Vec2;
+  /** Normalized end point (arrow/strike). */
+  to?: Vec2;
+  /** Normalized target region (circle/box/underline/check/cross center it here). */
+  rect?: { x: number; y: number; width: number; height: number };
+  /** Stroke color (defaults to brand accent). */
+  color?: Color;
+  /** Stroke width as a fraction of frame width (default ~0.006). */
+  strokeWidth?: number;
+  /** Hand-drawn jitter amount, 0..1 (default 0.5). */
+  roughness?: number;
+  /** Seconds to draw the stroke on (default 0.5). */
+  drawIn?: number;
+}
+
+/**
+ * Animated data widget — the vault's progress bars, meter gauges, and counters.
+ * `bar` = a labeled horizontal progress fill; `gauge` = a vertical red→green fill
+ * meter (e.g. a "CONFIDENCE" bar); `counter` = a number that counts from `from`
+ * to `value` (countdown or count-up). The fill animation is deterministic
+ * (driven by the layer-relative frame), so renders stay golden-testable.
+ */
+export interface MeterLayer extends BaseLayer {
+  type: 'meter';
+  variant: 'bar' | 'gauge' | 'counter';
+  /** Target: 0..1 fill fraction for bar/gauge; the end number for counter. */
+  value: number;
+  /** Counter start value (default 0). */
+  from?: number;
+  /** Label drawn beside/under the widget. */
+  label?: string;
+  /** Fill/accent color (defaults to brand accent). For `gauge`, the top color. */
+  color?: Color;
+  /** Track (unfilled) color. */
+  trackColor?: Color;
+  /** Counter number suffix, e.g. "%", "x", "s". */
+  suffix?: string;
+  /** Seconds to animate the fill/count (default ~0.9). */
+  fillIn?: number;
+  /** Round the counter to N decimals (default 0). */
+  decimals?: number;
+}
+
 export type MotionLayer =
   | TextLayer
   | ShapeLayer
@@ -279,7 +346,9 @@ export type MotionLayer =
   | TransitionLayer
   | CaptionLayer
   | LottieLayer
-  | ThreeLayer;
+  | ThreeLayer
+  | AnnotationLayer
+  | MeterLayer;
 
 // ── Assets & composition ─────────────────────────────────────────────────────
 

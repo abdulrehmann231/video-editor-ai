@@ -87,6 +87,8 @@ const textZ = base.extend({
   align: z.enum(['left', 'center', 'right']).optional(),
   fill: z.string().optional(),
   stroke: strokeZ.optional(),
+  italic: z.boolean().optional(),
+  textCase: z.enum(['upper', 'lower', 'none']).optional(),
   kinetic: z
     .object({
       target: z.enum(['word', 'char', 'line', 'layer']),
@@ -163,9 +165,34 @@ const threeZ = base.extend({
   label: z.string().optional(),
 });
 
+const annotationZ = base.extend({
+  type: z.literal('annotation'),
+  annotation: z.enum(['arrow', 'circle', 'underline', 'box', 'strike', 'scribble', 'checkmark', 'cross']),
+  from: vec2Z.optional(),
+  to: vec2Z.optional(),
+  rect: z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() }).optional(),
+  color: z.string().optional(),
+  strokeWidth: z.number().optional(),
+  roughness: z.number().optional(),
+  drawIn: z.number().optional(),
+});
+
+const meterZ = base.extend({
+  type: z.literal('meter'),
+  variant: z.enum(['bar', 'gauge', 'counter']),
+  value: z.number(),
+  from: z.number().optional(),
+  label: z.string().optional(),
+  color: z.string().optional(),
+  trackColor: z.string().optional(),
+  suffix: z.string().optional(),
+  fillIn: z.number().optional(),
+  decimals: z.number().optional(),
+});
+
 // Recursive: a group holds child layers of any supported type.
 const layerZ: z.ZodType<MotionLayer> = z.lazy(() =>
-  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ, lottieZ, threeZ]),
+  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ, lottieZ, threeZ, annotationZ, meterZ]),
 );
 
 const groupZ = base.extend({

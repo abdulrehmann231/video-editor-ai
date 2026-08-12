@@ -108,6 +108,36 @@ describe('motionFromEdl', () => {
     expect(validateComposition(z).ok).toBe(true);
   });
 
+  it('parses + maps the new vault ops (annotate/checklist/comparison/stack_list/progress) end-to-end', () => {
+    const { edl, warnings } = parseEdl(
+      {
+        ops: [
+          { id: 'an', type: 'annotate', start: 1, end: 3, reason: 'point (ref: Arrow)', annotation: 'arrow', x: 0.4, y: 0.2, w: 0.15, h: 0.15, fromX: 0.1, fromY: 0.3 },
+          { id: 'ck', type: 'checklist', start: 3, end: 6, reason: 'good vs bad (ref: ✓/✗)', items: [{ text: 'EXPERTISE', mark: 'check' }, { text: 'LABOUR', mark: 'cross' }], position: 'center' },
+          { id: 'cm', type: 'comparison', start: 6, end: 9, reason: 'contrast (ref: vs)', leftTitle: 'YOU', rightTitle: 'THEM', leftItems: ['x'], rightItems: ['y'], leftTone: 'bad', rightTone: 'good' },
+          { id: 'sl', type: 'stack_list', start: 9, end: 12, reason: 'steps (ref: list)', listItems: ['ONE', 'TWO', 'THREE'], variant: 'number', position: 'left' },
+          { id: 'pg', type: 'progress', start: 12, end: 14, reason: 'meter (ref: gauge)', variant: 'gauge', amount: 82, label: 'CONFIDENCE', position: 'left' },
+          { id: 'pc', type: 'progress', start: 14, end: 16, reason: 'countdown', variant: 'counter', amount: 14, from: 23, suffix: 's', position: 'center' },
+        ],
+      },
+      { durationSec: 20 },
+    );
+    expect(warnings).toEqual([]);
+    expect(edl.ops).toHaveLength(6);
+    const { compositions } = motionFromEdl(edl, [], 20, CANVAS);
+    expect(compositions.length).toBe(6);
+    for (const c of compositions) {
+      const res = validateComposition(c);
+      expect(res.ok, `comp ${c.id} (${c.metadata?.sourceOpType}) errors: ${res.errors.join('; ')}`).toBe(true);
+    }
+    // the progress gauge maps to a meter layer with a 0..1 fill
+    const gauge = compositions.find((c) => c.metadata?.sourceOpId === 'pg')!;
+    const meter = gauge.layers[0] as { type: string; variant?: string; value?: number };
+    expect(meter.type).toBe('meter');
+    expect(meter.variant).toBe('gauge');
+    expect(meter.value).toBeCloseTo(0.82);
+  });
+
   it('drops an op that collapses entirely into a removed segment', () => {
     const { edl } = parseEdl(
       {

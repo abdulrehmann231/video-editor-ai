@@ -9,7 +9,7 @@ import { useLayerStyle } from './style';
  * comes from the layer. */
 export const TextRenderer: React.FC<{ layer: TextLayer }> = ({ layer }) => {
   const { width } = useVideoConfig();
-  const style = useLayerStyle(layer);
+  const style = useLayerStyle(layer, layer.align ?? 'center');
   const size = layer.font?.size ?? Math.round(width * 0.05);
   // Dynamic outline: use layer.stroke if provided, else a default ink outline.
   const strokeWidth = layer.stroke ? layer.stroke.width : Math.max(3, Math.round(size * 0.08));
@@ -18,6 +18,8 @@ export const TextRenderer: React.FC<{ layer: TextLayer }> = ({ layer }) => {
     strokeWidth > 0
       ? { WebkitTextStroke: `${strokeWidth}px ${strokeColor}`, paintOrder: 'stroke fill', textShadow: '0 6px 22px rgba(0,0,0,0.55), 0 2px 3px rgba(0,0,0,0.8)' }
       : { textShadow: '0 4px 14px rgba(0,0,0,0.5)' };
+
+  const textTransform = layer.textCase === 'lower' ? 'lowercase' : layer.textCase === 'none' ? 'none' : 'uppercase';
 
   return (
     <div
@@ -28,10 +30,11 @@ export const TextRenderer: React.FC<{ layer: TextLayer }> = ({ layer }) => {
         maxWidth: '90%',
         fontFamily: resolveFontFamily(layer.font?.family, FONT_DISPLAY),
         fontWeight: layer.font?.weight ?? 800,
+        fontStyle: layer.italic ? 'italic' : 'normal',
         fontSize: size,
         letterSpacing: layer.font?.tracking,
         lineHeight: 1.05,
-        textTransform: 'uppercase',
+        textTransform,
         color: layer.fill ?? COLORS.white,
         ...outline,
       }}

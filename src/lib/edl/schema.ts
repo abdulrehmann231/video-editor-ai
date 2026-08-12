@@ -98,6 +98,73 @@ export const ThreeOp = BaseOp.extend({
   label: z.string().max(60).optional(),
 });
 
+/** Hand-drawn marker annotation on the frame (arrow/circle/underline/etc). */
+export const AnnotateOp = BaseOp.extend({
+  type: z.literal('annotate'),
+  annotation: z.enum(['arrow', 'circle', 'underline', 'box', 'strike', 'scribble', 'checkmark', 'cross']).default('arrow'),
+  /** Target region (normalized 0..1): what to point at / circle / underline. */
+  x: z.number().min(0).max(1).default(0.35),
+  y: z.number().min(0).max(1).default(0.35),
+  w: z.number().min(0.02).max(1).default(0.3),
+  h: z.number().min(0.02).max(1).default(0.3),
+  /** Arrow tail (arrow only). */
+  fromX: z.number().min(0).max(1).optional(),
+  fromY: z.number().min(0).max(1).optional(),
+  color: z.string().optional(),
+});
+
+/** Bright pill label + arrow pointing at a person/object ("YOUNG MARK"). */
+export const NameTagOp = BaseOp.extend({
+  type: z.literal('name_tag'),
+  text: z.string().min(1).max(40),
+  targetX: z.number().min(0).max(1).default(0.5),
+  targetY: z.number().min(0).max(1).default(0.35),
+  side: z.enum(['below', 'left', 'right']).default('below'),
+});
+
+/** Row-by-row checklist / do-and-dont with check, cross, or dot markers. */
+export const ChecklistOp = BaseOp.extend({
+  type: z.literal('checklist'),
+  title: z.string().max(40).optional(),
+  items: z.array(z.object({ text: z.string().min(1).max(48), mark: z.enum(['check', 'cross', 'dot']).default('dot') })).min(1).max(6),
+  position: z.enum(['center', 'left']).default('center'),
+});
+
+/** Two-column side-by-side comparison with up/down arrows. */
+export const ComparisonOp = BaseOp.extend({
+  type: z.literal('comparison'),
+  leftTitle: z.string().max(28).optional(),
+  rightTitle: z.string().max(28).optional(),
+  leftItems: z.array(z.string().min(1).max(40)).max(4).default([]),
+  rightItems: z.array(z.string().min(1).max(40)).max(4).default([]),
+  leftTone: z.enum(['bad', 'good', 'neutral']).default('bad'),
+  rightTone: z.enum(['bad', 'good', 'neutral']).default('good'),
+});
+
+/** Vertical stacking list — outlined pills, numbered steps, or a to-do list. */
+export const StackListOp = BaseOp.extend({
+  type: z.literal('stack_list'),
+  /** Rows of the list (distinct name avoids clashing with checklist `items`). */
+  listItems: z.array(z.string().min(1).max(48)).min(1).max(6),
+  variant: z.enum(['outline', 'number', 'bullet']).default('outline'),
+  position: z.enum(['center', 'left', 'topleft']).default('center'),
+});
+
+/** Animated data widget — progress bar, red→green gauge, or count up/down. */
+export const ProgressOp = BaseOp.extend({
+  type: z.literal('progress'),
+  variant: z.enum(['bar', 'gauge', 'counter']).default('bar'),
+  /** Fill % (0–100) for bar/gauge; the end number for counter. Named `amount`
+   * so it stays numeric (the shared `value` field is a string for stat/three). */
+  amount: z.number().default(70),
+  /** Counter start value (counter only). */
+  from: z.number().optional(),
+  label: z.string().max(40).optional(),
+  /** Counter suffix, e.g. "%", "x", "s". */
+  suffix: z.string().max(4).optional(),
+  position: z.enum(['lower', 'center', 'corner', 'left', 'right']).default('lower'),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
@@ -109,6 +176,12 @@ export const EditOp = z.discriminatedUnion('type', [
   TransitionOp,
   LottieOp,
   ThreeOp,
+  AnnotateOp,
+  NameTagOp,
+  ChecklistOp,
+  ComparisonOp,
+  StackListOp,
+  ProgressOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];
