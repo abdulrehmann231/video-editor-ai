@@ -667,37 +667,64 @@ export const TEMPLATES: EffectTemplate[] = [
     version: '1.0',
     name: 'Progress bar / meter / counter',
     whenToUse:
-      'Animate a data widget: a labeled horizontal PROGRESS BAR (e.g. "70% happy customers", "4. BECOME SKILLED"), a vertical red→green GAUGE meter (e.g. "CONFIDENCE" filling up), or a big COUNTER that counts up/down (countdown timers, growing numbers). Great for stats, momentum, and tension.',
+      'Animate a data widget: a labeled horizontal PROGRESS BAR (e.g. "70% happy customers"), a vertical red→green GAUGE (e.g. "CONFIDENCE"), a big COUNTER (countdowns / growing numbers), a TIMELINE of milestones, a labeled SCALE / number-line with a marker (e.g. "$ … $$$", a 1–10 rating), or a SLIDER with a knob. Great for stats, momentum, roadmaps, and tension.',
     renderer: 'remotion',
     parameters: [
-      { name: 'variant', type: 'enum', default: 'bar', options: ['bar', 'gauge', 'counter'], semanticRole: 'style' },
-      { name: 'value', type: 'number', default: 70, min: 0, max: 100000, description: 'Fill % (0-100) for bar/gauge; the end number for counter.', semanticRole: 'data' },
+      { name: 'variant', type: 'enum', default: 'bar', options: ['bar', 'gauge', 'counter', 'timeline', 'scale', 'slider'], semanticRole: 'style' },
+      { name: 'value', type: 'number', default: 70, min: 0, max: 100000, description: 'Fill/marker % (0-100) for bar/gauge/scale/slider/timeline; the end number for counter.', semanticRole: 'data' },
       { name: 'from', type: 'number', default: 0, min: 0, max: 100000, description: 'Counter start value.', semanticRole: 'data' },
       { name: 'label', type: 'string', default: '' },
-      { name: 'suffix', type: 'string', default: undefined, description: 'Counter suffix, e.g. "%", "x", "s".' },
+      { name: 'suffix', type: 'string', default: undefined, description: 'Counter/slider suffix, e.g. "%", "x", "s".' },
+      { name: 'ticks', type: 'list', default: [], description: 'Timeline milestones / scale ticks: array of {label, at} where at is 0..1.' },
+      { name: 'minLabel', type: 'string', default: undefined, description: 'Left end label (scale/slider), e.g. "$".' },
+      { name: 'maxLabel', type: 'string', default: undefined, description: 'Right end label (scale/slider), e.g. "$$$".' },
       { name: 'position', type: 'enum', default: 'lower', options: ['lower', 'center', 'corner', 'left', 'right'], semanticRole: 'layout' },
       { name: 'color', type: 'color', default: undefined, description: 'Fill/accent color (defaults to brand accent).', semanticRole: 'brand' },
     ],
     build: (p, ctx) => {
       const b = ctx.brand ?? DEFAULT_BRAND;
-      const variant = asStr(p.variant, 'bar') as 'bar' | 'gauge' | 'counter';
+      const variant = asStr(p.variant, 'bar') as 'bar' | 'gauge' | 'counter' | 'timeline' | 'scale' | 'slider';
       const color = asStr(p.color, b.colors.accent);
       const label = asStr(p.label) || undefined;
       const suffix = asStr(p.suffix) || undefined;
       const posName = asStr(p.position, 'lower');
       const rawVal = asNum(p.value, 70);
+      // Coerce ticks: array of {label?, at} with at clamped to 0..1.
+      const ticks = Array.isArray(p.ticks)
+        ? p.ticks
+            .map((it) => {
+              if (!it || typeof it !== 'object') return null;
+              const o = it as Record<string, unknown>;
+              const at = typeof o.at === 'number' && Number.isFinite(o.at) ? Math.max(0, Math.min(1, o.at > 1 ? o.at / 100 : o.at)) : NaN;
+              if (!Number.isFinite(at)) return null;
+              return { at, ...(typeof o.label === 'string' ? { label: o.label } : {}) };
+            })
+            .filter((x): x is { at: number; label?: string } => x !== null)
+            .slice(0, 8)
+        : [];
       let pos: Vec3;
       if (variant === 'gauge') pos = posName === 'right' ? [0.9, 0.5, 0] : [0.12, 0.5, 0];
       else if (variant === 'counter') pos = posName === 'corner' ? [0.8, 0.24, 0] : [0.5, 0.42, 0];
-      else pos = posName === 'center' ? [0.5, 0.8, 0] : [0.3, 0.86, 0];
-      // bar/gauge take a 0..1 fill; counter takes the number verbatim.
+      else pos = posName === 'center' ? [0.5, 0.5, 0] : posName === 'lower' ? [0.5, 0.82, 0] : [0.5, 0.5, 0];
+      // bar/gauge/scale/slider/timeline take a 0..1 fill; counter takes the number verbatim.
       const value = variant === 'counter' ? rawVal : Math.max(0, Math.min(1, rawVal > 1 ? rawVal / 100 : rawVal));
       return {
         layers: [
           {
             ...meterLayer(
               `${ctx.idPrefix}_meter`,
-              { variant, value, from: variant === 'counter' ? asNum(p.from, 0) : undefined, label, color, suffix, fillIn: 0.95 },
+              {
+                variant,
+                value,
+                from: variant === 'counter' ? asNum(p.from, 0) : undefined,
+                label,
+                color,
+                suffix,
+                fillIn: 0.95,
+                ...(ticks.length ? { ticks } : {}),
+                ...(asStr(p.minLabel) ? { minLabel: asStr(p.minLabel) } : {}),
+                ...(asStr(p.maxLabel) ? { maxLabel: asStr(p.maxLabel) } : {}),
+              },
               ctx.dur,
             ),
             transform: { position: constant<Vec3>(pos) },

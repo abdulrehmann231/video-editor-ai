@@ -28,6 +28,9 @@ const CASES = [
   { name: 'progress_bar', id: 'progress', params: { variant: 'bar', value: 70, label: 'Happy Customers', position: 'center' }, frame: 55 },
   { name: 'progress_gauge', id: 'progress', params: { variant: 'gauge', value: 82, label: 'Confidence', position: 'left' }, frame: 55 },
   { name: 'progress_counter', id: 'progress', params: { variant: 'counter', value: 14, from: 23, label: 'Seconds Left', position: 'center' }, frame: 30 },
+  { name: 'progress_timeline', id: 'progress', params: { variant: 'timeline', value: 60, label: 'Roadmap', position: 'center', ticks: [{ label: 'Idea', at: 0 }, { label: 'MVP', at: 0.33 }, { label: 'Launch', at: 0.66 }, { label: 'Scale', at: 1 }] }, frame: 60 },
+  { name: 'progress_scale', id: 'progress', params: { variant: 'scale', value: 72, label: 'Price Range', position: 'center', minLabel: '$', maxLabel: '$$$', ticks: [{ label: '1', at: 0 }, { label: '2', at: 0.25 }, { label: '3', at: 0.5 }, { label: '4', at: 0.75 }, { label: '5', at: 1 }] }, frame: 55 },
+  { name: 'progress_slider', id: 'progress', params: { variant: 'slider', value: 68, label: 'Effort', position: 'center', minLabel: 'LOW', maxLabel: 'HIGH' }, frame: 55 },
   { name: 'annotate_arrow', id: 'annotate', params: { annotation: 'arrow', x: 0.42, y: 0.12, w: 0.16, h: 0.16, fromX: 0.12, fromY: 0.28, color: '#ffffff' }, frame: 40 },
   { name: 'annotate_circle', id: 'annotate', params: { annotation: 'circle', x: 0.38, y: 0.1, w: 0.26, h: 0.4, color: '#ffd60a' }, frame: 40 },
 ];

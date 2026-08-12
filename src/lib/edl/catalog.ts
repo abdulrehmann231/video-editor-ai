@@ -136,11 +136,11 @@ export const CATALOG: CatalogEntry[] = [
   },
   {
     type: 'progress',
-    title: 'Progress bar / meter / counter',
+    title: 'Progress bar / gauge / counter / timeline / scale / slider',
     whenToUse:
-      'Animate a data widget: a labeled horizontal PROGRESS BAR (e.g. "70% happy customers"), a vertical red→green GAUGE (e.g. "CONFIDENCE" filling up), or a big COUNTER that counts up/down (countdowns, growing numbers). Use for stats, momentum, or tension.',
+      'Animate a data widget: a horizontal PROGRESS BAR ("70% happy customers"), a vertical red→green GAUGE ("CONFIDENCE"), a big COUNTER (countdowns / growing numbers), a TIMELINE of milestones, a labeled SCALE / number-line with a marker ("$ … $$$", a 1–10 rating), or a SLIDER with a knob. Use for stats, momentum, roadmaps, tension.',
     params:
-      'variant: bar | gauge | counter. amount: fill % 0–100 for bar/gauge, or the end number for counter. from: counter start (counter only). label (optional). suffix: e.g. "%","x","s" (counter). position: lower | center | corner | left | right.',
+      'variant: bar | gauge | counter | timeline | scale | slider. amount: fill/marker % 0–100 (or end number for counter). from: counter start. label. suffix: "%","x","s". ticks: array of {label, at} (at 0–1) for timeline/scale. minLabel/maxLabel: end labels for scale/slider. position: lower | center | corner | left | right.',
   },
   {
     type: 'chart',
@@ -200,7 +200,7 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           subtitle: { type: SchemaType.STRING },
           query: { type: SchemaType.STRING },
           layout: { type: SchemaType.STRING, format: 'enum', enum: ['full', 'pip'] },
-          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta', 'glitch', 'flash', 'zoom_blur', 'outline', 'number', 'bullet', 'bar', 'gauge', 'counter', 'line', 'area', 'donut'] },
+          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta', 'glitch', 'flash', 'zoom_blur', 'outline', 'number', 'bullet', 'bar', 'gauge', 'counter', 'line', 'area', 'donut', 'timeline', 'scale', 'slider'] },
           heading: { type: SchemaType.STRING },
           sub: { type: SchemaType.STRING },
           value: { type: SchemaType.STRING },
@@ -261,6 +261,21 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
             },
           },
           prefix: { type: SchemaType.STRING, description: 'chart value prefix e.g. $' },
+          // progress timeline/scale
+          ticks: {
+            type: SchemaType.ARRAY,
+            description: 'timeline milestones / scale ticks',
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                label: { type: SchemaType.STRING },
+                at: { type: SchemaType.NUMBER, description: '0..1 position along the track' },
+              },
+              required: ['at'],
+            },
+          },
+          minLabel: { type: SchemaType.STRING, description: 'scale/slider left end label' },
+          maxLabel: { type: SchemaType.STRING, description: 'scale/slider right end label' },
         },
         required: ['id', 'type', 'start', 'end', 'reason'],
       },

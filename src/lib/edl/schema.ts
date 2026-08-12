@@ -153,15 +153,21 @@ export const StackListOp = BaseOp.extend({
 /** Animated data widget — progress bar, red→green gauge, or count up/down. */
 export const ProgressOp = BaseOp.extend({
   type: z.literal('progress'),
-  variant: z.enum(['bar', 'gauge', 'counter']).default('bar'),
-  /** Fill % (0–100) for bar/gauge; the end number for counter. Named `amount`
-   * so it stays numeric (the shared `value` field is a string for stat/three). */
+  variant: z.enum(['bar', 'gauge', 'counter', 'timeline', 'scale', 'slider']).default('bar'),
+  /** Fill/marker % (0–100) for bar/gauge/scale/slider/timeline; the end number
+   * for counter. Named `amount` so it stays numeric (the shared `value` field is
+   * a string for stat/three). */
   amount: z.number().default(70),
   /** Counter start value (counter only). */
   from: z.number().optional(),
   label: z.string().max(40).optional(),
-  /** Counter suffix, e.g. "%", "x", "s". */
+  /** Counter/slider suffix, e.g. "%", "x", "s". */
   suffix: z.string().max(4).optional(),
+  /** Timeline milestones / scale ticks: each {label?, at} with at 0..1. */
+  ticks: z.array(z.object({ label: z.string().max(24).optional(), at: z.number() })).max(8).optional(),
+  /** End labels for scale/slider (e.g. "$" … "$$$"). */
+  minLabel: z.string().max(12).optional(),
+  maxLabel: z.string().max(12).optional(),
   position: z.enum(['lower', 'center', 'corner', 'left', 'right']).default('lower'),
 });
 

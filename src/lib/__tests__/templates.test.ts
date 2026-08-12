@@ -165,6 +165,21 @@ describe('vault effect templates', () => {
     expect(validateComposition(wrap(barRes.layers)).ok).toBe(true);
   });
 
+  it('progress supports timeline/scale/slider with ticks + end labels', () => {
+    const tl = resolveTemplate('progress', { variant: 'timeline', value: 60, ticks: [{ label: 'A', at: 0 }, { label: 'B', at: 0.5 }, { at: 1.5 }] }, CTX);
+    const meter = flatten(tl.layers).find((l) => l.type === 'meter') as { variant?: string; ticks?: { at: number }[]; value?: number } | undefined;
+    expect(meter?.variant).toBe('timeline');
+    expect(meter?.value).toBeCloseTo(0.6);
+    expect(meter?.ticks?.length).toBe(3);
+    expect(meter?.ticks?.[2].at).toBeCloseTo(0.015); // 1.5 treated as percent -> clamped/scaled
+    const sc = resolveTemplate('progress', { variant: 'scale', value: 72, minLabel: '$', maxLabel: '$$$' }, CTX);
+    const m2 = flatten(sc.layers).find((l) => l.type === 'meter') as { minLabel?: string; maxLabel?: string } | undefined;
+    expect(m2?.minLabel).toBe('$');
+    expect(m2?.maxLabel).toBe('$$$');
+    expect(validateComposition(wrap(tl.layers)).ok).toBe(true);
+    expect(validateComposition(wrap(sc.layers)).ok).toBe(true);
+  });
+
   it('chart parses data into a chart layer and validates (bar/line/donut)', () => {
     for (const variant of ['bar', 'line', 'area', 'donut']) {
       const { layers } = resolveTemplate('chart', { variant, data: [{ label: 'A', value: 10 }, { label: 'B', value: 20 }, { label: 'C', value: 15 }] }, CTX);
