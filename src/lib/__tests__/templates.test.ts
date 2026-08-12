@@ -165,6 +165,23 @@ describe('vault effect templates', () => {
     expect(validateComposition(wrap(barRes.layers)).ok).toBe(true);
   });
 
+  it('chart parses data into a chart layer and validates (bar/line/donut)', () => {
+    for (const variant of ['bar', 'line', 'area', 'donut']) {
+      const { layers } = resolveTemplate('chart', { variant, data: [{ label: 'A', value: 10 }, { label: 'B', value: 20 }, { label: 'C', value: 15 }] }, CTX);
+      const chart = flatten(layers).find((l) => l.type === 'chart');
+      expect(chart, variant).toBeDefined();
+      expect(chart!.variant).toBe(variant);
+      expect((chart!.data as unknown[]).length).toBe(3);
+      expect(validateComposition(wrap(layers)).ok, variant).toBe(true);
+    }
+  });
+
+  it('chart drops malformed data points but keeps valid ones', () => {
+    const { layers } = resolveTemplate('chart', { variant: 'bar', data: [{ label: 'A', value: 10 }, { label: 'B' }, 'junk', { value: 5 }] }, CTX);
+    const chart = flatten(layers).find((l) => l.type === 'chart');
+    expect((chart!.data as unknown[]).length).toBe(2); // A(10) + the {value:5}
+  });
+
   it('comparison reveals two toned columns with directional arrows', () => {
     const { layers } = resolveTemplate('comparison', { leftTitle: 'YOU', rightTitle: 'THEM', leftItems: ['a'], rightItems: ['b'], leftTone: 'bad', rightTone: 'good' }, CTX);
     const all = flatten(layers);

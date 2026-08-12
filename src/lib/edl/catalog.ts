@@ -142,6 +142,14 @@ export const CATALOG: CatalogEntry[] = [
     params:
       'variant: bar | gauge | counter. amount: fill % 0–100 for bar/gauge, or the end number for counter. from: counter start (counter only). label (optional). suffix: e.g. "%","x","s" (counter). position: lower | center | corner | left | right.',
   },
+  {
+    type: 'chart',
+    title: 'Animated data chart',
+    whenToUse:
+      'Visualize a set of numbers: a BAR chart (compare categories), LINE or AREA chart (a trend over time — rising revenue, falling cost), or DONUT (share of a whole). Bars grow, the line draws on, values count up. Use when the speaker compares figures or describes a trend/breakdown.',
+    params:
+      'variant: bar | line | area | donut. data: array of { label, value } (2–8 points). title (optional). prefix/suffix: e.g. "$" / "%". position: center | left | right.',
+  },
 ];
 
 export function buildCatalogText(): string {
@@ -192,7 +200,7 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           subtitle: { type: SchemaType.STRING },
           query: { type: SchemaType.STRING },
           layout: { type: SchemaType.STRING, format: 'enum', enum: ['full', 'pip'] },
-          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta', 'glitch', 'flash', 'zoom_blur', 'outline', 'number', 'bullet', 'bar', 'gauge', 'counter'] },
+          variant: { type: SchemaType.STRING, format: 'enum', enum: ['intro', 'cta', 'glitch', 'flash', 'zoom_blur', 'outline', 'number', 'bullet', 'bar', 'gauge', 'counter', 'line', 'area', 'donut'] },
           heading: { type: SchemaType.STRING },
           sub: { type: SchemaType.STRING },
           value: { type: SchemaType.STRING },
@@ -239,6 +247,20 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           amount: { type: SchemaType.NUMBER, description: 'progress fill % (0-100) or counter end number' },
           from: { type: SchemaType.NUMBER, description: 'counter start value' },
           suffix: { type: SchemaType.STRING, description: 'counter suffix e.g. %, x, s' },
+          // chart
+          data: {
+            type: SchemaType.ARRAY,
+            description: 'chart data points',
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                label: { type: SchemaType.STRING },
+                value: { type: SchemaType.NUMBER },
+              },
+              required: ['value'],
+            },
+          },
+          prefix: { type: SchemaType.STRING, description: 'chart value prefix e.g. $' },
         },
         required: ['id', 'type', 'start', 'end', 'reason'],
       },

@@ -14,6 +14,9 @@ const OUT = process.argv[2] || '/tmp/tpl';
 fs.mkdirSync(OUT, { recursive: true });
 
 const CASES = [
+  { name: 'chart_bar', id: 'chart', params: { variant: 'bar', title: 'REVENUE BY YEAR', suffix: 'K', data: [{ label: '2021', value: 42 }, { label: '2022', value: 68 }, { label: '2023', value: 55 }, { label: '2024', value: 91 }] }, frame: 55 },
+  { name: 'chart_line', id: 'chart', params: { variant: 'area', title: 'GROWTH', suffix: '%', color: '#34d399', data: [{ label: 'Q1', value: 12 }, { label: 'Q2', value: 28 }, { label: 'Q3', value: 24 }, { label: 'Q4', value: 47 }] }, frame: 60 },
+  { name: 'chart_donut', id: 'chart', params: { variant: 'donut', title: 'MARKET SHARE', suffix: '%', data: [{ label: 'Us', value: 45 }, { label: 'Them', value: 30 }, { label: 'Other', value: 25 }] }, frame: 55 },
   { name: 'metric_center', id: 'metric_pop', params: { value: '+42%', label: 'PRICE GROWTH', position: 'center' }, frame: 40 },
   { name: 'metric_corner', id: 'metric_pop', params: { value: '$1.2M', label: 'ARR', position: 'corner' }, frame: 40 },
   { name: 'name_tag', id: 'name_tag', params: { text: 'YOUNG MARK', targetX: 0.5, targetY: 0.2, side: 'below' }, frame: 55 },

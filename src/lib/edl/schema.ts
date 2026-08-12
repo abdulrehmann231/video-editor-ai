@@ -165,6 +165,17 @@ export const ProgressOp = BaseOp.extend({
   position: z.enum(['lower', 'center', 'corner', 'left', 'right']).default('lower'),
 });
 
+/** Animated data chart — bar / line / area / donut. */
+export const ChartOp = BaseOp.extend({
+  type: z.literal('chart'),
+  variant: z.enum(['bar', 'line', 'area', 'donut']).default('bar'),
+  data: z.array(z.object({ label: z.string().max(24).optional(), value: z.number() })).min(1).max(8),
+  title: z.string().max(40).optional(),
+  prefix: z.string().max(4).optional(),
+  suffix: z.string().max(4).optional(),
+  position: z.enum(['center', 'left', 'right']).default('center'),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
@@ -182,6 +193,7 @@ export const EditOp = z.discriminatedUnion('type', [
   ComparisonOp,
   StackListOp,
   ProgressOp,
+  ChartOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];

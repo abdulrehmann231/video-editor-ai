@@ -179,7 +179,7 @@ const annotationZ = base.extend({
 
 const meterZ = base.extend({
   type: z.literal('meter'),
-  variant: z.enum(['bar', 'gauge', 'counter']),
+  variant: z.enum(['bar', 'gauge', 'counter', 'timeline', 'scale', 'slider']),
   value: z.number(),
   from: z.number().optional(),
   label: z.string().optional(),
@@ -188,11 +188,31 @@ const meterZ = base.extend({
   suffix: z.string().optional(),
   fillIn: z.number().optional(),
   decimals: z.number().optional(),
+  // timeline / scale / slider extras
+  ticks: z.array(z.object({ label: z.string().optional(), at: z.number() })).optional(),
+  minLabel: z.string().optional(),
+  maxLabel: z.string().optional(),
+});
+
+const chartZ = base.extend({
+  type: z.literal('chart'),
+  variant: z.enum(['bar', 'line', 'area', 'donut']),
+  data: z.array(z.object({ label: z.string().optional(), value: z.number(), color: z.string().optional() })),
+  size: vec2Z.optional(),
+  title: z.string().optional(),
+  color: z.string().optional(),
+  max: z.number().optional(),
+  suffix: z.string().optional(),
+  prefix: z.string().optional(),
+  showValues: z.boolean().optional(),
+  showGrid: z.boolean().optional(),
+  horizontal: z.boolean().optional(),
+  drawIn: z.number().optional(),
 });
 
 // Recursive: a group holds child layers of any supported type.
 const layerZ: z.ZodType<MotionLayer> = z.lazy(() =>
-  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ, lottieZ, threeZ, annotationZ, meterZ]),
+  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ, lottieZ, threeZ, annotationZ, meterZ, chartZ]),
 );
 
 const groupZ = base.extend({

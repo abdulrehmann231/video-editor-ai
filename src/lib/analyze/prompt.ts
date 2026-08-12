@@ -59,6 +59,7 @@ Map each reference idea to the CLOSEST catalog op you can actually render:
 - side-by-side / this-vs-that / lose-vs-win → comparison
 - numbered steps / bullet list / options / to-do / agenda → stack_list
 - progress bar / meter / gauge / countdown / counting number → progress
+- bar chart / line graph / trend / rising-or-falling numbers / breakdown → chart
 - big number / metric / price / % / multiple the speaker says → stat_callout
 - concept card / intro-outro / topic title → title_card
 - b-roll / screen-capture / overlay footage → broll

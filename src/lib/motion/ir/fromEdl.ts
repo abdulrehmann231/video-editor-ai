@@ -68,6 +68,8 @@ function templateForOp(op: EditOp, effectStyle?: EffectStyle): { templateId: str
       return { templateId: 'stack_list', params: { items: op.listItems, variant: op.variant, position: op.position } };
     case 'progress':
       return { templateId: 'progress', params: { variant: op.variant, value: op.amount, from: op.from, label: op.label, suffix: op.suffix, position: op.position } };
+    case 'chart':
+      return { templateId: 'chart', params: { variant: op.variant, data: op.data, title: op.title, prefix: op.prefix, suffix: op.suffix, position: op.position } };
     default:
       return { templateId: 'placeholder', params: {} };
   }

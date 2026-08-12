@@ -1,6 +1,6 @@
 import type { AnnotationKind, Camera, MotionLayer, Vec2, Vec3 } from '../ir/types';
 import { DEFAULT_BRAND } from '../brand';
-import { annotationLayer, BuildCtx, constant, fadeIn, meterLayer, punchScale, reveal, scalePop, shapeLayer, textLayer } from './helpers';
+import { annotationLayer, BuildCtx, chartLayer, constant, fadeIn, meterLayer, punchScale, reveal, scalePop, shapeLayer, textLayer } from './helpers';
 
 /**
  * Effect template registry — the reusable, parameterized effects the AI/adapter
@@ -46,6 +46,27 @@ export interface EffectTemplate {
 
 const asStr = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
 const asNum = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+
+/** Coerce a loose param into chart data ({label?, value, color?}). */
+function asChartData(v: unknown): { label?: string; value: number; color?: string }[] {
+  if (!Array.isArray(v)) return [];
+  const hex = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+  return v
+    .map((it): { label?: string; value: number; color?: string } | null => {
+      if (typeof it === 'number' && Number.isFinite(it)) return { value: it };
+      if (it && typeof it === 'object') {
+        const o = it as Record<string, unknown>;
+        const value = typeof o.value === 'number' && Number.isFinite(o.value) ? o.value : NaN;
+        if (!Number.isFinite(value)) return null;
+        const label = typeof o.label === 'string' ? o.label : undefined;
+        const color = typeof o.color === 'string' && hex.test(o.color) ? o.color : undefined;
+        return { value, ...(label ? { label } : {}), ...(color ? { color } : {}) };
+      }
+      return null;
+    })
+    .filter((d): d is { label?: string; value: number; color?: string } => d !== null)
+    .slice(0, 8);
+}
 
 /** Coerce a loose param into an array of {text, mark} rows (checklist/list). */
 interface ListRow { text: string; mark: 'check' | 'cross' | 'dot' }
@@ -680,6 +701,54 @@ export const TEMPLATES: EffectTemplate[] = [
               ctx.dur,
             ),
             transform: { position: constant<Vec3>(pos) },
+          },
+        ],
+      };
+    },
+  },
+  {
+    id: 'chart',
+    version: '1.0',
+    name: 'Animated data chart',
+    whenToUse:
+      'Visualize a set of numbers as an animated BAR chart (compare categories), LINE/AREA chart (a trend over time — rising revenue, declining cost), or DONUT (share of a whole). Bars grow, lines draw on, values count up. Use whenever the speaker compares figures or describes a trend.',
+    renderer: 'remotion',
+    parameters: [
+      { name: 'variant', type: 'enum', default: 'bar', options: ['bar', 'line', 'area', 'donut'], semanticRole: 'style' },
+      { name: 'data', type: 'list', default: [], description: 'Array of {label, value} (2–8 points).' },
+      { name: 'title', type: 'string', default: '' },
+      { name: 'prefix', type: 'string', default: undefined, description: 'Value prefix, e.g. "$".' },
+      { name: 'suffix', type: 'string', default: undefined, description: 'Value suffix, e.g. "%","k".' },
+      { name: 'color', type: 'color', default: undefined, description: 'Series color (defaults to a multi-color ramp).', semanticRole: 'brand' },
+      { name: 'position', type: 'enum', default: 'center', options: ['center', 'left', 'right'], semanticRole: 'layout' },
+    ],
+    build: (p, ctx) => {
+      const data = asChartData(p.data);
+      if (data.length === 0) return { layers: [{ id: `${ctx.idPrefix}_empty`, type: 'group', start: 0, duration: ctx.dur, children: [] }] };
+      const variant = asStr(p.variant, 'bar') as 'bar' | 'line' | 'area' | 'donut';
+      const posName = asStr(p.position, 'center');
+      const size: Vec2 = variant === 'donut' ? [0.34, 0.5] : [0.52, 0.46];
+      const cx = posName === 'left' ? 0.29 : posName === 'right' ? 0.71 : 0.5;
+      return {
+        layers: [
+          {
+            ...chartLayer(
+              `${ctx.idPrefix}_chart`,
+              {
+                variant,
+                data,
+                size,
+                title: asStr(p.title) || undefined,
+                color: asStr(p.color) || undefined,
+                prefix: asStr(p.prefix) || undefined,
+                suffix: asStr(p.suffix) || undefined,
+                showValues: true,
+                showGrid: true,
+                drawIn: 0.95,
+              },
+              ctx.dur,
+            ),
+            transform: { position: constant<Vec3>([cx, 0.46, 0]) },
           },
         ],
       };

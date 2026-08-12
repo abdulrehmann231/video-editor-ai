@@ -107,7 +107,7 @@ export interface Mask {
 
 // ── Layers ──────────────────────────────────────────────────────────────────
 
-export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three' | 'annotation' | 'meter';
+export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three' | 'annotation' | 'meter' | 'chart';
 
 /** A transcript word with times RELATIVE to the caption layer's start (seconds). */
 export interface CaptionWord {
@@ -318,8 +318,13 @@ export interface AnnotationLayer extends BaseLayer {
  */
 export interface MeterLayer extends BaseLayer {
   type: 'meter';
-  variant: 'bar' | 'gauge' | 'counter';
-  /** Target: 0..1 fill fraction for bar/gauge; the end number for counter. */
+  /**
+   * bar/gauge = fill meters; counter = animated number; timeline = horizontal
+   * milestones; scale = a labeled axis with a marker at `value`; slider = a
+   * track with a draggable-looking knob at `value`.
+   */
+  variant: 'bar' | 'gauge' | 'counter' | 'timeline' | 'scale' | 'slider';
+  /** Target: 0..1 fill fraction for bar/gauge/scale/slider; the end number for counter. */
   value: number;
   /** Counter start value (default 0). */
   from?: number;
@@ -335,6 +340,48 @@ export interface MeterLayer extends BaseLayer {
   fillIn?: number;
   /** Round the counter to N decimals (default 0). */
   decimals?: number;
+  /** Milestones (timeline) or ticks (scale): each at 0..1 along the track. */
+  ticks?: { label?: string; at: number }[];
+  /** End labels for scale/slider (e.g. "$" … "$$$"). */
+  minLabel?: string;
+  maxLabel?: string;
+}
+
+/** One datum in a chart series. */
+export interface ChartDatum {
+  label?: string;
+  value: number;
+  /** Per-bar/slice color override (defaults to the series color ramp). */
+  color?: Color;
+}
+
+/**
+ * Animated data chart — the vault's bar/line/area/donut graphs. Bars grow from a
+ * baseline (staggered, rounded, value labels count up), lines draw on with a
+ * gradient area fill, donut segments sweep. Deterministic (frame-driven), so
+ * renders are golden-testable.
+ */
+export interface ChartLayer extends BaseLayer {
+  type: 'chart';
+  variant: 'bar' | 'line' | 'area' | 'donut';
+  data: ChartDatum[];
+  /** Widget box as a fraction of the frame (default ~[0.5, 0.42]). */
+  size?: Vec2;
+  title?: string;
+  /** Primary series color (defaults to brand accent). */
+  color?: Color;
+  /** Y-axis max; auto-derived from the data when omitted. */
+  max?: number;
+  /** Value-label suffix, e.g. "%", "$", "k". */
+  suffix?: string;
+  /** Value-label prefix, e.g. "$". */
+  prefix?: string;
+  showValues?: boolean;
+  showGrid?: boolean;
+  /** Horizontal bars (bar variant only). */
+  horizontal?: boolean;
+  /** Seconds to animate the draw-on / grow (default ~0.9). */
+  drawIn?: number;
 }
 
 export type MotionLayer =
@@ -348,7 +395,8 @@ export type MotionLayer =
   | LottieLayer
   | ThreeLayer
   | AnnotationLayer
-  | MeterLayer;
+  | MeterLayer
+  | ChartLayer;
 
 // ── Assets & composition ─────────────────────────────────────────────────────
 
