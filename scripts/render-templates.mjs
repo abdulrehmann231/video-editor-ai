@@ -14,6 +14,8 @@ const OUT = process.argv[2] || '/tmp/tpl';
 fs.mkdirSync(OUT, { recursive: true });
 
 const CASES = [
+  { name: 'metric_center', id: 'metric_pop', params: { value: '+42%', label: 'PRICE GROWTH', position: 'center' }, frame: 40 },
+  { name: 'metric_corner', id: 'metric_pop', params: { value: '$1.2M', label: 'ARR', position: 'corner' }, frame: 40 },
   { name: 'name_tag', id: 'name_tag', params: { text: 'YOUNG MARK', targetX: 0.5, targetY: 0.2, side: 'below' }, frame: 55 },
   { name: 'checklist', id: 'checklist', params: { items: [{ text: 'EXPERTISE', mark: 'check' }, { text: 'LABOUR', mark: 'cross' }], position: 'center' }, frame: 70 },
   { name: 'comparison', id: 'comparison', params: { leftTitle: 'YOU LOSE', leftItems: ['Trade time', 'Burn out'], leftTone: 'bad', rightTitle: 'THEY WIN', rightItems: ['Own assets', 'Scale up'], rightTone: 'good' }, frame: 70 },

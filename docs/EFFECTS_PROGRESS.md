@@ -62,6 +62,25 @@ Legend: [ ] todo · [~] in progress · [x] done
 - [x] Verified live (20s clip): 4 beats, 15 distinct beat-refs, EDL grounded per beat
       incl. three[card_3d] from a "3D card" vault ref. 2 Gemini calls (~95s here).
 
+## Phase F — Vault-quality effect overhaul (2026-08)   ✅ DONE
+Studied the REAL Inspiration Vault (scraped 26 animated GIFs via Playwright +
+chrome-headless-shell → frame contact sheets). The old templates rendered flat
+dark stat cards that looked nothing like the vault. Rebuilt the effect set to
+match its signature look:
+- [x] `italic` + `textCase` on text; check/cross annotations now bold + bright +
+      glowing (emoji-like); left/right text anchoring for clean list rows.
+- [x] New `meter` IR layer + MeterRenderer: bar | gauge (red→green) | counter.
+- [x] `checklist` redesigned to the clean bold-italic ✓/✗ overlay (no card, soft
+      left scrim) — matches the "EXPERTISE ✓ / LABOUR ✗" vault staple.
+- [x] New `stack_list` (outline pills / numbered badges / top-left to-do) and
+      `progress` (bar/gauge/counter) templates; brighter `metric_pop` (accent
+      number + border) and `comparison`.
+- [x] Wired so the AI can emit them: new stack_list + progress EDL ops, catalog
+      entries + Gemini response-schema fields for annotate/name_tag/checklist/
+      comparison/stack_list/progress (previously un-emittable), prompt mapping.
+- [x] Dev tool: `scripts/render-templates.mjs` renders each template to a still
+      for visual review against the vault frames.
+
 ## Notes / decisions
 - Installed: `@remotion/google-fonts`. Fonts: Anton (display) + Inter (body).
 - Asset licensing: only bundle CC0 / free-for-commercial Lottie/3D assets; log sources here.

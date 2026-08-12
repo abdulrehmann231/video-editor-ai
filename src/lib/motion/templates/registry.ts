@@ -244,9 +244,12 @@ export const TEMPLATES: EffectTemplate[] = [
       const textColor = asStr(p.textColor, b.colors.text);
       const family = asStr(p.fontFamily, b.fonts.heading);
       const scale = asNum(p.scale, 1) * (corner ? 0.8 : 1);
-      const cardW = 0.3 * scale;
+      const cardW = 0.32 * scale;
       const cardH = 0.24 * scale;
       const pop = () => scalePop(1);
+      // The number pops in the accent color (bright, vault-style) unless the
+      // project overrides textColor; big + thick dark outline for punch.
+      const valColor = asStr(p.textColor) || accent;
       return {
         layers: [
           {
@@ -255,25 +258,25 @@ export const TEMPLATES: EffectTemplate[] = [
             start: 0,
             duration: ctx.dur,
             children: [
-              // Premium dark card with a subtle gradient + drop shadow.
+              // Bright glass card: brighter gradient, accent border, glow shadow.
               shapeLayer(
                 `${ctx.idPrefix}_card`,
-                { shape: 'rounded_rectangle', size: [cardW, cardH], radius: 0.03, gradient: ['#1b2130', '#0b0d12'], gradientAngle: 150, shadow: Math.round(W * 0.03), opacity: constant(0.95), transform: { position: constant<Vec3>([cx, cy, 0]), scale: pop() } },
+                { shape: 'rounded_rectangle', size: [cardW, cardH], radius: 0.032, gradient: ['#232b3d', '#0d1017'], gradientAngle: 150, stroke: { color: accent, width: 3 }, shadow: Math.round(W * 0.038), opacity: constant(0.92), transform: { position: constant<Vec3>([cx, cy, 0]), scale: pop() } },
                 ctx.dur,
               ),
-              // Big number.
+              // Big number (accent, thick ink outline).
               {
-                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy - 0.025 * scale], Math.round(W * 0.082 * scale), ctx.dur, { fill: textColor, family }),
+                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy - 0.025 * scale], Math.round(W * 0.098 * scale), ctx.dur, { fill: valColor, family, stroke: { color: '#0b0d12', width: Math.round(W * 0.006 * scale) } }),
                 transform: { position: constant<Vec3>([cx, cy - 0.025 * scale, 0]), scale: pop() },
               },
-              // Accent underline bar.
+              // Accent underline bar (thicker/wider).
               shapeLayer(
                 `${ctx.idPrefix}_bar`,
-                { shape: 'rounded_rectangle', size: [cardW * 0.42, 0.012 * scale], radius: 0.006, fill: accent, transform: { position: constant<Vec3>([cx, cy + 0.03 * scale, 0]), scale: pop() } },
+                { shape: 'rounded_rectangle', size: [cardW * 0.5, 0.016 * scale], radius: 0.008, fill: accent, shadow: Math.round(W * 0.008), transform: { position: constant<Vec3>([cx, cy + 0.03 * scale, 0]), scale: pop() } },
                 ctx.dur,
               ),
-              // Label.
-              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.08 * scale], Math.round(W * 0.024 * scale), ctx.dur, { fill: accent, family })] : []),
+              // Label (white, uppercased, tracked out).
+              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.08 * scale], Math.round(W * 0.026 * scale), ctx.dur, { fill: '#ffffff', family, tracking: 1 })] : []),
             ],
           },
         ],

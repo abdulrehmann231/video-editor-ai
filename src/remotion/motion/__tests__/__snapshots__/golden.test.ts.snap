@@ -578,7 +578,7 @@ exports[`golden render-graph — EDL→IR compositions > describes stat_callout 
               "blendMode": "normal",
               "clipPath": undefined,
               "id": "st_card",
-              "opacity": 0.95,
+              "opacity": 0.92,
               "position": [
                 0.5,
                 0.45,
@@ -675,7 +675,7 @@ exports[`golden render-graph — EDL→IR compositions > describes stat_callout 
               "blendMode": "normal",
               "clipPath": undefined,
               "id": "st_card",
-              "opacity": 0.95,
+              "opacity": 0.92,
               "position": [
                 0.5,
                 0.45,
@@ -772,7 +772,7 @@ exports[`golden render-graph — EDL→IR compositions > describes stat_callout 
               "blendMode": "normal",
               "clipPath": undefined,
               "id": "st_card",
-              "opacity": 0.95,
+              "opacity": 0.92,
               "position": [
                 0.5,
                 0.45,

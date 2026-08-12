@@ -24,12 +24,12 @@ describe('stat (metric_pop) style overrides', () => {
   it('defaults come from the brand', () => {
     const c = stat();
     expect(c.find((x) => x.id.endsWith('_bar'))?.fill).toBe('#ffd60a'); // accent underline bar
-    expect(c.find((x) => x.id.endsWith('_val'))?.font?.size).toBe(Math.round(1280 * 0.082));
+    expect(c.find((x) => x.id.endsWith('_val'))?.font?.size).toBe(Math.round(1280 * 0.098));
   });
 
   it('scale multiplies size; colors + position are dynamic', () => {
     const c = stat({ scale: 1.5, accent: '#00ff00', textColor: '#ff00ff' });
-    expect(c.find((x) => x.id.endsWith('_val'))?.font?.size).toBe(Math.round(1280 * 0.082 * 1.5));
+    expect(c.find((x) => x.id.endsWith('_val'))?.font?.size).toBe(Math.round(1280 * 0.098 * 1.5));
     expect(c.find((x) => x.id.endsWith('_bar'))?.fill).toBe('#00ff00'); // accent bar
     expect(c.find((x) => x.id.endsWith('_val'))?.fill).toBe('#ff00ff');
 
