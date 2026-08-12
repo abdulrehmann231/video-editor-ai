@@ -1,6 +1,6 @@
 import type { AnnotationKind, Camera, MotionLayer, Vec2, Vec3 } from '../ir/types';
 import { DEFAULT_BRAND } from '../brand';
-import { annotationLayer, BuildCtx, chartLayer, constant, fadeIn, meterLayer, punchScale, reveal, scalePop, shapeLayer, textLayer } from './helpers';
+import { annotationLayer, BuildCtx, chartLayer, constant, fadeIn, meterLayer, orientation, punchScale, reveal, scalePop, shapeLayer, textLayer } from './helpers';
 
 /**
  * Effect template registry — the reusable, parameterized effects the AI/adapter
@@ -264,9 +264,10 @@ export const TEMPLATES: EffectTemplate[] = [
       const accent = asStr(p.accent, b.colors.accent);
       const textColor = asStr(p.textColor, b.colors.text);
       const family = asStr(p.fontFamily, b.fonts.heading);
+      const { portrait, fs } = orientation(ctx.canvas);
       const scale = asNum(p.scale, 1) * (corner ? 0.8 : 1);
-      const cardW = 0.32 * scale;
-      const cardH = 0.24 * scale;
+      const cardW = (portrait ? 0.62 : 0.32) * scale;
+      const cardH = (portrait ? 0.2 : 0.24) * scale;
       const pop = () => scalePop(1);
       // The number pops in the accent color (bright, vault-style) unless the
       // project overrides textColor; big + thick dark outline for punch.
@@ -287,7 +288,7 @@ export const TEMPLATES: EffectTemplate[] = [
               ),
               // Big number (accent, thick ink outline).
               {
-                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy - 0.025 * scale], Math.round(W * 0.098 * scale), ctx.dur, { fill: valColor, family, stroke: { color: '#0b0d12', width: Math.round(W * 0.006 * scale) } }),
+                ...textLayer(`${ctx.idPrefix}_val`, asStr(p.value), [cx, cy - 0.025 * scale], Math.round(W * 0.098 * scale * fs), ctx.dur, { fill: valColor, family, stroke: { color: '#0b0d12', width: Math.round(W * 0.006 * scale) } }),
                 transform: { position: constant<Vec3>([cx, cy - 0.025 * scale, 0]), scale: pop() },
               },
               // Accent underline bar (thicker/wider).
@@ -297,7 +298,7 @@ export const TEMPLATES: EffectTemplate[] = [
                 ctx.dur,
               ),
               // Label (white, uppercased, tracked out).
-              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.08 * scale], Math.round(W * 0.026 * scale), ctx.dur, { fill: '#ffffff', family, tracking: 1 })] : []),
+              ...(label ? [textLayer(`${ctx.idPrefix}_lbl`, label, [cx, cy + 0.08 * scale], Math.round(W * 0.026 * scale * fs), ctx.dur, { fill: '#ffffff', family, tracking: 1 })] : []),
             ],
           },
         ],
@@ -483,8 +484,9 @@ export const TEMPLATES: EffectTemplate[] = [
       const side = asStr(p.side, 'below');
       // Pill position offset from the target.
       const [px, py] = side === 'left' ? [Math.max(0.18, tx - 0.26), ty] : side === 'right' ? [Math.min(0.82, tx + 0.26), ty] : [tx, Math.min(0.9, ty + 0.28)];
-      const fontPx = Math.round(W * 0.032);
-      const pillW = Math.min(0.6, 0.05 + text.length * 0.026);
+      const { fs } = orientation(ctx.canvas);
+      const fontPx = Math.round(W * 0.032 * fs);
+      const pillW = Math.min(0.85, (0.05 + text.length * 0.026) * fs);
       return {
         layers: [
           {
@@ -522,17 +524,18 @@ export const TEMPLATES: EffectTemplate[] = [
       if (rows.length === 0) return { layers: [{ id: `${ctx.idPrefix}_empty`, type: 'group', start: 0, duration: ctx.dur, children: [] }] };
       const accent = asStr(p.accent, b.colors.accent);
       const title = asStr(p.title);
+      const { portrait, fs } = orientation(ctx.canvas);
       const left = asStr(p.position, 'center') === 'left';
       // Clean bold-italic overlay (the vault's "✓ EXPERTISE / ✗ LABOUR" look):
       // big slanted white text, huge bright green check / red cross marks, NO card.
-      const rowH = 0.145;
+      const rowH = portrait ? 0.12 : 0.145;
       const nRows = rows.length + (title ? 1 : 0);
       const blockH = nRows * rowH;
       const top = 0.5 - blockH / 2 + rowH / 2;
       // Left margin for the mark; text sits to its right, left-anchored.
-      const markX = left ? 0.14 : 0.24;
-      const textX = markX + 0.085;
-      const rowFont = Math.round(W * 0.062);
+      const markX = portrait ? 0.1 : left ? 0.14 : 0.24;
+      const textX = markX + (portrait ? 0.11 : 0.085);
+      const rowFont = Math.round(W * 0.062 * fs);
       // Soft left-side scrim so the marks/text read on any footage.
       const children: MotionLayer[] = [
         shapeLayer(
@@ -543,7 +546,7 @@ export const TEMPLATES: EffectTemplate[] = [
       ];
       let y = top;
       if (title) {
-        children.push({ ...textLayer(`${ctx.idPrefix}_title`, title, [markX, y], Math.round(W * 0.04), ctx.dur, { fill: accent, family: b.fonts.heading, align: 'left', italic: true, stroke: { color: '#0b0d12', width: Math.round(W * 0.003) } }) });
+        children.push({ ...textLayer(`${ctx.idPrefix}_title`, title, [markX, y], Math.round(W * 0.04 * fs), ctx.dur, { fill: accent, family: b.fonts.heading, align: 'left', italic: true, stroke: { color: '#0b0d12', width: Math.round(W * 0.003) } }) });
         y += rowH;
       }
       rows.forEach((row, i) => {
@@ -554,7 +557,8 @@ export const TEMPLATES: EffectTemplate[] = [
           children.push(reveal(shapeLayer(`${ctx.idPrefix}_dot${i}`, { shape: 'circle', radius: 0.016, fill: accent, shadow: Math.round(W * 0.01), transform: { position: constant<Vec3>([markX, ry, 0]), scale: scalePop(1) } }, ctx.dur), st) as MotionLayer);
         } else {
           const annoKind: AnnotationKind = row.mark === 'cross' ? 'cross' : 'checkmark';
-          children.push(annotationLayer(`${ctx.idPrefix}_mk${i}`, { annotation: annoKind, rect: { x: markX - 0.045, y: ry - 0.052, width: 0.09, height: 0.1 }, color: markColor, strokeWidth: 0.009, roughness: 0.25, drawIn: 0.22 }, ctx.dur, st));
+          const mw = 0.09 * fs;
+          children.push(annotationLayer(`${ctx.idPrefix}_mk${i}`, { annotation: annoKind, rect: { x: markX - mw / 2, y: ry - 0.052 * fs, width: mw, height: 0.1 * fs }, color: markColor, strokeWidth: 0.009 * fs, roughness: 0.25, drawIn: 0.22 }, ctx.dur, st));
         }
         children.push(reveal(textLayer(`${ctx.idPrefix}_row${i}`, row.text, [textX, ry], rowFont, ctx.dur, { fill: b.colors.text, family: b.fonts.heading, align: 'left', italic: true, stroke: { color: '#0b0d12', width: Math.round(W * 0.0035) } }), st));
       });
@@ -578,26 +582,33 @@ export const TEMPLATES: EffectTemplate[] = [
     build: (p, ctx) => {
       const W = ctx.canvas.width;
       const b = ctx.brand ?? DEFAULT_BRAND;
+      const { portrait, fs } = orientation(ctx.canvas);
       const toneColor = (t: string) => (t === 'bad' ? '#ff375f' : t === 'good' ? '#34d399' : b.colors.accent);
-      const col = (idp: string, cx: number, title: string, items: string[], tone: string, dir: 'up' | 'down' | 'none') => {
+      // Panel geometry: side-by-side in landscape, stacked top/bottom in portrait.
+      const pw = portrait ? 0.84 : 0.4;
+      const ph = portrait ? 0.4 : 0.5;
+      const col = (idp: string, cx: number, cy: number, title: string, items: string[], tone: string, dir: 'up' | 'down' | 'none') => {
         const color = toneColor(tone);
         const kids: MotionLayer[] = [
-          shapeLayer(`${idp}_bg`, { shape: 'rounded_rectangle', size: [0.4, 0.5], radius: 0.02, gradient: ['#14171d', '#0a0b0e'], gradientAngle: 150, stroke: { color, width: 3 }, shadow: Math.round(W * 0.025), opacity: fadeIn(ctx.dur), transform: { position: constant<Vec3>([cx, 0.5, 0]), scale: scalePop(1) } }, ctx.dur),
+          shapeLayer(`${idp}_bg`, { shape: 'rounded_rectangle', size: [pw, ph], radius: 0.02, gradient: ['#14171d', '#0a0b0e'], gradientAngle: 150, stroke: { color, width: 3 }, shadow: Math.round(W * 0.025), opacity: fadeIn(ctx.dur), transform: { position: constant<Vec3>([cx, cy, 0]), scale: scalePop(1) } }, ctx.dur),
         ];
-        if (title) kids.push({ ...textLayer(`${idp}_t`, title, [cx, 0.31], Math.round(W * 0.036), ctx.dur, { fill: color, family: b.fonts.heading }) });
+        if (title) kids.push({ ...textLayer(`${idp}_t`, title, [cx, cy - ph * 0.36], Math.round(W * 0.036 * fs), ctx.dur, { fill: color, family: b.fonts.heading }) });
+        const step = ph * 0.15;
         items.slice(0, 4).forEach((it, i) => {
-          kids.push(reveal(textLayer(`${idp}_i${i}`, it, [cx, 0.42 + i * 0.075], Math.round(W * 0.026), ctx.dur, { fill: b.colors.text, family: b.fonts.body, weight: 600 }), 0.2 + i * 0.12));
+          kids.push(reveal(textLayer(`${idp}_i${i}`, it, [cx, cy - ph * 0.14 + i * step], Math.round(W * 0.026 * fs), ctx.dur, { fill: b.colors.text, family: b.fonts.body, weight: 600 }), 0.2 + i * 0.12));
         });
         if (dir !== 'none') {
-          const y0 = dir === 'down' ? 0.66 : 0.74;
-          const y1 = dir === 'down' ? 0.74 : 0.66;
+          const y0 = dir === 'down' ? cy + ph * 0.3 : cy + ph * 0.42;
+          const y1 = dir === 'down' ? cy + ph * 0.42 : cy + ph * 0.3;
           kids.push(annotationLayer(`${idp}_arr`, { annotation: 'arrow', from: [cx, y0], to: [cx, y1], color, strokeWidth: 0.009, drawIn: 0.4 }, ctx.dur, 0.5));
         }
         return kids;
       };
+      const [lx, ly] = portrait ? [0.5, 0.29] : [0.27, 0.5];
+      const [rx, ry] = portrait ? [0.5, 0.72] : [0.73, 0.5];
       const children = [
-        ...col(`${ctx.idPrefix}_L`, 0.27, asStr(p.leftTitle), Array.isArray(p.leftItems) ? p.leftItems.map((x) => asStr(x)).filter(Boolean) : [], asStr(p.leftTone, 'bad'), asStr(p.leftTone, 'bad') === 'good' ? 'up' : 'down'),
-        ...col(`${ctx.idPrefix}_R`, 0.73, asStr(p.rightTitle), Array.isArray(p.rightItems) ? p.rightItems.map((x) => asStr(x)).filter(Boolean) : [], asStr(p.rightTone, 'good'), asStr(p.rightTone, 'good') === 'good' ? 'up' : 'down'),
+        ...col(`${ctx.idPrefix}_L`, lx, ly, asStr(p.leftTitle), Array.isArray(p.leftItems) ? p.leftItems.map((x) => asStr(x)).filter(Boolean) : [], asStr(p.leftTone, 'bad'), asStr(p.leftTone, 'bad') === 'good' ? 'up' : 'down'),
+        ...col(`${ctx.idPrefix}_R`, rx, ry, asStr(p.rightTitle), Array.isArray(p.rightItems) ? p.rightItems.map((x) => asStr(x)).filter(Boolean) : [], asStr(p.rightTone, 'good'), asStr(p.rightTone, 'good') === 'good' ? 'up' : 'down'),
       ];
       return { layers: [{ id: `${ctx.idPrefix}_cmp`, type: 'group', start: 0, duration: ctx.dur, children }] };
     },
@@ -621,14 +632,15 @@ export const TEMPLATES: EffectTemplate[] = [
       const b = ctx.brand ?? DEFAULT_BRAND;
       const items = Array.isArray(p.items) ? p.items.map((x) => asStr(x)).filter(Boolean).slice(0, 6) : [];
       if (items.length === 0) return { layers: [{ id: `${ctx.idPrefix}_empty`, type: 'group', start: 0, duration: ctx.dur, children: [] }] };
+      const { portrait, fs } = orientation(ctx.canvas);
       const variant = asStr(p.variant, 'outline') as 'outline' | 'number' | 'bullet';
       const pos = asStr(p.position, 'center') as 'center' | 'left' | 'topleft';
       const accent = asStr(p.accent, b.colors.accent);
       const textColor = asStr(p.textColor, '#ffffff');
-      const rowFont = Math.round(W * (pos === 'topleft' ? 0.026 : 0.034));
-      const rowH = pos === 'topleft' ? 0.085 : 0.115;
+      const rowFont = Math.round(W * (pos === 'topleft' ? 0.026 : 0.034) * fs);
+      const rowH = (pos === 'topleft' ? 0.085 : 0.115) * (portrait ? 1.05 : 1);
       const maxLen = Math.max(...items.map((s) => s.length));
-      const badgeW = variant === 'number' ? 0.055 : 0;
+      const badgeW = variant === 'number' ? 0.055 * fs : 0;
       const padL = 0.03;
       const pillW = Math.min(0.82, badgeW + padL * 2 + maxLen * rowFont * 0.63 / W + 0.02);
       // Anchor: topleft stacks from the corner; left/center center vertically.
@@ -752,10 +764,12 @@ export const TEMPLATES: EffectTemplate[] = [
     build: (p, ctx) => {
       const data = asChartData(p.data);
       if (data.length === 0) return { layers: [{ id: `${ctx.idPrefix}_empty`, type: 'group', start: 0, duration: ctx.dur, children: [] }] };
+      const { portrait } = orientation(ctx.canvas);
       const variant = asStr(p.variant, 'bar') as 'bar' | 'line' | 'area' | 'donut';
       const posName = asStr(p.position, 'center');
-      const size: Vec2 = variant === 'donut' ? [0.34, 0.5] : [0.52, 0.46];
-      const cx = posName === 'left' ? 0.29 : posName === 'right' ? 0.71 : 0.5;
+      // Portrait: wider + shorter box, always centered (side positions are too narrow).
+      const size: Vec2 = portrait ? (variant === 'donut' ? [0.62, 0.32] : [0.9, 0.34]) : variant === 'donut' ? [0.34, 0.5] : [0.52, 0.46];
+      const cx = portrait ? 0.5 : posName === 'left' ? 0.29 : posName === 'right' ? 0.71 : 0.5;
       return {
         layers: [
           {

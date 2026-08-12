@@ -197,6 +197,21 @@ describe('vault effect templates', () => {
     expect((chart!.data as unknown[]).length).toBe(2); // A(10) + the {value:5}
   });
 
+  it('is portrait-aware: comparison stacks vertically + fonts scale up on 9:16', () => {
+    const PORTRAIT = { idPrefix: 'p', dur: 2, canvas: { width: 720, height: 1280, fps: 30 } };
+    const land = flatten(resolveTemplate('comparison', { leftTitle: 'A', rightTitle: 'B', leftItems: ['x'], rightItems: ['y'] }, CTX).layers);
+    const port = flatten(resolveTemplate('comparison', { leftTitle: 'A', rightTitle: 'B', leftItems: ['x'], rightItems: ['y'] }, PORTRAIT).layers);
+    const bgX = (ls: typeof land, id: string) => (ls.find((l) => l.id.endsWith(id)) as { transform?: { position?: { value?: number[] } } }).transform?.position?.value?.[0];
+    // landscape: panels side-by-side (different x); portrait: stacked (same x = 0.5)
+    expect(bgX(land, '_L_bg')).not.toBeCloseTo(bgX(land, '_R_bg')!, 2);
+    expect(bgX(port, '_L_bg')).toBeCloseTo(0.5, 2);
+    expect(bgX(port, '_R_bg')).toBeCloseTo(0.5, 2);
+    // checklist row font is a larger FRACTION of width in portrait (fs=1.5) so it
+    // reads on a tall 9:16 frame (absolute px is smaller because the frame is narrower).
+    const rowFontFrac = (ctx: typeof CTX) => (flatten(resolveTemplate('checklist', { items: [{ text: 'HELLO', mark: 'check' }] }, ctx).layers).find((l) => l.type === 'text' && l.content === 'HELLO') as { font?: { size?: number } }).font!.size! / ctx.canvas.width;
+    expect(rowFontFrac(PORTRAIT)).toBeGreaterThan(rowFontFrac(CTX) * 1.3);
+  });
+
   it('comparison reveals two toned columns with directional arrows', () => {
     const { layers } = resolveTemplate('comparison', { leftTitle: 'YOU', rightTitle: 'THEM', leftItems: ['a'], rightItems: ['b'], leftTone: 'bad', rightTone: 'good' }, CTX);
     const all = flatten(layers);

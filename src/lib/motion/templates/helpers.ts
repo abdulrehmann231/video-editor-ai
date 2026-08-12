@@ -139,6 +139,17 @@ export function annotationLayer(
   return { id, type: 'annotation', start, duration: Math.max(0.1, dur - start), ...extra };
 }
 
+/**
+ * Orientation-aware UI scaling. Fonts in templates are sized as a fraction of the
+ * frame WIDTH; a 9:16 Short is much narrower, so the same fraction reads tiny on a
+ * tall frame. `fs` scales width-fraction font sizes up for portrait; landscape is
+ * unchanged (fs=1), so existing goldens/tests never drift.
+ */
+export function orientation(canvas: { width: number; height: number }): { portrait: boolean; fs: number } {
+  const portrait = canvas.height > canvas.width * 1.1;
+  return { portrait, fs: portrait ? 1.5 : 1 };
+}
+
 /** Shift a layer to reveal at `start`, clamping its duration so its window never
  * exceeds the composition (the validator rejects overflow). */
 export function reveal<T extends MotionLayer>(layer: T, start: number): T {

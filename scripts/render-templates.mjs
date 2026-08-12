@@ -9,7 +9,9 @@ import { buildMotionProps } from '../src/lib/motion/render/props.ts';
 import { IR_VERSION } from '../src/lib/motion/ir/version.ts';
 
 const BASE = process.env.BASE || 'public/testclips/demo.mp4';
-const MEDIA = { width: 1280, height: 720, fps: 30 };
+const PORTRAIT = process.env.PORTRAIT === '1';
+const MEDIA = PORTRAIT ? { width: 720, height: 1280, fps: 30 } : { width: 1280, height: 720, fps: 30 };
+const LAYOUT = PORTRAIT ? 'portrait' : 'landscape';
 const OUT = process.argv[2] || '/tmp/tpl';
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -42,7 +44,7 @@ for (const c of CASES) {
   const dur = 2.5;
   const { layers, camera } = resolveTemplate(c.id, c.params, { idPrefix: c.name, dur, canvas: MEDIA });
   const comp = { schemaVersion: IR_VERSION, id: `comp_${c.name}`, start: 0, end: dur, timeBasis: 'cut', coordinateSpace: 'normalized', canvas: MEDIA, layers, ...(camera ? { camera } : {}) };
-  const inputProps = buildMotionProps({ cutUrl: BASE, editMedia: MEDIA, layout: 'landscape', compositions: [comp], outputDurationSec: dur });
+  const inputProps = buildMotionProps({ cutUrl: BASE, editMedia: MEDIA, layout: LAYOUT, compositions: [comp], outputDurationSec: dur });
   const composition = await selectComposition({ serveUrl, id: 'Motion', inputProps, timeoutInMilliseconds: 120000 });
   await renderStill({ composition, serveUrl, output: join(OUT, `${c.name}.png`), frame: c.frame, inputProps, timeoutInMilliseconds: 120000 });
   console.log('OK', c.name);

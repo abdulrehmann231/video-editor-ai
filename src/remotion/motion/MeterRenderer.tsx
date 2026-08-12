@@ -31,6 +31,9 @@ export const MeterRenderer: React.FC<{ layer: MeterLayer }> = ({ layer }) => {
   const accent = layer.color ?? COLORS.accent;
   const track = layer.trackColor ?? 'rgba(255,255,255,0.16)';
   const fillIn = layer.fillIn ?? 0.9;
+  // Portrait (9:16 Shorts): widen the narrow horizontal widgets + scale up labels.
+  const portrait = H > W * 1.1;
+  const uf = portrait ? 1.5 : 1;
 
   // Spring-ish ease so the fill snaps in with life.
   const prog = interpolate(t, [0, Math.max(0.05, fillIn)], [0, 1], {
@@ -55,7 +58,7 @@ export const MeterRenderer: React.FC<{ layer: MeterLayer }> = ({ layer }) => {
           {layer.suffix ?? ''}
         </div>
         {layer.label ? (
-          <div style={{ marginTop: H * 0.012, fontFamily: FONT_DISPLAY, fontWeight: 800, fontSize: Math.round(W * 0.028), letterSpacing: 2, color: accent, textTransform: 'uppercase', ...outlined(Math.round(W * 0.028 * 0.06)) }}>{layer.label}</div>
+          <div style={{ marginTop: H * 0.012, fontFamily: FONT_DISPLAY, fontWeight: 800, fontSize: Math.round(W * 0.028 * uf), letterSpacing: 2, color: accent, textTransform: 'uppercase', ...outlined(Math.round(W * 0.028 * 0.06)) }}>{layer.label}</div>
         ) : null}
       </div>
     );
@@ -68,7 +71,7 @@ export const MeterRenderer: React.FC<{ layer: MeterLayer }> = ({ layer }) => {
     return (
       <div style={{ position: 'absolute', left: `${px * 100}%`, top: `${py * 100}%`, transform: `translate(-50%,-50%) scale(${pop})`, opacity: appear, display: 'flex', alignItems: 'center', gap: W * 0.012 }}>
         {layer.label ? (
-          <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: FONT_DISPLAY, fontWeight: 900, fontSize: Math.round(W * 0.032), letterSpacing: 3, color: '#fff', textTransform: 'uppercase', ...outlined(Math.round(W * 0.032 * 0.06)) }}>{layer.label}</div>
+          <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: FONT_DISPLAY, fontWeight: 900, fontSize: Math.round(W * 0.032 * uf), letterSpacing: 3, color: '#fff', textTransform: 'uppercase', ...outlined(Math.round(W * 0.032 * 0.06)) }}>{layer.label}</div>
         ) : null}
         <div style={{ position: 'relative', width: barW, height: barH, borderRadius: barW, background: track, boxShadow: '0 8px 26px rgba(0,0,0,0.5), inset 0 0 0 3px rgba(0,0,0,0.35)' }}>
           <div style={{ position: 'absolute', left: 0, bottom: 0, width: '100%', height: fillH, borderRadius: barW, background: 'linear-gradient(0deg, #ff375f 0%, #ffd60a 55%, #34d399 100%)', boxShadow: '0 0 22px rgba(52,211,153,0.55)' }} />
@@ -80,17 +83,17 @@ export const MeterRenderer: React.FC<{ layer: MeterLayer }> = ({ layer }) => {
   }
 
   if (layer.variant === 'timeline' || layer.variant === 'scale' || layer.variant === 'slider') {
-    const Wd = Math.round(W * 0.46);
-    const Hd = Math.round(H * 0.2);
-    const knobR = Math.max(9, Math.round(W * 0.011));
+    const Wd = Math.round(W * (portrait ? 0.86 : 0.46));
+    const Hd = Math.round(H * (portrait ? 0.13 : 0.2));
+    const knobR = Math.max(9, Math.round(W * 0.011 * uf));
     const left = knobR + 4;
     const right = Wd - knobR - 4;
     const trackW = right - left;
     const trackY = Hd * 0.5;
-    const th = Math.max(6, Math.round(H * 0.012));
+    const th = Math.max(6, Math.round(W * 0.009 * uf));
     const v = Math.max(0, Math.min(1, layer.value));
-    const tickLabel = Math.max(10, Math.round(W * 0.016));
-    const endLabel = Math.max(12, Math.round(W * 0.022));
+    const tickLabel = Math.max(10, Math.round(W * 0.016 * uf));
+    const endLabel = Math.max(12, Math.round(W * 0.022 * uf));
     const ticks = layer.ticks ?? [];
     const kids: React.ReactNode[] = [];
     // track
@@ -137,7 +140,7 @@ export const MeterRenderer: React.FC<{ layer: MeterLayer }> = ({ layer }) => {
     return (
       <div style={{ position: 'absolute', left: `${px * 100}%`, top: `${py * 100}%`, transform: `translate(-50%,-50%) scale(${pop})`, opacity: appear, width: Wd, height: Hd }}>
         {layer.label ? (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, textAlign: 'center', fontFamily: FONT_DISPLAY, fontWeight: 800, fontSize: Math.round(W * 0.024), letterSpacing: 1, color: '#fff', textTransform: 'uppercase', ...outlined(Math.round(W * 0.024 * 0.06)) }}>{layer.label}</div>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, textAlign: 'center', fontFamily: FONT_DISPLAY, fontWeight: 800, fontSize: Math.round(W * 0.024 * uf), letterSpacing: 1, color: '#fff', textTransform: 'uppercase', ...outlined(Math.round(W * 0.024 * 0.06)) }}>{layer.label}</div>
         ) : null}
         <svg width={Wd} height={Hd} viewBox={`0 0 ${Wd} ${Hd}`} style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
           {kids}
@@ -147,11 +150,11 @@ export const MeterRenderer: React.FC<{ layer: MeterLayer }> = ({ layer }) => {
   }
 
   // bar (horizontal, labeled)
-  const barW = Math.round(W * 0.34);
-  const barH = Math.round(H * 0.03);
+  const barW = Math.round(W * (portrait ? 0.82 : 0.34));
+  const barH = Math.round(W * (portrait ? 0.02 : 0.017));
   const pct = Math.max(0, Math.min(1, layer.value));
   const fillW = pct * prog * barW;
-  const labelSize = Math.round(W * 0.026);
+  const labelSize = Math.round(W * 0.026 * uf);
   return (
     <div style={{ position: 'absolute', left: `${px * 100}%`, top: `${py * 100}%`, transform: `translate(-50%,-50%) scale(${pop})`, opacity: appear, width: barW, display: 'flex', flexDirection: 'column', gap: H * 0.012 }}>
       {(layer.label || layer.suffix != null) && (
