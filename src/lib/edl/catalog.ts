@@ -168,38 +168,16 @@ export function buildCatalogText(): string {
   ).join('\n');
 }
 
+const OP_TYPE_ENUM = CATALOG.map((c) => c.type);
+
 /**
- * Gemini structured-output schema. We use a single flat op object (type enum +
- * all params optional) rather than a discriminated union, because the Gemini
- * schema subset handles that far more reliably. Zod then narrows/validates each
- * op precisely on our side (see parseEdl).
+ * Shared flat effect-param properties (all optional). Reused by BOTH the EDL op
+ * schema and the Phase-6 program element schema. We use a single flat object
+ * (type enum + all params optional) rather than a discriminated union, because
+ * the Gemini schema subset handles that far more reliably. Zod then narrows /
+ * validates each op precisely on our side (parseEdl / parseProgram).
  */
-export const EDL_RESPONSE_SCHEMA: Schema = {
-  type: SchemaType.OBJECT,
-  properties: {
-    version: { type: SchemaType.NUMBER },
-    summary: {
-      type: SchemaType.STRING,
-      description: 'One-paragraph editorial summary of the approach.',
-    },
-    ops: {
-      type: SchemaType.ARRAY,
-      items: {
-        type: SchemaType.OBJECT,
-        properties: {
-          id: { type: SchemaType.STRING, description: 'Unique short id.' },
-          type: {
-            type: SchemaType.STRING,
-            format: 'enum',
-            enum: CATALOG.map((c) => c.type),
-            description: 'One of the catalog op types.',
-          },
-          start: { type: SchemaType.NUMBER, description: 'Start time in seconds.' },
-          end: { type: SchemaType.NUMBER, description: 'End time in seconds.' },
-          reason: {
-            type: SchemaType.STRING,
-            description: 'Short justification for this edit (shown to the user).',
-          },
+const EFFECT_PARAM_PROPS: Record<string, Schema> = {
           // op-specific params (only fill the ones relevant to `type`)
           style: { type: SchemaType.STRING, format: 'enum', enum: ['word_highlight', 'bold_pop', 'karaoke', 'typewriter'] },
           emphasis: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
@@ -289,10 +267,81 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           name: { type: SchemaType.STRING, format: 'enum', enum: ILLUSTRATION_IDS, description: 'illustration id' },
           size: { type: SchemaType.STRING, format: 'enum', enum: ['small', 'medium', 'large'] },
           animate: { type: SchemaType.STRING, format: 'enum', enum: ['pop', 'float', 'draw', 'none'] },
+};
+
+/** EDL structured-output schema (flat ops with absolute timing). */
+export const EDL_RESPONSE_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    version: { type: SchemaType.NUMBER },
+    summary: { type: SchemaType.STRING, description: 'One-paragraph editorial summary of the approach.' },
+    ops: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          id: { type: SchemaType.STRING, description: 'Unique short id.' },
+          type: { type: SchemaType.STRING, format: 'enum', enum: OP_TYPE_ENUM, description: 'One of the catalog op types.' },
+          start: { type: SchemaType.NUMBER, description: 'Start time in seconds.' },
+          end: { type: SchemaType.NUMBER, description: 'End time in seconds.' },
+          reason: { type: SchemaType.STRING, description: 'Short justification for this edit (shown to the user).' },
+          ...EFFECT_PARAM_PROPS,
         },
         required: ['id', 'type', 'start', 'end', 'reason'],
       },
     },
   },
   required: ['ops'],
+};
+
+/**
+ * Phase-6 MotionProgram structured-output schema. The AI designs SCENES, each a
+ * composed moment with 1–6 coordinated ELEMENTS. Elements reuse the SAME flat
+ * effect params as EDL ops (proven reliable) but drop their own id/timing —
+ * inherited from the scene, offset by an optional `delay`. Silence is expressed
+ * once at the top level via `cuts`.
+ */
+export const PROGRAM_RESPONSE_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    summary: { type: SchemaType.STRING, description: 'One-paragraph editorial summary of the composition approach.' },
+    captionPlacement: { type: SchemaType.STRING, format: 'enum', enum: ['lower', 'middle', 'upper'] },
+    cuts: {
+      type: SchemaType.ARRAY,
+      description: 'Silence/filler ranges to REMOVE (seconds).',
+      items: {
+        type: SchemaType.OBJECT,
+        properties: { start: { type: SchemaType.NUMBER }, end: { type: SchemaType.NUMBER } },
+        required: ['start', 'end'],
+      },
+    },
+    scenes: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          id: { type: SchemaType.STRING, description: 'Short unique scene id.' },
+          start: { type: SchemaType.NUMBER, description: 'Scene start (seconds).' },
+          end: { type: SchemaType.NUMBER, description: 'Scene end (seconds).' },
+          intent: { type: SchemaType.STRING, description: 'What this moment communicates + why these elements.' },
+          reason: { type: SchemaType.STRING, description: 'Justification incl. the vault ref, e.g. "(ref: #123 …)".' },
+          elements: {
+            type: SchemaType.ARRAY,
+            description: '1–6 coordinated effects composited in this scene.',
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                type: { type: SchemaType.STRING, format: 'enum', enum: OP_TYPE_ENUM, description: 'The effect type.' },
+                delay: { type: SchemaType.NUMBER, description: 'Seconds after the scene start to reveal this element (stagger).' },
+                ...EFFECT_PARAM_PROPS,
+              },
+              required: ['type'],
+            },
+          },
+        },
+        required: ['id', 'start', 'end', 'intent', 'reason', 'elements'],
+      },
+    },
+  },
+  required: ['scenes'],
 };
