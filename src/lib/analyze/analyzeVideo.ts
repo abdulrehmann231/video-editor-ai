@@ -8,16 +8,36 @@ import { transcribe, type TranscriptWord } from './transcribe';
 import { buildRepairPrompt } from './prompt';
 import { buildPlanPrompt, parsePlan, PLAN_RESPONSE_SCHEMA, type EditorialPlan } from './plan';
 import { buildBuildPrompt, EDL_RESPONSE_SCHEMA, countBeatRefs } from './build';
+import { generateProgram } from './program';
+import type { MotionProgram } from '../motion/program/schema';
 import { researchEnabled, researchTechniques } from './research';
 import { downloadToTemp, cleanupTemp } from '../media/download';
 import type { MediaInfo } from '../ingest';
 
 export interface AnalyzeResult {
   edl: Edl;
+  /** Phase 6 (opt-in): the composed MotionProgram, when program mode is on. */
+  program?: MotionProgram;
   meta: AnalysisMeta;
   transcript: TranscriptWord[];
   silence: SilenceSegment[];
   warnings: string[];
+}
+
+/** Phase 6 opt-in: MOTION_PROGRAM=on makes analysis emit a composed program. */
+function programModeEnabled(): boolean {
+  return process.env.MOTION_PROGRAM === 'on';
+}
+
+/** Silence-only EDL derived from a program's cuts, so the CUT step (which reads
+ * the EDL) produces the exact same compressed timeline the program compiles onto. */
+function silenceEdlFromProgram(program: MotionProgram, plan: EditorialPlan): Edl {
+  return {
+    version: 1,
+    summary: program.summary,
+    captionPlacement: program.captionPlacement ?? plan.captionPlacement,
+    ops: program.cuts.map((c, i) => ({ id: `sil_${i}`, source: 'silence-detector' as const, type: 'silence_cut' as const, start: c.start, end: c.end, reason: 'Detected silence' })),
+  };
 }
 
 export interface AnalyzeInput {
@@ -56,7 +76,7 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
       });
     }
 
-    const { edl, meta, plan, repaired } = await runAgentic({
+    const { edl, program, meta, plan, repaired } = await runAgentic({
       localPath: path,
       contentType: input.contentType,
       filename: input.filename,
@@ -65,10 +85,12 @@ export async function analyzeVideo(input: AnalyzeInput): Promise<AnalyzeResult> 
       transcript,
       userPrompt: input.userPrompt,
       model: env.GEMINI_MODEL,
+      programMode: programModeEnabled(),
     });
 
     return {
       edl,
+      program,
       meta: {
         ...meta,
         transcriptWords: transcript.length,
@@ -95,6 +117,8 @@ interface AgenticInput {
   transcript: TranscriptWord[];
   userPrompt?: string;
   model: string;
+  /** Phase 6: emit a composed MotionProgram instead of a flat EDL. */
+  programMode?: boolean;
 }
 
 /**
@@ -105,7 +129,7 @@ interface AgenticInput {
  */
 async function runAgentic(
   input: AgenticInput,
-): Promise<{ edl: Edl; meta: AnalysisMeta; plan: EditorialPlan; repaired: boolean }> {
+): Promise<{ edl: Edl; program?: MotionProgram; meta: AnalysisMeta; plan: EditorialPlan; repaired: boolean }> {
   const { model } = input;
   const durationSec = input.media.durationSec ?? null;
   const keys = getEnv().GEMINI_API_KEYS;
@@ -150,6 +174,18 @@ async function runAgentic(
         userPrompt: input.userPrompt,
       });
       const meta = (): AnalysisMeta => ({ model, generatedAt: new Date().toISOString(), keyIndex, researched });
+
+      // Phase 6 — Creative Director (opt-in): compose SCENES instead of a flat EDL.
+      if (input.programMode) {
+        const call = (prompt: string, schema: typeof EDL_RESPONSE_SCHEMA) => generateStructuredText(key, model, prompt, schema);
+        const { program, repaired } = await generateProgram(
+          { plan, media: input.media, silence: input.silence, transcript: input.transcript, research, userPrompt: input.userPrompt },
+          durationSec,
+          call,
+        );
+        const edl = silenceEdlFromProgram(program, plan);
+        return { edl, program, meta: meta(), plan, repaired };
+      }
 
       const buildText = await generateStructuredText(key, model, buildPrompt, EDL_RESPONSE_SCHEMA);
       try {

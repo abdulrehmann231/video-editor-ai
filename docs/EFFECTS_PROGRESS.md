@@ -100,6 +100,33 @@ All wired to the AI (EDL ops + catalog + Gemini response schema + prompt) and
 covered by tests (198 total). Next: **Phase 6 — Creative Director** (compose
 multi-element scenes), then grow assets / 3D / Visual-QA.
 
+## Phase 6 — Creative Director (composed scenes)   ✅ DONE (opt-in)
+The AI now DESIGNS COMPOSITIONS instead of picking one op per moment. Gated behind
+`MOTION_PROGRAM=on` (analysis) + `renderEngine:'program'` (auto when a program is
+present); the EDL 'motion' path stays the default until parity.
+- [x] 6a — `motion/program/{schema,compile}.ts`: a MotionProgram is SCENES, each a
+      composed moment of 1–6 coordinated ELEMENTS (illustration + stat + name-tag +
+      arrow, staggered by `delay`). Elements reuse the live-validated EDL op
+      vocabulary but drop their own timing/ids (inherited from the scene).
+      `parseProgram` self-heals + injects timing via parseEdl reuse; `programToMotion`
+      composites each scene into ONE layered IR composition (shares the EDL path's
+      cut remap + template compiler + dense captions).
+- [x] 6b — `analyze/program.ts`: `buildProgramPrompt` (Creative Director, with
+      worked composition examples) + `PROGRAM_RESPONSE_SCHEMA` (shares
+      EFFECT_PARAM_PROPS with the EDL schema). Live-validated: 4/5 scenes composed.
+- [x] 6c — `generateProgram` with a REPAIR pass (recovers dropped data elements);
+      wired into analyzeVideo (gated) + steps.ts ('program' engine, reuses
+      broll/music; silence-only EDL from program.cuts drives the cut) +
+      `programDecisionLog`. Project gains `program?` (no migration).
+- ⚠️ **Known tradeoff (honest):** the deeply-nested scenes→elements schema is
+      harder for the model than the flat EDL — under load it often substitutes a
+      simpler element (stat_callout/lottie) for a rich data-viz element (chart /
+      stack_list / comparison items), even after repair. Composition works and
+      degrades gracefully; rich data-viz WITHIN a composed scene is model-limited.
+      Future lever: a focused per-scene "fill the data" pass, or a stronger model
+      for the program stage. Scripts: `_smoke-program.mjs` (live E2E),
+      `_program-render.mjs` (render a composed scene).
+
 ## Notes / decisions
 - Installed: `@remotion/google-fonts`. Fonts: Anton (display) + Inter (body).
 - Asset licensing: only bundle CC0 / free-for-commercial Lottie/3D assets; log sources here.

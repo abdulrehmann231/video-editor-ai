@@ -1,6 +1,7 @@
 import { getObject, putObject, publicUrl } from './r2';
 import type { MediaInfo } from './ingest';
 import type { AnalysisMeta, Edl } from './edl/schema';
+import type { MotionProgram } from './motion/program/schema';
 import type { TranscriptWord } from './analyze/transcribe';
 import type { RenderMeta } from './render/renderCut';
 import type { FinalRenderMeta } from './render/renderFinal';
@@ -55,6 +56,9 @@ export interface Project {
   analysisStatus?: AnalysisStatus;
   analysisError?: string;
   edl?: Edl;
+  /** Phase 6 (opt-in): composed MotionProgram; when present + engine 'program',
+   * the render composites scenes from this instead of mapping the flat EDL. */
+  program?: MotionProgram;
   analysisMeta?: AnalysisMeta;
   /** Word-level transcript (kept for captions in later phases). */
   transcript?: TranscriptWord[];
@@ -90,7 +94,7 @@ export interface Project {
    * 'edl' = the legacy Remotion "Edit" composition (fallback).
    * When unset, defaults to 'motion' (RENDER_ENGINE=edl forces the legacy path).
    */
-  renderEngine?: 'edl' | 'motion';
+  renderEngine?: 'edl' | 'motion' | 'program';
 
   /** Per-project brand colors/fonts for the Motion path (defaults to DEFAULT_BRAND). */
   brand?: BrandProfile;

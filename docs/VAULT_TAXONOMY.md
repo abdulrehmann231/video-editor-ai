@@ -77,11 +77,15 @@ Done:
 3. ✅ **Portrait/Shorts tuning** — orientation-aware templates + renderers.
 5. ✅ **Illustration library** — 18 animated vector icons/stickers (extensible).
 
+Done:
+4. ✅ **Phase 6 — Creative Director** (opt-in, `MOTION_PROGRAM=on`) — the AI now
+   *composes* multi-element SCENES (icon + arrow + label + stat, staggered)
+   instead of one op → one template. Composition mechanism is solid; rich
+   data-viz *within* a composed scene is model-limited (see EFFECTS_PROGRESS
+   Phase 6 tradeoff). This is the foundation for the ~96 illustrated + ~21 flow
+   refs — realizing them fully now depends mainly on growing the asset library.
+
 Next:
-4. **Phase 6 — Creative Director** — the AI *composes* multi-element scenes
-   (icon + arrow + label + graph) instead of picking one op → one template.
-   Unlocks the ~96 illustrated + ~21 flow refs (pairs with growing the asset
-   library). Largest remaining lever.
 6. **Grow the illustration/asset library** (mascots, UI/phone mockups, more scenes)
    — feeds Phase 6.
 7. **Phase 13 — 3D pipeline** (~18 refs) — after a GPU/Lambda render path is default.

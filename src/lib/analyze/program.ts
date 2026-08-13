@@ -1,7 +1,9 @@
+import type { Schema } from '@google/generative-ai';
 import { buildCatalogText, PROGRAM_RESPONSE_SCHEMA } from '../edl/catalog';
 import { retrieveReferences, refLine, vaultCatalogText } from '../vault';
 import { transcriptToScript } from './prompt';
 import type { BuildInput } from './build';
+import { parseProgram, type MotionProgram } from '../motion/program/schema';
 
 /**
  * Phase 6 — the CREATIVE DIRECTOR prompt. Unlike the BUILD stage (which emits a
@@ -85,4 +87,72 @@ RULES:
 - Every scene's "reason" ends with the vault ref, e.g. "(ref: #123 Liquid Money Orb Pop-In)".
 - Use 3D (three) and heavy effects sparingly. Be rich yet tasteful.
 - Output ONLY the JSON MotionProgram matching the schema, plus a one-paragraph "summary".`;
+}
+
+/** Repair prompt when the first program dropped elements (usually a data element
+ * that was emitted without its required array). Re-ask, keeping the good scenes. */
+export function buildProgramRepairPrompt(previousJson: string, warnings: string[]): string {
+  return `This MotionProgram JSON was mostly valid but some ELEMENTS were discarded because they were
+incomplete. Return the SAME program, but FIX the discarded elements — most often a data element
+emitted without its required array. Complete them (chart needs "data"; checklist needs "items";
+stack_list needs "listItems"; comparison needs "leftItems" AND "rightItems"; progress
+timeline/scale needs "ticks") using concrete values from the transcript, OR replace that element
+with a simpler complete one (stat_callout / caption / illustration). Keep everything else identical.
+Do not add commentary.
+
+ISSUES:
+${warnings.slice(0, 40).map((w) => `- ${w}`).join('\n')}
+
+PROGRAM JSON:
+${previousJson}`;
+}
+
+function safeJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenced) return JSON.parse(fenced[1]);
+    const first = text.indexOf('{');
+    const last = text.lastIndexOf('}');
+    if (first >= 0 && last > first) return JSON.parse(text.slice(first, last + 1));
+    throw new Error('Model did not return parseable JSON');
+  }
+}
+
+/** Count warnings that indicate a DROPPED element/scene (vs. benign clamps). */
+function droppedCount(warnings: string[]): number {
+  return warnings.filter((w) => /discarded|Dropped|Required|0 renderable/i.test(w)).length;
+}
+
+/**
+ * Generate a MotionProgram from the plan (Phase 6). One BUILD-style call, then —
+ * if elements were dropped — ONE repair pass that completes/replaces them. The
+ * repair is kept only if it strictly reduces the drop count. `call` runs the
+ * structured Gemini request (injected so this stays testable + reuses key
+ * rotation at the call site).
+ */
+export async function generateProgram(
+  input: BuildInput,
+  durationSec: number | null,
+  call: (prompt: string, schema: Schema) => Promise<string>,
+): Promise<{ program: MotionProgram; warnings: string[]; repaired: boolean }> {
+  const raw1 = await call(buildProgramPrompt(input), PROGRAM_RESPONSE_SCHEMA);
+  let { program, warnings } = parseProgram(safeJson(raw1), { durationSec });
+  let repaired = false;
+
+  if (droppedCount(warnings) > 0) {
+    try {
+      const raw2 = await call(buildProgramRepairPrompt(raw1, warnings), PROGRAM_RESPONSE_SCHEMA);
+      const second = parseProgram(safeJson(raw2), { durationSec });
+      if (second.program.scenes.length > 0 && droppedCount(second.warnings) < droppedCount(warnings)) {
+        program = second.program;
+        warnings = second.warnings;
+        repaired = true;
+      }
+    } catch {
+      /* keep the first result */
+    }
+  }
+  return { program, warnings, repaired };
 }

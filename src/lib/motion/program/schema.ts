@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { parseEdl, type EditOp } from '../../edl/schema';
+import { parseEdl, type DecisionLogEntry, type EditOp } from '../../edl/schema';
 
 /**
  * MotionProgram — the Phase-6 "Creative Director" output. Instead of a flat list
@@ -131,4 +131,16 @@ export function parseProgram(
   const captionPlacement = cp === 'lower' || cp === 'middle' || cp === 'upper' ? cp : undefined;
   const summary = typeof root.summary === 'string' ? root.summary : undefined;
   return { program: { version: 1, summary, captionPlacement, cuts, scenes }, warnings };
+}
+
+/** Decision-log rows for a program: one row per element, ordered by time (the
+ * scene's intent rides along in the reason). Mirrors toDecisionLog for the EDL. */
+export function programDecisionLog(program: MotionProgram): DecisionLogEntry[] {
+  const rows: DecisionLogEntry[] = [];
+  for (const s of program.scenes) {
+    for (const e of s.elements) {
+      rows.push({ type: e.type, start: e.start, end: e.end, reason: e.reason, source: e.source });
+    }
+  }
+  return rows.sort((a, b) => a.start - b.start || a.end - b.end);
 }

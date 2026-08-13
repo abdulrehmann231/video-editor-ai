@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parseProgram, programToMotion } from '../motion/program';
+import { parseProgram, programToMotion, programDecisionLog } from '../motion/program';
+import { generateProgram } from '../analyze/program';
 import { validateComposition } from '../motion/ir';
 import type { MotionLayer } from '../motion/ir/types';
 import type { TranscriptWord } from '../analyze/transcribe';
@@ -128,5 +129,40 @@ describe('programToMotion', () => {
     const scene = compositions.find((c) => c.id === 'scene_z')!;
     expect(scene.camera?.focus).toBe('face');
     expect(validateComposition(scene).ok).toBe(true);
+  });
+
+  it('programDecisionLog yields one time-ordered row per element', () => {
+    const { program } = parseProgram(RAW, { durationSec: 30 });
+    const log = programDecisionLog(program);
+    expect(log.length).toBe(5); // 3 + 2 elements
+    expect(log[0].start).toBeLessThanOrEqual(log[log.length - 1].start);
+    expect(log.every((r) => typeof r.reason === 'string' && r.reason.length > 0)).toBe(true);
+  });
+});
+
+describe('generateProgram repair', () => {
+  const plan = { niche: 'B2B', tone: 'energetic', captionPlacement: 'lower' as const, summary: 's', segments: [], beats: [{ start: 2, end: 6, intent: 'revenue chart', searchQuery: 'bar chart revenue' }] };
+  const media = { durationSec: 20, width: 1280, height: 720, fps: 30, hasAudio: true, videoCodec: 'h264', audioCodec: 'aac', sizeBytes: 1000, container: 'mp4' };
+  const input = { plan, media, silence: [], transcript: [] as TranscriptWord[] };
+
+  it('runs one repair pass that recovers a dropped data element', async () => {
+    const incomplete = JSON.stringify({ scenes: [{ id: 's1', start: 2, end: 6, intent: 'x', reason: 'r (ref: #1)', elements: [{ type: 'chart', variant: 'bar' }, { type: 'illustration', name: 'rocket' }] }] });
+    const complete = JSON.stringify({ scenes: [{ id: 's1', start: 2, end: 6, intent: 'x', reason: 'r (ref: #1)', elements: [{ type: 'chart', variant: 'bar', data: [{ label: 'a', value: 1 }, { label: 'b', value: 2 }] }, { type: 'illustration', name: 'rocket' }] }] });
+    let n = 0;
+    const call = async () => (n++ === 0 ? incomplete : complete);
+    const { program, repaired } = await generateProgram(input, 20, call);
+    expect(n).toBe(2); // initial + one repair
+    expect(repaired).toBe(true);
+    const chart = program.scenes[0].elements.find((e) => e.type === 'chart') as { data?: unknown[] } | undefined;
+    expect(chart?.data?.length).toBe(2); // recovered
+  });
+
+  it('does not repair when the first program is already complete', async () => {
+    const complete = JSON.stringify({ scenes: [{ id: 's1', start: 2, end: 6, intent: 'x', reason: 'r', elements: [{ type: 'illustration', name: 'rocket' }] }] });
+    let n = 0;
+    const call = async () => { n++; return complete; };
+    const { repaired } = await generateProgram(input, 20, call);
+    expect(n).toBe(1); // no repair call
+    expect(repaired).toBe(false);
   });
 });

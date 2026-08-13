@@ -9,6 +9,7 @@ import { normalizeBrollClips } from '../render/normalizeBroll';
 import { defaultMusicPath } from '../render/music';
 import { deriveProxies } from '../media/derive';
 import { motionFromEdl } from '../motion/ir';
+import { programToMotion } from '../motion/program';
 import { resolveMotionBroll } from '../motion/render/resolveMotionBroll';
 import { renderFinalMotion } from '../motion/renderers/remotion/renderMotion';
 
@@ -17,8 +18,10 @@ import { renderFinalMotion } from '../motion/renderers/remotion/renderMotion';
  * the DEFAULT; a project can opt back to the legacy 'edl' path via
  * project.renderEngine or RENDER_ENGINE=edl (kept as a fallback for one release).
  */
-export function resolveRenderEngine(project: Project): 'edl' | 'motion' {
+export function resolveRenderEngine(project: Project): 'edl' | 'motion' | 'program' {
   if (project.renderEngine) return project.renderEngine;
+  // A composed program (Phase 6) renders via the 'program' engine by default.
+  if (project.program && project.program.scenes.length > 0) return 'program';
   return process.env.RENDER_ENGINE === 'edl' ? 'edl' : 'motion';
 }
 
@@ -102,6 +105,7 @@ export async function runAnalyze(projectId: string, opts: AnalyzeStepOptions = {
       analysisStatus: 'analyzed',
       analysisError: undefined,
       edl: result.edl,
+      program: result.program,
       analysisMeta: result.meta,
       transcript: result.transcript,
     });
@@ -180,23 +184,20 @@ export async function runFinalRender(
     let result: { finalKey: string; url: string; meta: NonNullable<Project['finalMeta']> };
     let warnings: string[];
 
-    if (engine === 'motion') {
-      // IR-driven parallel path (Phase 1.5/2).
+    if (engine === 'motion' || engine === 'program') {
+      // IR-driven path (Phase 1.5/2). 'program' composites SCENES (Phase 6);
+      // 'motion' maps the flat EDL. Both share the same cut timeline + b-roll.
       const keep = computeKeepSegments(sourceDuration, cutRangesFromEdl(edl), { minKeepSec: 0.05 });
       const outputDurationSec = totalKept(keep);
-      const ir = motionFromEdl(
-        edl,
-        project.transcript ?? [],
-        sourceDuration,
-        {
-          width: isShorts ? 720 : editMedia.width ?? 1280,
-          height: isShorts ? 1280 : editMedia.height ?? 720,
-          fps: editMedia.fps ?? 30,
-        },
-        project.brand,
-        project.captionStyle,
-        project.effectStyle,
-      );
+      const canvas = {
+        width: isShorts ? 720 : editMedia.width ?? 1280,
+        height: isShorts ? 1280 : editMedia.height ?? 720,
+        fps: editMedia.fps ?? 30,
+      };
+      const ir =
+        engine === 'program' && project.program
+          ? programToMotion(project.program, project.transcript ?? [], sourceDuration, canvas, project.brand, project.captionStyle, project.effectStyle)
+          : motionFromEdl(edl, project.transcript ?? [], sourceDuration, canvas, project.brand, project.captionStyle, project.effectStyle);
       // Resolve b-roll (Pexels) into the IR video layers (same resolver the EDL
       // path uses), then render.
       const broll = await resolveMotionBroll(ir.compositions, {
