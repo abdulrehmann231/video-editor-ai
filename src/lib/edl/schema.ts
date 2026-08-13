@@ -193,6 +193,13 @@ export const IllustrationOp = BaseOp.extend({
   animate: z.enum(['pop', 'float', 'draw', 'none']).default('pop'),
 });
 
+/** Quote card — a memorable quote/statement with attribution. */
+export const QuoteOp = BaseOp.extend({
+  type: z.literal('quote'),
+  text: z.string().min(1).max(240),
+  author: z.string().max(60).optional(),
+});
+
 /** Flow / process diagram — connected nodes (icon+label) with arrows. */
 export const FlowOp = BaseOp.extend({
   type: z.literal('flow'),
@@ -222,6 +229,7 @@ export const EditOp = z.discriminatedUnion('type', [
   ChartOp,
   IllustrationOp,
   FlowOp,
+  QuoteOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];

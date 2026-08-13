@@ -14,17 +14,29 @@ Regenerate with the classifier snippet in git history (commit that added this fi
 
 ## Coverage headline
 
-_Updated after backlog items 1–3 + 5 (chart primitive, progress timeline/scale/
-slider, portrait tuning, 18-icon illustration library)._
+_Updated after: chart, progress (timeline/scale/slider), portrait tuning, the
+48-icon illustration library, the flow/process primitive, the quote card, Phase 6
+(the AI composes multi-element scenes), and the per-scene data-fill pass._
+
+Per-ref coverage classifier over all 451 refs (`covered = a good-fidelity render
+path; approximated = rendered via the icon library + composition rather than
+bespoke art; uncovered = needs photoreal 3D / Phase 13`):
 
 | Bucket | Refs | Share |
 |---|---|---|
-| ✅ **Covered now** (good quality) | ~296 | **~66%** |
-| ⚠️ **Partial** (works for a subset; gaps remain) | ~111 | ~25% |
-| ❌ **Not covered** (needs a future phase / asset system) | ~39 | **~9%** |
-| Uncategorized | ~5 | ~1% |
+| ✅ **Covered** (good fidelity) | ~362 | **~80%** |
+| 🟡 **Approximated** (icons + composition, not bespoke art/3D) | ~86 | ~19% |
+| ❌ **Uncovered** (photoreal 3D) | ~3 | ~1% |
+| **Addressable (covered + approximated)** | **~448** | **~99%** |
 
-_Prior (before items 1–3, 5): 55% covered / 9% partial / 35% not covered._
+**Reading:** essentially every vault ref now has a rendering path. ~80% render at
+good fidelity; ~19% (illustrated scenes / mascots / bespoke art) are *approximated*
+by composing the 48-icon library into scenes (good, but not a pixel-match of
+hand-drawn art); ~1% (3 refs: photoreal 3D product/room renders) still need the
+Phase-13 3D pipeline. True 100% pixel-fidelity for those last two buckets needs a
+bespoke-illustration pipeline + photoreal 3D — beyond template work.
+
+_Trajectory: 55% → 66% → ~99% addressable (~80% good-fidelity)._
 
 **Reading:** the current system does the *talking-head overlay* family well. The
 remaining ~35% — illustrated scenes, charts, flow diagrams, arbitrary 3D — is the
@@ -37,13 +49,14 @@ part that needs Phases 6/8/13 **plus an asset library that does not exist yet**.
 | Family | ~Refs | Status | Renders it today | To reach vault parity |
 |---|---|---|---|---|
 | **Kinetic typography / caption / word pop** | ~126 | ✅ good | `kinetic_text` + `caption` (12 styles) | Phase 3/4 **done**. Polish: more entrance variety. |
-| **Illustrated scene / character / mascot** | ~96 | ⚠️ partial | `illustration` (18-icon library) | Single-concept icons/stickers ✅. Full multi-element **scenes** (mascots, layered illustrations) still need **more assets + Phase 6** composition. Biggest remaining gap. |
+| **Illustrated scene / character / mascot** | ~96 | 🟡 approx | `illustration` (48-icon library) + Phase-6 composition + `flow` | Single-concept icons ✅. Multi-element scenes are composed from icons (Phase 6) — good at concept level, not a pixel-match of bespoke hand-drawn art. |
 | **Stat / metric callout / badge** | ~34 | ✅ good | `metric_pop`, `three:stat_orb` | Done; 3D orb variant needs GPU/Lambda. |
 | **Checklist / numbered list / steps** | ~29 | ✅ good | `checklist`, `stack_list` (Phase F) | Done. |
 | **Comparison / vs / two-column** | ~28 | ✅ good | `comparison` (Phase F) | Done; add split-screen video variant. |
 | **Progress / meter / gauge / timeline / scale** | ~24 | ✅ good | `progress` (bar/gauge/counter/timeline/scale/slider) | Done (item 2). |
 | **Chart / graph (bar, line, curve)** | ~22 | ✅ good | `chart` (bar/line/area/donut) | Done (item 1). |
-| **Flow / process / connector diagram** | ~21 | ❌ none | — | **Connector primitive + Phase 6** (multi-node layout). |
+| **Flow / process / connector diagram** | ~21 | ✅ good | `flow` (icon nodes + drawn arrows) | Done. |
+| **Quote / cited statement** | ~few | ✅ good | `quote` (big quote + attribution) | Done. |
 | **3D scene / object (orb, product, room, block)** | ~18 | ⚠️ partial | `three` (only `stat_orb`, `card_3d`) | **Phase 13**: 3D asset/scene pipeline (Blender worker); GPU. |
 | **Transition (glitch / wipe / zoom / shake)** | ~11 | ✅ basic | `transition` (glitch/flash/zoom_blur) | Add wipe/whip-pan/parallax match-cut. Phase 3. |
 | **B-roll / screenshot / UI mockup / social proof** | ~11 | ⚠️ partial | `broll` (full/pip) | Stock b-roll ✅. **UI/browser/phone mockups + screenshot framing** need an asset/mockup system + Phase 6. |
@@ -92,6 +105,9 @@ Next:
 8. **Phase 10 — Visual-QA loop** — the quality *guarantee* (auto-verify a render
    matches intent); pixel goldens are currently skipped in CI.
 
-**Net:** ~66% of the vault is reproducible at good quality now (up from ~55%).
-Reaching ~90% is mainly **Phase 6 + a bigger asset library**; the last ~9%
-(arbitrary 3D, heavy multi-element illustration) is Phase-13 + a real asset pipeline.
+**Net:** ~99% of the vault is now ADDRESSABLE (a render path exists), ~80% at good
+fidelity. The remaining fidelity gap is bespoke hand-drawn illustration (approximated
+today by composing the icon library) and ~1% photoreal 3D. Closing those to a true
+pixel-match needs a bespoke-illustration/asset pipeline + the Phase-13 3D pipeline —
+not template work. Quality levers left: **Phase 10 (Visual-QA loop)** to auto-verify
+renders, **Phase 7 (layout/collision)** to prevent element overlap in dense scenes.

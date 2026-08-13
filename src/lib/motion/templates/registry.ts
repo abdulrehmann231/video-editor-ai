@@ -863,6 +863,42 @@ export const TEMPLATES: EffectTemplate[] = [
     },
   },
   {
+    id: 'quote',
+    version: '1.0',
+    name: 'Quote card',
+    whenToUse:
+      'Display a memorable QUOTE or a highlighted statement with attribution — e.g. a famous quote ("If I had 8 hours to chop down a tree…" — Abraham Lincoln) or a bold claim. Large quotation text with an accent quote-mark + author line, over a dimmed backdrop.',
+    renderer: 'remotion',
+    parameters: [
+      { name: 'text', type: 'string', default: '' },
+      { name: 'author', type: 'string', default: '', description: 'Attribution (shown as "— AUTHOR").' },
+      { name: 'accent', type: 'color', default: undefined, description: 'Quote-mark + author color (defaults to brand accent).', semanticRole: 'brand' },
+      { name: 'dim', type: 'number', default: 0.5, min: 0, max: 1, description: 'Backdrop dim opacity.', semanticRole: 'style' },
+    ],
+    build: (p, ctx) => {
+      const W = ctx.canvas.width;
+      const b = ctx.brand ?? DEFAULT_BRAND;
+      const { fs } = orientation(ctx.canvas);
+      const text = asStr(p.text);
+      if (!text) return { layers: [{ id: `${ctx.idPrefix}_empty`, type: 'group', start: 0, duration: ctx.dur, children: [] }] };
+      const author = asStr(p.author);
+      const accent = asStr(p.accent, b.colors.accent);
+      const children: MotionLayer[] = [
+        shapeLayer(`${ctx.idPrefix}_bg`, { shape: 'rectangle', size: [1, 1], fill: '#0b0d12', opacity: fadeIn(ctx.dur), transform: { position: constant<Vec3>([0.5, 0.5, 0]) } }, ctx.dur) as MotionLayer,
+        // big opening quote mark
+        { ...textLayer(`${ctx.idPrefix}_qm`, '“', [0.2, 0.3], Math.round(W * 0.12 * fs), ctx.dur, { fill: accent, family: b.fonts.heading, textCase: 'none' }) },
+        // the quote (sentence case, centered)
+        { ...textLayer(`${ctx.idPrefix}_q`, text, [0.5, 0.47], Math.round(W * 0.05 * fs), ctx.dur, { fill: '#ffffff', family: b.fonts.heading, italic: true, textCase: 'none' }), start: 0.15 },
+      ];
+      // set bg dim via opacity on the shape (fadeIn already applied; override to constant dim)
+      (children[0] as { opacity?: unknown }).opacity = constant(asNum(p.dim, 0.5));
+      if (author) {
+        children.push({ ...textLayer(`${ctx.idPrefix}_a`, `— ${author}`, [0.5, 0.66], Math.round(W * 0.028 * fs), ctx.dur, { fill: accent, family: b.fonts.heading }), start: 0.4 });
+      }
+      return { layers: [{ id: `${ctx.idPrefix}_quote`, type: 'group', start: 0, duration: ctx.dur, children }] };
+    },
+  },
+  {
     id: 'flow',
     version: '1.0',
     name: 'Flow / process diagram',

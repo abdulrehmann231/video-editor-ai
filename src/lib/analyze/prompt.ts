@@ -62,6 +62,7 @@ Map each reference idea to the CLOSEST catalog op you can actually render:
 - bar chart / line graph / trend / rising-or-falling numbers / breakdown → chart
 - a concept object / icon / sticker (money, rocket, target, idea, gift, trophy…) → illustration
 - a process / chain / funnel / "X leads to Y leads to Z" → flow
+- a memorable quote / cited line / bold mic-drop statement → quote
 - big number / metric / price / % / multiple the speaker says → stat_callout
 - concept card / intro-outro / topic title → title_card
 - b-roll / screen-capture / overlay footage → broll

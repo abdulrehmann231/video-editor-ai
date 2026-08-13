@@ -166,6 +166,13 @@ export const CATALOG: CatalogEntry[] = [
       'Show a PROCESS or CHAIN as connected nodes with arrows — "gift → $ → more gifts", a funnel, input→output, or step→step→step. Each node is an illustration icon and/or a short label; they reveal and connect in sequence. Use when the speaker describes how something flows, converts, compounds, or leads to a result.',
     params: `nodes: array of { illustration, label } (2–5 steps; illustration is an id like ${ILLUSTRATION_IDS.slice(0, 4).join('/')}). direction: horizontal | vertical. connector: arrow | line. position: center | lower.`,
   },
+  {
+    type: 'quote',
+    title: 'Quote card',
+    whenToUse:
+      'Display a memorable QUOTE or highlighted statement with attribution — a famous quote, an expert line, or a bold claim — as large quotation text over a dimmed backdrop. Use for a powerful cited line or a mic-drop statement.',
+    params: 'text (the quote). author (attribution, optional).',
+  },
 ];
 
 export function buildCatalogText(): string {
@@ -288,6 +295,8 @@ const EFFECT_PARAM_PROPS: Record<string, Schema> = {
           },
           direction: { type: SchemaType.STRING, format: 'enum', enum: ['horizontal', 'vertical'] },
           connector: { type: SchemaType.STRING, format: 'enum', enum: ['arrow', 'line'] },
+          // quote
+          author: { type: SchemaType.STRING, description: 'quote attribution' },
 };
 
 /** EDL structured-output schema (flat ops with absolute timing). */

@@ -74,6 +74,8 @@ export function templateForOp(op: EditOp, effectStyle?: EffectStyle): { template
       return { templateId: 'illustration', params: { name: op.name, label: op.label, position: op.position, size: op.size, animate: op.animate } };
     case 'flow':
       return { templateId: 'flow', params: { nodes: op.nodes, direction: op.direction, connector: op.connector, position: op.position } };
+    case 'quote':
+      return { templateId: 'quote', params: { text: op.text, author: op.author } };
     default:
       return { templateId: 'placeholder', params: {} };
   }
