@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseProgram, programToMotion, programDecisionLog } from '../motion/program';
-import { generateProgram } from '../analyze/program';
+import { generateProgram, fillProgramData } from '../analyze/program';
 import { validateComposition } from '../motion/ir';
 import type { MotionLayer } from '../motion/ir/types';
 import type { TranscriptWord } from '../analyze/transcribe';
@@ -145,24 +145,46 @@ describe('generateProgram repair', () => {
   const media = { durationSec: 20, width: 1280, height: 720, fps: 30, hasAudio: true, videoCodec: 'h264', audioCodec: 'aac', sizeBytes: 1000, container: 'mp4' };
   const input = { plan, media, silence: [], transcript: [] as TranscriptWord[] };
 
-  it('runs one repair pass that recovers a dropped data element', async () => {
+  it('runs one repair pass that recovers a dropped data element (then no fill needed)', async () => {
     const incomplete = JSON.stringify({ scenes: [{ id: 's1', start: 2, end: 6, intent: 'x', reason: 'r (ref: #1)', elements: [{ type: 'chart', variant: 'bar' }, { type: 'illustration', name: 'rocket' }] }] });
     const complete = JSON.stringify({ scenes: [{ id: 's1', start: 2, end: 6, intent: 'x', reason: 'r (ref: #1)', elements: [{ type: 'chart', variant: 'bar', data: [{ label: 'a', value: 1 }, { label: 'b', value: 2 }] }, { type: 'illustration', name: 'rocket' }] }] });
     let n = 0;
     const call = async () => (n++ === 0 ? incomplete : complete);
     const { program, repaired } = await generateProgram(input, 20, call);
-    expect(n).toBe(2); // initial + one repair
+    expect(n).toBe(2); // structure + repair; scene now has data-viz so NO fill call
     expect(repaired).toBe(true);
     const chart = program.scenes[0].elements.find((e) => e.type === 'chart') as { data?: unknown[] } | undefined;
     expect(chart?.data?.length).toBe(2); // recovered
   });
 
-  it('does not repair when the first program is already complete', async () => {
-    const complete = JSON.stringify({ scenes: [{ id: 's1', start: 2, end: 6, intent: 'x', reason: 'r', elements: [{ type: 'illustration', name: 'rocket' }] }] });
+  it('skips repair + fill when the program already has complete data-viz', async () => {
+    const complete = JSON.stringify({ scenes: [{ id: 's1', start: 2, end: 6, intent: 'x', reason: 'r', elements: [{ type: 'chart', variant: 'bar', data: [{ label: 'a', value: 1 }, { label: 'b', value: 2 }] }] }] });
     let n = 0;
     const call = async () => { n++; return complete; };
-    const { repaired } = await generateProgram(input, 20, call);
-    expect(n).toBe(1); // no repair call
+    const { repaired, filled } = await generateProgram(input, 20, call);
+    expect(n).toBe(1); // no repair, no fill (data-viz already present)
     expect(repaired).toBe(false);
+    expect(filled).toBe(0);
+  });
+
+  it('data-fill adds a complete chart to a scene that lacked data-viz', async () => {
+    // program with a numbers scene that only has a stat_callout (substituted)
+    const raw = { scenes: [{ id: 'rev', start: 2, end: 7, intent: 'revenue grew 40k 68k 91k', reason: 'r', elements: [{ type: 'stat_callout', value: '91k' }] }] };
+    const { program } = parseProgram(raw, { durationSec: 20 });
+    expect(program.scenes[0].elements.some((e) => e.type === 'chart')).toBe(false);
+    const fillResp = JSON.stringify({ fills: [{ sceneId: 'rev', type: 'chart', variant: 'bar', suffix: 'k', data: [{ label: '21', value: 40 }, { label: '22', value: 68 }, { label: '23', value: 91 }] }] });
+    const { program: filledProg, filled } = await fillProgramData(program, [], 20, async () => fillResp);
+    expect(filled).toBe(1);
+    const chart = filledProg.scenes[0].elements.find((e) => e.type === 'chart') as { data?: unknown[] } | undefined;
+    expect(chart?.data?.length).toBe(3);
+  });
+
+  it('data-fill does not duplicate when a scene already has data-viz', async () => {
+    const raw = { scenes: [{ id: 's', start: 2, end: 7, intent: 'steps', reason: 'r', elements: [{ type: 'stack_list', listItems: ['A', 'B', 'C'] }] }] };
+    const { program } = parseProgram(raw, { durationSec: 20 });
+    let called = false;
+    const { filled } = await fillProgramData(program, [], 20, async () => { called = true; return '{"fills":[]}'; });
+    expect(called).toBe(false); // scene already has data-viz → no call
+    expect(filled).toBe(0);
   });
 });

@@ -20,7 +20,7 @@ const transcript = ('the goal is twelve thousand a month recurring the old way y
 const media = { durationSec, width: 1280, height: 720, fps: 30, hasAudio: true };
 const key = nextKey();
 const call = (prompt, schema) => generateStructuredText(key, model, prompt, schema);
-const { program, warnings, repaired } = await generateProgram({ plan, media, silence: [{start:8,end:9.5}], transcript }, durationSec, call);
+const { program, warnings, repaired, filled } = await generateProgram({ plan, media, silence: [{start:8,end:9.5}], transcript }, durationSec, call);
 console.log('scenes:', program.scenes.length, '| repaired:', repaired, '| cuts:', program.cuts.length, '| parse warnings:', warnings.length);
 let composed = 0, withData = 0;
 for (const s of program.scenes) {
