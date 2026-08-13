@@ -182,6 +182,17 @@ export const ChartOp = BaseOp.extend({
   position: z.enum(['center', 'left', 'right']).default('center'),
 });
 
+/** Bundled vector illustration / sticker (money, rocket, target, idea, etc). */
+export const IllustrationOp = BaseOp.extend({
+  type: z.literal('illustration'),
+  /** Illustration id (see ILLUSTRATION_IDS). */
+  name: z.string().min(1),
+  label: z.string().max(40).optional(),
+  position: z.enum(['center', 'left', 'right', 'corner']).default('center'),
+  size: z.enum(['small', 'medium', 'large']).default('medium'),
+  animate: z.enum(['pop', 'float', 'draw', 'none']).default('pop'),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
@@ -200,6 +211,7 @@ export const EditOp = z.discriminatedUnion('type', [
   StackListOp,
   ProgressOp,
   ChartOp,
+  IllustrationOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];

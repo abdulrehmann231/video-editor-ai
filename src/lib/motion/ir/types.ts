@@ -107,7 +107,7 @@ export interface Mask {
 
 // ── Layers ──────────────────────────────────────────────────────────────────
 
-export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three' | 'annotation' | 'meter' | 'chart';
+export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three' | 'annotation' | 'meter' | 'chart' | 'illustration';
 
 /** A transcript word with times RELATIVE to the caption layer's start (seconds). */
 export interface CaptionWord {
@@ -384,6 +384,28 @@ export interface ChartLayer extends BaseLayer {
   drawIn?: number;
 }
 
+/**
+ * Vector illustration from the bundled illustration library — the vault's
+ * flat-illustration/icon/sticker family (money bag, growth arrow, rocket, target,
+ * lightbulb, briefcase, trophy, gift, house, chart, mascot, etc). Deterministic
+ * animated SVG (pop / float / draw-on), brand-colorable, resolution-independent.
+ */
+export interface IllustrationLayer extends BaseLayer {
+  type: 'illustration';
+  /** Registry id (see ILLUSTRATION_IDS). Unknown ids fall back to a generic badge. */
+  name: string;
+  /** Box as a fraction of the frame (default ~[0.24, 0.24]). */
+  size?: Vec2;
+  /** Primary tint (where the illustration supports recoloring). */
+  color?: Color;
+  /** Secondary/accent tint. */
+  accent?: Color;
+  /** Entrance + idle motion (default 'pop'). */
+  animate?: 'pop' | 'float' | 'draw' | 'none';
+  /** Optional caption under the illustration. */
+  label?: string;
+}
+
 export type MotionLayer =
   | TextLayer
   | ShapeLayer
@@ -396,7 +418,8 @@ export type MotionLayer =
   | ThreeLayer
   | AnnotationLayer
   | MeterLayer
-  | ChartLayer;
+  | ChartLayer
+  | IllustrationLayer;
 
 // ── Assets & composition ─────────────────────────────────────────────────────
 

@@ -1,6 +1,7 @@
 import type { AnnotationKind, Camera, MotionLayer, Vec2, Vec3 } from '../ir/types';
 import { DEFAULT_BRAND } from '../brand';
-import { annotationLayer, BuildCtx, chartLayer, constant, fadeIn, meterLayer, orientation, punchScale, reveal, scalePop, shapeLayer, textLayer } from './helpers';
+import { annotationLayer, BuildCtx, chartLayer, constant, fadeIn, illustrationLayer, meterLayer, orientation, punchScale, reveal, scalePop, shapeLayer, textLayer } from './helpers';
+import { ILLUSTRATION_IDS } from '../illustrations';
 
 /**
  * Effect template registry — the reusable, parameterized effects the AI/adapter
@@ -790,6 +791,53 @@ export const TEMPLATES: EffectTemplate[] = [
               ctx.dur,
             ),
             transform: { position: constant<Vec3>([cx, 0.46, 0]) },
+          },
+        ],
+      };
+    },
+  },
+  {
+    id: 'illustration',
+    version: '1.0',
+    name: 'Vector illustration / sticker',
+    whenToUse:
+      'Pop a bundled vector illustration to visualize a concept the speaker mentions — money, growth, a rocket launch, a goal/target, an idea, business, winning, a gift/bonus, security, property, time, something trending, etc. Great as a sticker beside the speaker or a centered concept icon. Pick the id whose meaning matches.',
+    renderer: 'remotion',
+    parameters: [
+      { name: 'name', type: 'enum', default: 'lightbulb', options: ILLUSTRATION_IDS, semanticRole: 'content' },
+      { name: 'label', type: 'string', default: '', description: 'Optional caption under the illustration.' },
+      { name: 'position', type: 'enum', default: 'center', options: ['center', 'left', 'right', 'corner'], semanticRole: 'layout' },
+      { name: 'size', type: 'enum', default: 'medium', options: ['small', 'medium', 'large'], semanticRole: 'emphasis' },
+      { name: 'animate', type: 'enum', default: 'pop', options: ['pop', 'float', 'draw', 'none'], semanticRole: 'style' },
+      { name: 'color', type: 'color', default: undefined, description: 'Primary tint (defaults to the illustration\'s own colors).', semanticRole: 'brand' },
+      { name: 'accent', type: 'color', default: undefined, description: 'Accent tint.', semanticRole: 'brand' },
+    ],
+    build: (p, ctx) => {
+      const { portrait } = orientation(ctx.canvas);
+      const name = asStr(p.name, 'lightbulb');
+      const posName = asStr(p.position, 'center');
+      const sizeName = asStr(p.size, 'medium');
+      const base = sizeName === 'small' ? 0.15 : sizeName === 'large' ? 0.32 : 0.23;
+      const s = portrait ? base * 1.4 : base;
+      const size: Vec2 = [s, s * (ctx.canvas.width / ctx.canvas.height)];
+      const pos: Vec3 =
+        posName === 'left' ? [0.24, 0.46, 0] : posName === 'right' ? [0.76, 0.46, 0] : posName === 'corner' ? [0.82, 0.24, 0] : [0.5, 0.44, 0];
+      return {
+        layers: [
+          {
+            ...illustrationLayer(
+              `${ctx.idPrefix}_illo`,
+              {
+                name,
+                size,
+                label: asStr(p.label) || undefined,
+                animate: asStr(p.animate, 'pop') as 'pop' | 'float' | 'draw' | 'none',
+                color: asStr(p.color) || undefined,
+                accent: asStr(p.accent) || undefined,
+              },
+              ctx.dur,
+            ),
+            transform: { position: constant<Vec3>(pos) },
           },
         ],
       };

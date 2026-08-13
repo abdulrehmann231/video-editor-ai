@@ -201,7 +201,7 @@ describe('vault effect templates', () => {
     const PORTRAIT = { idPrefix: 'p', dur: 2, canvas: { width: 720, height: 1280, fps: 30 } };
     const land = flatten(resolveTemplate('comparison', { leftTitle: 'A', rightTitle: 'B', leftItems: ['x'], rightItems: ['y'] }, CTX).layers);
     const port = flatten(resolveTemplate('comparison', { leftTitle: 'A', rightTitle: 'B', leftItems: ['x'], rightItems: ['y'] }, PORTRAIT).layers);
-    const bgX = (ls: typeof land, id: string) => (ls.find((l) => l.id.endsWith(id)) as { transform?: { position?: { value?: number[] } } }).transform?.position?.value?.[0];
+    const bgX = (ls: typeof land, id: string) => (ls.find((l) => typeof l.id === 'string' && l.id.endsWith(id)) as { transform?: { position?: { value?: number[] } } }).transform?.position?.value?.[0];
     // landscape: panels side-by-side (different x); portrait: stacked (same x = 0.5)
     expect(bgX(land, '_L_bg')).not.toBeCloseTo(bgX(land, '_R_bg')!, 2);
     expect(bgX(port, '_L_bg')).toBeCloseTo(0.5, 2);
@@ -210,6 +210,24 @@ describe('vault effect templates', () => {
     // reads on a tall 9:16 frame (absolute px is smaller because the frame is narrower).
     const rowFontFrac = (ctx: typeof CTX) => (flatten(resolveTemplate('checklist', { items: [{ text: 'HELLO', mark: 'check' }] }, ctx).layers).find((l) => l.type === 'text' && l.content === 'HELLO') as { font?: { size?: number } }).font!.size! / ctx.canvas.width;
     expect(rowFontFrac(PORTRAIT)).toBeGreaterThan(rowFontFrac(CTX) * 1.3);
+  });
+
+  it('illustration builds a square, tinted, animated illustration layer', () => {
+    const { layers } = resolveTemplate('illustration', { name: 'rocket', label: 'LAUNCH', position: 'left', size: 'large', animate: 'float' }, CTX);
+    const illo = flatten(layers).find((l) => l.type === 'illustration') as { name?: string; label?: string; animate?: string; size?: number[] } | undefined;
+    expect(illo?.name).toBe('rocket');
+    expect(illo?.label).toBe('LAUNCH');
+    expect(illo?.animate).toBe('float');
+    // size is kept square in pixels: sizeX*W === sizeY*H
+    expect(illo!.size![0] * CTX.canvas.width).toBeCloseTo(illo!.size![1] * CTX.canvas.height, 3);
+    expect(validateComposition(wrap(layers)).ok).toBe(true);
+  });
+
+  it('illustration coerces an unknown name via the enum default (never crashes)', () => {
+    const { layers } = resolveTemplate('illustration', { name: 'not_a_real_illo' }, CTX);
+    const illo = flatten(layers).find((l) => l.type === 'illustration') as { name?: string } | undefined;
+    expect(illo?.name).toBe('lightbulb'); // enum default (renderer also has a fallback)
+    expect(validateComposition(wrap(layers)).ok).toBe(true);
   });
 
   it('comparison reveals two toned columns with directional arrows', () => {

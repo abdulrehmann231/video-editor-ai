@@ -1,0 +1,20 @@
+import { join } from 'node:path';
+import { bundle } from '@remotion/bundler';
+import { selectComposition, renderStill, ensureBrowser } from '@remotion/renderer';
+import { buildMotionProps } from '../src/lib/motion/render/props.ts';
+import { IR_VERSION } from '../src/lib/motion/ir/version.ts';
+import { ILLUSTRATION_IDS } from '../src/lib/motion/illustrations.ts';
+const MEDIA = { width: 1280, height: 720, fps: 30 };
+const cols = 6, rows = Math.ceil(ILLUSTRATION_IDS.length / cols);
+const layers = ILLUSTRATION_IDS.map((name, i) => {
+  const cx = (i % cols + 0.5) / cols;
+  const cy = (Math.floor(i / cols) + 0.5) / rows;
+  return { id: `illo_${i}`, type: 'illustration', start: 0, duration: 3, name, size: [0.12, 0.12*(MEDIA.width/MEDIA.height)], label: name.replace(/_/g,' '), animate: 'pop', transform: { position: { kind: 'constant', value: [cx, cy, 0] } } };
+});
+const comp = { schemaVersion: IR_VERSION, id: 'grid', start: 0, end: 3, timeBasis: 'cut', coordinateSpace: 'normalized', canvas: MEDIA, background: '#12151c', layers };
+const inputProps = buildMotionProps({ cutUrl: 'public/testclips/demo.mp4', editMedia: MEDIA, layout: 'landscape', compositions: [comp], outputDurationSec: 3 });
+await ensureBrowser();
+const serveUrl = await bundle({ entryPoint: join(process.cwd(), 'src/remotion/index.ts') });
+const composition = await selectComposition({ serveUrl, id: 'Motion', inputProps, timeoutInMilliseconds: 120000 });
+await renderStill({ composition, serveUrl, output: '/tmp/illos.png', frame: 40, inputProps, timeoutInMilliseconds: 120000 });
+console.log('done');

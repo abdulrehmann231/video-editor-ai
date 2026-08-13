@@ -70,6 +70,8 @@ function templateForOp(op: EditOp, effectStyle?: EffectStyle): { templateId: str
       return { templateId: 'progress', params: { variant: op.variant, value: op.amount, from: op.from, label: op.label, suffix: op.suffix, ticks: op.ticks, minLabel: op.minLabel, maxLabel: op.maxLabel, position: op.position } };
     case 'chart':
       return { templateId: 'chart', params: { variant: op.variant, data: op.data, title: op.title, prefix: op.prefix, suffix: op.suffix, position: op.position } };
+    case 'illustration':
+      return { templateId: 'illustration', params: { name: op.name, label: op.label, position: op.position, size: op.size, animate: op.animate } };
     default:
       return { templateId: 'placeholder', params: {} };
   }

@@ -1,4 +1,4 @@
-import type { Animated, AnnotationLayer, CaptionWord, ChartLayer, MeterLayer, MotionLayer, ShapeLayer, TextLayer, Vec2, Vec3 } from '../ir/types';
+import type { Animated, AnnotationLayer, CaptionWord, ChartLayer, IllustrationLayer, MeterLayer, MotionLayer, ShapeLayer, TextLayer, Vec2, Vec3 } from '../ir/types';
 import type { BrandProfile } from '../brand';
 
 /**
@@ -172,6 +172,15 @@ export function chartLayer(
   start = 0,
 ): ChartLayer {
   return { id, type: 'chart', start, duration: Math.max(0.1, dur - start), ...extra };
+}
+
+export function illustrationLayer(
+  id: string,
+  extra: Omit<IllustrationLayer, 'id' | 'type' | 'start' | 'duration'>,
+  dur: number,
+  start = 0,
+): IllustrationLayer {
+  return { id, type: 'illustration', start, duration: Math.max(0.1, dur - start), ...extra };
 }
 
 export type { Vec2 };

@@ -210,9 +210,19 @@ const chartZ = base.extend({
   drawIn: z.number().optional(),
 });
 
+const illustrationZ = base.extend({
+  type: z.literal('illustration'),
+  name: z.string(),
+  size: vec2Z.optional(),
+  color: z.string().optional(),
+  accent: z.string().optional(),
+  animate: z.enum(['pop', 'float', 'draw', 'none']).optional(),
+  label: z.string().optional(),
+});
+
 // Recursive: a group holds child layers of any supported type.
 const layerZ: z.ZodType<MotionLayer> = z.lazy(() =>
-  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ, lottieZ, threeZ, annotationZ, meterZ, chartZ]),
+  z.discriminatedUnion('type', [textZ, shapeZ, videoZ, imageZ, groupZ, transitionZ, captionZ, lottieZ, threeZ, annotationZ, meterZ, chartZ, illustrationZ]),
 );
 
 const groupZ = base.extend({

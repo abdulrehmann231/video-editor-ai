@@ -60,6 +60,7 @@ Map each reference idea to the CLOSEST catalog op you can actually render:
 - numbered steps / bullet list / options / to-do / agenda → stack_list
 - progress bar / meter / gauge / countdown / counting number → progress
 - bar chart / line graph / trend / rising-or-falling numbers / breakdown → chart
+- a concept object / icon / sticker (money, rocket, target, idea, gift, trophy…) → illustration
 - big number / metric / price / % / multiple the speaker says → stat_callout
 - concept card / intro-outro / topic title → title_card
 - b-roll / screen-capture / overlay footage → broll

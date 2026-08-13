@@ -119,14 +119,15 @@ describe('motionFromEdl', () => {
           { id: 'pg', type: 'progress', start: 12, end: 14, reason: 'meter (ref: gauge)', variant: 'gauge', amount: 82, label: 'CONFIDENCE', position: 'left' },
           { id: 'pc', type: 'progress', start: 14, end: 16, reason: 'countdown', variant: 'counter', amount: 14, from: 23, suffix: 's', position: 'center' },
           { id: 'gr', type: 'chart', start: 16, end: 19, reason: 'trend (ref: bar chart)', variant: 'bar', title: 'REV', suffix: 'K', data: [{ label: '22', value: 40 }, { label: '23', value: 70 }], position: 'center' },
+          { id: 'il', type: 'illustration', start: 17, end: 19, reason: 'concept (ref: rocket)', name: 'rocket', label: 'LAUNCH', position: 'right', size: 'medium', animate: 'float' },
         ],
       },
       { durationSec: 20 },
     );
     expect(warnings).toEqual([]);
-    expect(edl.ops).toHaveLength(7);
+    expect(edl.ops).toHaveLength(8);
     const { compositions } = motionFromEdl(edl, [], 20, CANVAS);
-    expect(compositions.length).toBe(7);
+    expect(compositions.length).toBe(8);
     for (const c of compositions) {
       const res = validateComposition(c);
       expect(res.ok, `comp ${c.id} (${c.metadata?.sourceOpType}) errors: ${res.errors.join('; ')}`).toBe(true);

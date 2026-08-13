@@ -2,6 +2,7 @@ import { SchemaType, type Schema } from '@google/generative-ai';
 import type { EditOpType } from './schema';
 import { LOTTIE_TEMPLATES, LOTTIE_IDS } from '../render/lottieRegistry';
 import { THREE_TEMPLATES, THREE_IDS } from '../render/threeRegistry';
+import { ILLUSTRATIONS, ILLUSTRATION_IDS } from '../motion/illustrations';
 
 /**
  * The Effect Catalog — the fixed menu of edits the brain may choose from.
@@ -150,6 +151,14 @@ export const CATALOG: CatalogEntry[] = [
     params:
       'variant: bar | line | area | donut. data: array of { label, value } (2–8 points). title (optional). prefix/suffix: e.g. "$" / "%". position: center | left | right.',
   },
+  {
+    type: 'illustration',
+    title: 'Vector illustration / sticker',
+    whenToUse:
+      'Pop a bundled vector illustration to visualize a concept the speaker mentions (money, growth, launch, a goal, an idea, business, winning, a bonus, security, property, time, trending). Use as a sticker beside the speaker or a centered concept icon. Available ids:\n' +
+      ILLUSTRATIONS.map((i) => `      • ${i.id} — ${i.label}: ${i.whenToUse}`).join('\n'),
+    params: `name: one of [${ILLUSTRATION_IDS.join(', ')}]. label (optional caption). position: center | left | right | corner. size: small | medium | large. animate: pop | float | draw | none.`,
+  },
 ];
 
 export function buildCatalogText(): string {
@@ -276,6 +285,10 @@ export const EDL_RESPONSE_SCHEMA: Schema = {
           },
           minLabel: { type: SchemaType.STRING, description: 'scale/slider left end label' },
           maxLabel: { type: SchemaType.STRING, description: 'scale/slider right end label' },
+          // illustration
+          name: { type: SchemaType.STRING, format: 'enum', enum: ILLUSTRATION_IDS, description: 'illustration id' },
+          size: { type: SchemaType.STRING, format: 'enum', enum: ['small', 'medium', 'large'] },
+          animate: { type: SchemaType.STRING, format: 'enum', enum: ['pop', 'float', 'draw', 'none'] },
         },
         required: ['id', 'type', 'start', 'end', 'reason'],
       },
