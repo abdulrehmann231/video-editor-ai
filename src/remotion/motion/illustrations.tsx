@@ -227,7 +227,291 @@ const StarBadge: React.FC<IlloProps> = ({ c = '#ffd60a', a = '#ff375f' }) => (
   </g>
 );
 
+// ── people / creator ─────────────────────────────────────────────────────────
+const Person: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#fff' }) => (
+  <g>
+    <circle cx="50" cy="50" r="38" fill={shade(c, 0.55)} />
+    <circle cx="50" cy="50" r="38" fill={c} opacity={0.85} />
+    <circle cx="50" cy="42" r="14" fill={a} />
+    <path d="M26 78 C26 60 74 60 74 78 Z" fill={a} />
+  </g>
+);
+const Mascot: React.FC<IlloProps> = ({ c = '#7c5cff', a = '#ffd60a' }) => (
+  <g>
+    <rect x="24" y="26" width="52" height="52" rx="22" fill={c} />
+    <rect x="30" y="20" width="8" height="12" rx="4" fill={c} />
+    <rect x="62" y="20" width="8" height="12" rx="4" fill={c} />
+    <circle cx="40" cy="46" r="8" fill="#fff" />
+    <circle cx="60" cy="46" r="8" fill="#fff" />
+    <circle cx="41" cy="47" r="4" fill="#12151c" />
+    <circle cx="61" cy="47" r="4" fill="#12151c" />
+    <path d="M38 62 Q50 72 62 62" fill="none" stroke={a} strokeWidth="4" strokeLinecap="round" />
+  </g>
+);
+const Crowd: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#34d399' }) => (
+  <g>
+    {[[26, c], [74, c]].map(([x, col], i) => (
+      <g key={i}><circle cx={x as number} cy="46" r="11" fill={shade(col as string, 0.8)} /><path d={`M${(x as number) - 16} 82 C${(x as number) - 16} 62 ${(x as number) + 16} 62 ${(x as number) + 16} 82 Z`} fill={shade(col as string, 0.8)} /></g>
+    ))}
+    <circle cx="50" cy="40" r="14" fill={a} />
+    <path d="M28 84 C28 60 72 60 72 84 Z" fill={a} />
+  </g>
+);
+const Climb: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#ff375f' }) => (
+  <g>
+    <rect x="14" y="66" width="20" height="18" fill={shade(c, 0.6)} />
+    <rect x="34" y="54" width="20" height="30" fill={shade(c, 0.8)} />
+    <rect x="54" y="40" width="20" height="44" fill={c} />
+    <circle cx="64" cy="26" r="5" fill="#fff" />
+    <path d="M64 31 v10 M64 34 l-6 4 M64 34 l6 4 M64 41 l-5 8 M64 41 l5 8" stroke="#fff" strokeWidth="3" strokeLinecap="round" fill="none" />
+    <path d="M78 20 v14 l10 -4 -10 -4" fill={a} />
+    <line x1="78" y1="20" x2="78" y2="40" stroke="#fff" strokeWidth="2" />
+  </g>
+);
+const Handshake: React.FC<IlloProps> = ({ c = '#ffb37b', a = '#3b82f6' }) => (
+  <g>
+    <rect x="10" y="44" width="34" height="14" rx="7" fill={a} transform="rotate(-8 27 51)" />
+    <rect x="56" y="44" width="34" height="14" rx="7" fill={shade(a, 0.8)} transform="rotate(8 73 51)" />
+    <path d="M38 44 h14 c8 0 12 6 8 10 l-10 8 c-4 3 -10 1 -12 -3 l-6 -10 z" fill={c} />
+    <path d="M44 50 l10 6" stroke={shade(c, 0.7)} strokeWidth="3" strokeLinecap="round" />
+  </g>
+);
+const Mic: React.FC<IlloProps> = ({ c = '#e5e9f0', a = '#ff375f' }) => (
+  <g>
+    <rect x="38" y="14" width="24" height="42" rx="12" fill={c} />
+    <rect x="43" y="22" width="14" height="6" rx="3" fill={shade(c, 0.75)} />
+    <rect x="43" y="32" width="14" height="6" rx="3" fill={shade(c, 0.75)} />
+    <path d="M28 44 a22 22 0 0 0 44 0" fill="none" stroke={a} strokeWidth="5" />
+    <rect x="46" y="66" width="8" height="16" fill={shade(c, 0.7)} />
+    <rect x="34" y="82" width="32" height="7" rx="3" fill={shade(c, 0.6)} />
+  </g>
+);
+const Megaphone: React.FC<IlloProps> = ({ c = '#ff375f', a = '#ffd60a' }) => (
+  <g>
+    <path d="M18 44 L58 30 v40 L18 56 z" fill={c} />
+    <rect x="10" y="44" width="10" height="12" rx="2" fill={shade(c, 0.7)} />
+    <path d="M58 34 v32 l10 -4 v-24 z" fill={shade(c, 0.8)} />
+    <path d="M74 40 q8 10 0 20 M80 34 q14 16 0 32" fill="none" stroke={a} strokeWidth="4" strokeLinecap="round" />
+    <rect x="30" y="56" width="8" height="20" rx="3" fill={shade(c, 0.7)} />
+  </g>
+);
+// ── UI / tech ────────────────────────────────────────────────────────────────
+const Phone: React.FC<IlloProps> = ({ c = '#12151c', a = '#34d399' }) => (
+  <g>
+    <rect x="30" y="12" width="40" height="76" rx="10" fill={shade(c, 1.6)} />
+    <rect x="34" y="20" width="32" height="56" rx="3" fill="#0d1017" />
+    <rect x="44" y="15" width="12" height="3" rx="1.5" fill={shade(c, 2)} />
+    <rect x="38" y="58" width="8" height="14" fill={a} />
+    <rect x="48" y="50" width="8" height="22" fill={shade(a, 1.1)} />
+    <rect x="58" y="42" width="8" height="30" fill={a} />
+    <circle cx="50" cy="82" r="3" fill={shade(c, 2)} />
+  </g>
+);
+const Browser: React.FC<IlloProps> = ({ c = '#e5e9f0', a = '#3b82f6' }) => (
+  <g>
+    <rect x="14" y="20" width="72" height="60" rx="6" fill={c} />
+    <rect x="14" y="20" width="72" height="14" rx="6" fill={shade(c, 0.85)} />
+    <circle cx="22" cy="27" r="2.5" fill="#ff5f57" /><circle cx="30" cy="27" r="2.5" fill="#febc2e" /><circle cx="38" cy="27" r="2.5" fill="#28c840" />
+    <rect x="46" y="24" width="34" height="6" rx="3" fill={c} />
+    <rect x="22" y="42" width="30" height="30" rx="3" fill={a} />
+    <rect x="58" y="42" width="22" height="6" rx="3" fill={shade(c, 0.7)} />
+    <rect x="58" y="54" width="22" height="6" rx="3" fill={shade(c, 0.7)} />
+    <rect x="58" y="66" width="14" height="6" rx="3" fill={shade(a, 1.1)} />
+  </g>
+);
+const PlayButton: React.FC<IlloProps> = ({ c = '#ff375f', a = '#fff' }) => (
+  <g>
+    <circle cx="50" cy="50" r="36" fill={shade(c, 0.7)} />
+    <circle cx="50" cy="47" r="36" fill={c} />
+    <path d="M42 34 L68 47 L42 60 Z" fill={a} />
+  </g>
+);
+const Chat: React.FC<IlloProps> = ({ c = '#34d399', a = '#fff' }) => (
+  <g>
+    <path d="M18 24 h64 a8 8 0 0 1 8 8 v28 a8 8 0 0 1 -8 8 H44 l-16 14 v-14 h-10 a8 8 0 0 1 -8 -8 V32 a8 8 0 0 1 8 -8 z" fill={c} />
+    <circle cx="36" cy="46" r="4" fill={a} /><circle cx="50" cy="46" r="4" fill={a} /><circle cx="64" cy="46" r="4" fill={a} />
+  </g>
+);
+const Email: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#fff' }) => (
+  <g>
+    <rect x="14" y="28" width="72" height="48" rx="8" fill={c} />
+    <path d="M16 32 L50 56 L84 32" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M16 74 L40 52 M84 74 L60 52" stroke={shade(c, 0.75)} strokeWidth="4" strokeLinecap="round" />
+  </g>
+);
+const Bell: React.FC<IlloProps> = ({ c = '#ffd60a', a = '#ff375f' }) => (
+  <g>
+    <path d="M50 16 a5 5 0 0 1 5 5 c14 4 12 20 14 34 l6 8 H25 l6 -8 c2 -14 0 -30 14 -34 a5 5 0 0 1 5 -5 z" fill={c} />
+    <path d="M42 70 a8 8 0 0 0 16 0 z" fill={shade(c, 0.7)} />
+    <circle cx="72" cy="24" r="9" fill={a} />
+  </g>
+);
+const Cursor: React.FC<IlloProps> = ({ c = '#fff', a = '#12151c' }) => (
+  <g>
+    <path d="M36 28 L36 74 L48 62 L56 80 L64 76 L56 58 L72 58 Z" fill={c} stroke={a} strokeWidth="3" strokeLinejoin="round" />
+  </g>
+);
+// ── finance / business ───────────────────────────────────────────────────────
+const CreditCard: React.FC<IlloProps> = ({ c = '#7c5cff', a = '#ffd60a' }) => (
+  <g>
+    <rect x="14" y="30" width="72" height="46" rx="7" fill={c} />
+    <rect x="14" y="40" width="72" height="10" fill="#12151c" />
+    <rect x="22" y="58" width="16" height="12" rx="2" fill={a} />
+    <rect x="46" y="62" width="34" height="4" rx="2" fill={shade(c, 1.4)} />
+  </g>
+);
+const Bank: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#e5e9f0' }) => (
+  <g>
+    <path d="M50 16 L86 34 H14 Z" fill={c} />
+    <rect x="18" y="34" width="64" height="6" fill={shade(c, 0.8)} />
+    {[24, 40, 56, 72].map((x) => <rect key={x} x={x - 3} y="42" width="10" height="30" fill={a} />)}
+    <rect x="14" y="74" width="72" height="8" rx="2" fill={shade(c, 0.8)} />
+    <circle cx="50" cy="26" r="4" fill={a} />
+  </g>
+);
+const PiggyBank: React.FC<IlloProps> = ({ c = '#ff8fc7', a = '#ffd60a' }) => (
+  <g>
+    <ellipse cx="50" cy="54" rx="34" ry="26" fill={c} />
+    <circle cx="70" cy="50" r="12" fill={shade(c, 1.08)} />
+    <circle cx="72" cy="50" r="3" fill="#12151c" />
+    <path d="M30 34 q6 -8 14 -4" fill="none" stroke={shade(c, 0.8)} strokeWidth="5" strokeLinecap="round" />
+    <rect x="44" y="26" width="16" height="5" rx="2.5" fill={shade(c, 0.7)} />
+    <rect x="49" y="14" width="4" height="14" rx="2" fill={a} />
+    {[36, 50, 64].map((x) => <rect key={x} x={x - 4} y="76" width="8" height="10" rx="2" fill={shade(c, 0.8)} />)}
+  </g>
+);
+const DocumentIllo: React.FC<IlloProps> = ({ c = '#e5e9f0', a = '#3b82f6' }) => (
+  <g>
+    <path d="M26 14 h34 l16 16 v56 H26 z" fill={c} />
+    <path d="M60 14 v16 h16 z" fill={shade(c, 0.8)} />
+    {[40, 50, 60, 70].map((y, i) => <rect key={y} x="34" y={y} width={i === 3 ? 20 : 34} height="5" rx="2.5" fill={i === 0 ? a : shade(c, 0.7)} />)}
+  </g>
+);
+const Diamond: React.FC<IlloProps> = ({ c = '#22d3ee', a = '#a5f3fc' }) => (
+  <g>
+    <path d="M28 30 h44 l16 16 -38 42 -38 -42 z" fill={c} />
+    <path d="M28 30 l10 16 h-24 z M72 30 l-10 16 h24 z" fill={a} />
+    <path d="M38 46 h24 l-12 42 z" fill={shade(c, 0.8)} />
+    <path d="M14 46 h24 l12 42 z" fill={shade(c, 1.15)} opacity={0.6} />
+  </g>
+);
+const Funnel: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#34d399' }) => (
+  <g>
+    <path d="M18 24 h64 L58 56 v22 l-16 8 V56 z" fill={c} opacity={0.85} />
+    <path d="M18 24 h64 L64 42 H36 z" fill={shade(c, 1.2)} />
+    <circle cx="50" cy="90" r="5" fill={a} />
+    <circle cx="50" cy="80" r="3" fill={a} opacity={0.6} />
+  </g>
+);
+// ── concepts ─────────────────────────────────────────────────────────────────
+const Brain: React.FC<IlloProps> = ({ c = '#ff8fc7', a = '#fff' }) => (
+  <g>
+    <path d="M48 20 c-14 -6 -30 4 -28 18 c-8 4 -8 16 0 20 c-2 12 10 20 20 16 c4 4 8 4 8 -2 z" fill={c} />
+    <path d="M52 20 c14 -6 30 4 28 18 c8 4 8 16 0 20 c2 12 -10 20 -20 16 c-4 4 -8 4 -8 -2 z" fill={shade(c, 0.9)} />
+    <path d="M48 30 q-8 4 -6 12 q-8 4 -2 12 M52 30 q8 4 6 12 q8 4 2 12" fill="none" stroke={a} strokeWidth="2.5" strokeLinecap="round" opacity={0.7} />
+  </g>
+);
+const Globe: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#34d399' }) => (
+  <g>
+    <circle cx="50" cy="50" r="36" fill={c} />
+    <ellipse cx="50" cy="50" rx="15" ry="36" fill="none" stroke={a} strokeWidth="3" />
+    <line x1="14" y1="50" x2="86" y2="50" stroke={a} strokeWidth="3" />
+    <path d="M20 34 h60 M20 66 h60" stroke={a} strokeWidth="2.5" opacity={0.7} />
+    <circle cx="50" cy="50" r="36" fill="none" stroke={shade(c, 1.4)} strokeWidth="2" />
+  </g>
+);
+const Calendar: React.FC<IlloProps> = ({ c = '#fff', a = '#ff375f' }) => (
+  <g>
+    <rect x="16" y="22" width="68" height="62" rx="7" fill={c} />
+    <rect x="16" y="22" width="68" height="16" rx="7" fill={a} />
+    <rect x="30" y="16" width="6" height="14" rx="3" fill={shade(a, 0.7)} />
+    <rect x="64" y="16" width="6" height="14" rx="3" fill={shade(a, 0.7)} />
+    {[0, 1, 2].map((r) => [0, 1, 2, 3].map((col) => <rect key={`${r}${col}`} x={26 + col * 14} y={46 + r * 12} width="8" height="8" rx="2" fill={r === 1 && col === 2 ? a : '#c9d1d9'} />))}
+  </g>
+);
+const Key: React.FC<IlloProps> = ({ c = '#ffd60a', a = '#b8860b' }) => (
+  <g>
+    <circle cx="34" cy="40" r="20" fill={c} />
+    <circle cx="34" cy="40" r="9" fill="#12151c" />
+    <rect x="46" y="46" width="38" height="10" rx="3" fill={c} transform="rotate(45 46 46)" />
+    <rect x="64" y="64" width="12" height="8" rx="2" fill={c} transform="rotate(45 64 64)" />
+    <rect x="72" y="72" width="12" height="8" rx="2" fill={shade(c, 0.85)} transform="rotate(45 72 72)" />
+  </g>
+);
+const Lock: React.FC<IlloProps> = ({ c = '#ffd60a', a = '#12151c' }) => (
+  <g>
+    <path d="M34 46 V36 a16 16 0 0 1 32 0 v10" fill="none" stroke={shade(c, 0.7)} strokeWidth="8" />
+    <rect x="24" y="46" width="52" height="40" rx="8" fill={c} />
+    <circle cx="50" cy="62" r="6" fill={a} />
+    <rect x="47" y="64" width="6" height="12" rx="3" fill={a} />
+  </g>
+);
+const Flag: React.FC<IlloProps> = ({ c = '#ff375f', a = '#e5e9f0' }) => (
+  <g>
+    <rect x="26" y="16" width="6" height="72" rx="3" fill={shade(a, 0.7)} />
+    <path d="M32 20 h44 l-10 12 10 12 H32 z" fill={c} />
+    <circle cx="29" cy="86" r="6" fill={shade(a, 0.6)} />
+  </g>
+);
+const Mountain: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#fff' }) => (
+  <g>
+    <circle cx="72" cy="28" r="10" fill="#ffd60a" />
+    <path d="M8 82 L38 34 L54 60 L66 44 L92 82 Z" fill={c} />
+    <path d="M32 42 L38 34 L44 42 L40 46 L36 42 Z" fill={a} />
+    <path d="M60 50 L66 44 L72 52 L68 55 L64 50 Z" fill={a} />
+  </g>
+);
+const Lightning: React.FC<IlloProps> = ({ c = '#ffd60a', a = '#ffb703' }) => (
+  <g>
+    <path d="M56 10 L28 54 H46 L40 90 L72 42 H52 z" fill={c} stroke={a} strokeWidth="2" strokeLinejoin="round" />
+  </g>
+);
+const Eye: React.FC<IlloProps> = ({ c = '#3b82f6', a = '#fff' }) => (
+  <g>
+    <path d="M10 50 C28 26 72 26 90 50 C72 74 28 74 10 50 Z" fill={a} stroke={shade(c, 0.6)} strokeWidth="3" />
+    <circle cx="50" cy="50" r="16" fill={c} />
+    <circle cx="50" cy="50" r="8" fill="#12151c" />
+    <circle cx="45" cy="45" r="3" fill={a} />
+  </g>
+);
+const ThumbsUp: React.FC<IlloProps> = ({ c = '#34d399', a = '#12151c' }) => (
+  <g>
+    <rect x="18" y="46" width="16" height="34" rx="4" fill={shade(c, 0.7)} />
+    <path d="M38 48 l14 -26 c2 -4 10 -3 10 4 l-2 14 h18 c5 0 8 4 6 9 l-8 22 c-1 4 -5 6 -9 6 H38 z" fill={c} />
+  </g>
+);
+
 export const ILLO_COMPONENTS: Record<string, React.FC<IlloProps>> = {
+  person: Person,
+  mascot: Mascot,
+  crowd: Crowd,
+  climb: Climb,
+  handshake: Handshake,
+  mic: Mic,
+  megaphone: Megaphone,
+  phone: Phone,
+  browser: Browser,
+  play_button: PlayButton,
+  chat: Chat,
+  email: Email,
+  bell: Bell,
+  cursor: Cursor,
+  credit_card: CreditCard,
+  bank: Bank,
+  piggy_bank: PiggyBank,
+  document: DocumentIllo,
+  diamond: Diamond,
+  funnel: Funnel,
+  brain: Brain,
+  globe: Globe,
+  calendar: Calendar,
+  key: Key,
+  lock: Lock,
+  flag: Flag,
+  mountain: Mountain,
+  lightning: Lightning,
+  eye: Eye,
+  thumbs_up: ThumbsUp,
   money_bag: MoneyBag,
   coin_stack: CoinStack,
   dollar_coin: DollarCoin,

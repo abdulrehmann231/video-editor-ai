@@ -34,6 +34,40 @@ export const ILLUSTRATIONS: IllustrationMeta[] = [
   { id: 'fire', label: 'Fire / hot', whenToUse: 'trending, hot, viral, high demand, urgency', tags: ['trending', 'hot', 'urgency'] },
   { id: 'magnet', label: 'Magnet', whenToUse: 'attracting attention, leads, customers, pulling people in', tags: ['attention', 'leads', 'attract'] },
   { id: 'star_badge', label: 'Star badge', whenToUse: 'a rating, quality, a featured item, "5-star", verified', tags: ['rating', 'quality', 'verified'] },
+  // people / creator
+  { id: 'person', label: 'Person / avatar', whenToUse: 'a person, a customer, "you", a user, a profile', tags: ['person', 'avatar', 'user'] },
+  { id: 'mascot', label: 'Mascot character', whenToUse: 'a friendly character/mascot, a playful explainer moment', tags: ['character', 'mascot', 'fun'] },
+  { id: 'crowd', label: 'Crowd / audience', whenToUse: 'an audience, customers, a community, many people, a market', tags: ['crowd', 'audience', 'community'] },
+  { id: 'climb', label: 'Climbing steps to a flag', whenToUse: 'a journey, progress, working toward a goal, levelling up', tags: ['journey', 'progress', 'goal'] },
+  { id: 'handshake', label: 'Handshake', whenToUse: 'a deal, partnership, agreement, closing a client', tags: ['deal', 'partnership', 'agreement'] },
+  { id: 'mic', label: 'Microphone', whenToUse: 'a podcast, recording, a creator, speaking, content', tags: ['podcast', 'creator', 'audio'] },
+  { id: 'megaphone', label: 'Megaphone', whenToUse: 'marketing, an announcement, promotion, reaching people', tags: ['marketing', 'announce', 'promote'] },
+  // UI / tech
+  { id: 'phone', label: 'Phone mockup', whenToUse: 'a mobile app, a phone, social media, "on your phone"', tags: ['phone', 'mobile', 'app'] },
+  { id: 'browser', label: 'Browser window', whenToUse: 'a website, a web app, a landing page, a dashboard', tags: ['website', 'web', 'dashboard'] },
+  { id: 'play_button', label: 'Play button', whenToUse: 'a video, media, "watch", YouTube, playback', tags: ['video', 'media', 'youtube'] },
+  { id: 'chat', label: 'Chat bubble', whenToUse: 'a message, DM, conversation, feedback, comments', tags: ['message', 'chat', 'feedback'] },
+  { id: 'email', label: 'Email envelope', whenToUse: 'email, outreach, a newsletter, a message', tags: ['email', 'outreach', 'newsletter'] },
+  { id: 'bell', label: 'Notification bell', whenToUse: 'notifications, "subscribe", alerts, reminders', tags: ['notification', 'subscribe', 'alert'] },
+  { id: 'cursor', label: 'Click cursor', whenToUse: 'a click, a CTA, "click here", an action', tags: ['click', 'cta', 'action'] },
+  // finance / business
+  { id: 'credit_card', label: 'Credit card', whenToUse: 'payments, a purchase, subscriptions, spending', tags: ['payment', 'card', 'purchase'] },
+  { id: 'bank', label: 'Bank building', whenToUse: 'a bank, an institution, savings, finance, a loan', tags: ['bank', 'finance', 'institution'] },
+  { id: 'piggy_bank', label: 'Piggy bank', whenToUse: 'saving money, a savings account, putting money away', tags: ['savings', 'money', 'save'] },
+  { id: 'document', label: 'Document / report', whenToUse: 'a report, a contract, a plan, paperwork, a doc', tags: ['document', 'report', 'contract'] },
+  { id: 'diamond', label: 'Diamond', whenToUse: 'premium, high value, luxury, a rare opportunity', tags: ['premium', 'value', 'luxury'] },
+  { id: 'funnel', label: 'Sales funnel', whenToUse: 'a sales funnel, converting leads, a pipeline stage', tags: ['funnel', 'sales', 'conversion'] },
+  // concepts
+  { id: 'brain', label: 'Brain', whenToUse: 'thinking, psychology, mindset, an idea, learning', tags: ['brain', 'mindset', 'psychology'] },
+  { id: 'globe', label: 'Globe', whenToUse: 'global reach, worldwide, international, the internet', tags: ['global', 'world', 'reach'] },
+  { id: 'calendar', label: 'Calendar', whenToUse: 'a date, scheduling, a deadline, "every month", planning', tags: ['calendar', 'schedule', 'date'] },
+  { id: 'key', label: 'Key', whenToUse: 'unlocking, access, "the key to", a solution', tags: ['key', 'unlock', 'access'] },
+  { id: 'lock', label: 'Lock', whenToUse: 'security, privacy, locked/gated, protection', tags: ['lock', 'security', 'private'] },
+  { id: 'flag', label: 'Flag', whenToUse: 'a goal, a milestone, a target reached, a checkpoint', tags: ['goal', 'milestone', 'flag'] },
+  { id: 'mountain', label: 'Mountain', whenToUse: 'a big goal, a summit, a challenge, ambition', tags: ['goal', 'challenge', 'ambition'] },
+  { id: 'lightning', label: 'Lightning bolt', whenToUse: 'speed, power, energy, "instantly", fast results', tags: ['speed', 'power', 'energy'] },
+  { id: 'eye', label: 'Eye', whenToUse: 'views, attention, visibility, watching, awareness', tags: ['views', 'attention', 'visibility'] },
+  { id: 'thumbs_up', label: 'Thumbs up', whenToUse: 'approval, a like, "good", positive, agreement', tags: ['like', 'approval', 'positive'] },
 ];
 
 export const ILLUSTRATION_IDS: string[] = ILLUSTRATIONS.map((i) => i.id);
