@@ -107,7 +107,7 @@ export interface Mask {
 
 // ── Layers ──────────────────────────────────────────────────────────────────
 
-export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three' | 'annotation' | 'meter' | 'chart' | 'illustration';
+export type LayerType = 'text' | 'shape' | 'video' | 'image' | 'group' | 'transition' | 'caption' | 'lottie' | 'three' | 'annotation' | 'meter' | 'chart' | 'illustration' | 'flow';
 
 /** A transcript word with times RELATIVE to the caption layer's start (seconds). */
 export interface CaptionWord {
@@ -406,6 +406,31 @@ export interface IllustrationLayer extends BaseLayer {
   label?: string;
 }
 
+/** One node in a flow diagram — an illustration icon and/or a short label. */
+export interface FlowNode {
+  /** Illustration id (see ILLUSTRATION_IDS) shown in the node. */
+  illustration?: string;
+  /** Short text label (below the icon, or the node itself when no icon). */
+  label?: string;
+}
+
+/**
+ * Flow / process / connector diagram — the vault's "gift → $ → gifts", funnels,
+ * and step-by-step chains. Nodes reveal in sequence, each connected to the next
+ * by an animated arrow that draws on. Deterministic (frame-driven). Reuses the
+ * illustration library for node icons.
+ */
+export interface FlowLayer extends BaseLayer {
+  type: 'flow';
+  nodes: FlowNode[];
+  direction?: 'horizontal' | 'vertical';
+  /** Connector + accent color (defaults to brand accent). */
+  color?: Color;
+  connector?: 'arrow' | 'line';
+  /** Box as a fraction of the frame (default fills most of the width). */
+  size?: Vec2;
+}
+
 export type MotionLayer =
   | TextLayer
   | ShapeLayer
@@ -419,7 +444,8 @@ export type MotionLayer =
   | AnnotationLayer
   | MeterLayer
   | ChartLayer
-  | IllustrationLayer;
+  | IllustrationLayer
+  | FlowLayer;
 
 // ── Assets & composition ─────────────────────────────────────────────────────
 

@@ -12,6 +12,7 @@ import { AnnotationRenderer } from './AnnotationRenderer';
 import { MeterRenderer } from './MeterRenderer';
 import { ChartRenderer } from './ChartRenderer';
 import { IllustrationRenderer } from './IllustrationRenderer';
+import { FlowRenderer } from './FlowRenderer';
 import { sampleNumber, sampleVec3 } from './anim/resolveAnimated';
 import { layerDecorations } from './style';
 
@@ -91,6 +92,9 @@ export const LayerRenderer: React.FC<{ layer: MotionLayer }> = ({ layer }) => {
       break;
     case 'illustration':
       inner = <IllustrationRenderer layer={layer} />;
+      break;
+    case 'flow':
+      inner = <FlowRenderer layer={layer} />;
       break;
     default:
       inner = null;

@@ -193,6 +193,15 @@ export const IllustrationOp = BaseOp.extend({
   animate: z.enum(['pop', 'float', 'draw', 'none']).default('pop'),
 });
 
+/** Flow / process diagram — connected nodes (icon+label) with arrows. */
+export const FlowOp = BaseOp.extend({
+  type: z.literal('flow'),
+  nodes: z.array(z.object({ illustration: z.string().max(40).optional(), label: z.string().max(30).optional() })).min(2).max(5),
+  direction: z.enum(['horizontal', 'vertical']).default('horizontal'),
+  connector: z.enum(['arrow', 'line']).default('arrow'),
+  position: z.enum(['center', 'lower']).default('center'),
+});
+
 export const EditOp = z.discriminatedUnion('type', [
   SilenceCutOp,
   CaptionOp,
@@ -212,6 +221,7 @@ export const EditOp = z.discriminatedUnion('type', [
   ProgressOp,
   ChartOp,
   IllustrationOp,
+  FlowOp,
 ]);
 export type EditOp = z.infer<typeof EditOp>;
 export type EditOpType = EditOp['type'];

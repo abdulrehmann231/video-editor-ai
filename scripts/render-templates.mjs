@@ -19,6 +19,8 @@ const CASES = [
   { name: 'chart_bar', id: 'chart', params: { variant: 'bar', title: 'REVENUE BY YEAR', suffix: 'K', data: [{ label: '2021', value: 42 }, { label: '2022', value: 68 }, { label: '2023', value: 55 }, { label: '2024', value: 91 }] }, frame: 55 },
   { name: 'chart_line', id: 'chart', params: { variant: 'area', title: 'GROWTH', suffix: '%', color: '#34d399', data: [{ label: 'Q1', value: 12 }, { label: 'Q2', value: 28 }, { label: 'Q3', value: 24 }, { label: 'Q4', value: 47 }] }, frame: 60 },
   { name: 'chart_donut', id: 'chart', params: { variant: 'donut', title: 'MARKET SHARE', suffix: '%', data: [{ label: 'Us', value: 45 }, { label: 'Them', value: 30 }, { label: 'Other', value: 25 }] }, frame: 55 },
+  { name: 'flow', id: 'flow', params: { nodes: [{ illustration: 'gift', label: 'Give Value' }, { illustration: 'dollar_coin', label: 'Get Paid' }, { illustration: 'crowd', label: 'More Clients' }], position: 'center' }, frame: 70 },
+  { name: 'flow_funnel', id: 'flow', params: { nodes: [{ illustration: 'eye', label: 'Views' }, { illustration: 'cursor', label: 'Clicks' }, { illustration: 'credit_card', label: 'Sales' }], connector: 'arrow' }, frame: 70 },
   { name: 'metric_center', id: 'metric_pop', params: { value: '+42%', label: 'PRICE GROWTH', position: 'center' }, frame: 40 },
   { name: 'metric_corner', id: 'metric_pop', params: { value: '$1.2M', label: 'ARR', position: 'corner' }, frame: 40 },
   { name: 'name_tag', id: 'name_tag', params: { text: 'YOUNG MARK', targetX: 0.5, targetY: 0.2, side: 'below' }, frame: 55 },

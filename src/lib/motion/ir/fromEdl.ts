@@ -72,6 +72,8 @@ export function templateForOp(op: EditOp, effectStyle?: EffectStyle): { template
       return { templateId: 'chart', params: { variant: op.variant, data: op.data, title: op.title, prefix: op.prefix, suffix: op.suffix, position: op.position } };
     case 'illustration':
       return { templateId: 'illustration', params: { name: op.name, label: op.label, position: op.position, size: op.size, animate: op.animate } };
+    case 'flow':
+      return { templateId: 'flow', params: { nodes: op.nodes, direction: op.direction, connector: op.connector, position: op.position } };
     default:
       return { templateId: 'placeholder', params: {} };
   }

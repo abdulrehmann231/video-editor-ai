@@ -159,6 +159,13 @@ export const CATALOG: CatalogEntry[] = [
       ILLUSTRATIONS.map((i) => `      • ${i.id} — ${i.label}: ${i.whenToUse}`).join('\n'),
     params: `name: one of [${ILLUSTRATION_IDS.join(', ')}]. label (optional caption). position: center | left | right | corner. size: small | medium | large. animate: pop | float | draw | none.`,
   },
+  {
+    type: 'flow',
+    title: 'Flow / process diagram',
+    whenToUse:
+      'Show a PROCESS or CHAIN as connected nodes with arrows — "gift → $ → more gifts", a funnel, input→output, or step→step→step. Each node is an illustration icon and/or a short label; they reveal and connect in sequence. Use when the speaker describes how something flows, converts, compounds, or leads to a result.',
+    params: `nodes: array of { illustration, label } (2–5 steps; illustration is an id like ${ILLUSTRATION_IDS.slice(0, 4).join('/')}). direction: horizontal | vertical. connector: arrow | line. position: center | lower.`,
+  },
 ];
 
 export function buildCatalogText(): string {
@@ -267,6 +274,20 @@ const EFFECT_PARAM_PROPS: Record<string, Schema> = {
           name: { type: SchemaType.STRING, format: 'enum', enum: ILLUSTRATION_IDS, description: 'illustration id' },
           size: { type: SchemaType.STRING, format: 'enum', enum: ['small', 'medium', 'large'] },
           animate: { type: SchemaType.STRING, format: 'enum', enum: ['pop', 'float', 'draw', 'none'] },
+          // flow
+          nodes: {
+            type: SchemaType.ARRAY,
+            description: 'flow diagram nodes (2–5)',
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                illustration: { type: SchemaType.STRING, format: 'enum', enum: ILLUSTRATION_IDS },
+                label: { type: SchemaType.STRING },
+              },
+            },
+          },
+          direction: { type: SchemaType.STRING, format: 'enum', enum: ['horizontal', 'vertical'] },
+          connector: { type: SchemaType.STRING, format: 'enum', enum: ['arrow', 'line'] },
 };
 
 /** EDL structured-output schema (flat ops with absolute timing). */

@@ -230,6 +230,16 @@ describe('vault effect templates', () => {
     expect(validateComposition(wrap(layers)).ok).toBe(true);
   });
 
+  it('flow builds a connected node diagram (needs 2+ nodes)', () => {
+    const { layers } = resolveTemplate('flow', { nodes: [{ illustration: 'gift', label: 'Give' }, { illustration: 'dollar_coin', label: 'Get Paid' }, { illustration: 'crowd', label: 'Clients' }] }, CTX);
+    const flow = flatten(layers).find((l) => l.type === 'flow') as { nodes?: unknown[]; connector?: string } | undefined;
+    expect(flow?.nodes?.length).toBe(3);
+    expect(validateComposition(wrap(layers)).ok).toBe(true);
+    // a single node is not a flow → empty group
+    const one = resolveTemplate('flow', { nodes: [{ label: 'X' }] }, CTX);
+    expect(flatten(one.layers).some((l) => l.type === 'flow')).toBe(false);
+  });
+
   it('comparison reveals two toned columns with directional arrows', () => {
     const { layers } = resolveTemplate('comparison', { leftTitle: 'YOU', rightTitle: 'THEM', leftItems: ['a'], rightItems: ['b'], leftTone: 'bad', rightTone: 'good' }, CTX);
     const all = flatten(layers);

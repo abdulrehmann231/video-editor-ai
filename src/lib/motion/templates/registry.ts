@@ -1,6 +1,6 @@
 import type { AnnotationKind, Camera, MotionLayer, Vec2, Vec3 } from '../ir/types';
 import { DEFAULT_BRAND } from '../brand';
-import { annotationLayer, BuildCtx, chartLayer, constant, fadeIn, illustrationLayer, meterLayer, orientation, punchScale, reveal, scalePop, shapeLayer, textLayer } from './helpers';
+import { annotationLayer, BuildCtx, chartLayer, constant, fadeIn, flowLayer, illustrationLayer, meterLayer, orientation, punchScale, reveal, scalePop, shapeLayer, textLayer } from './helpers';
 import { ILLUSTRATION_IDS } from '../illustrations';
 
 /**
@@ -67,6 +67,25 @@ function asChartData(v: unknown): { label?: string; value: number; color?: strin
     })
     .filter((d): d is { label?: string; value: number; color?: string } => d !== null)
     .slice(0, 8);
+}
+
+/** Coerce a loose param into flow nodes ({illustration?, label?}). */
+function asNodes(v: unknown): { illustration?: string; label?: string }[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((it): { illustration?: string; label?: string } | null => {
+      if (typeof it === 'string') return { label: it };
+      if (it && typeof it === 'object') {
+        const o = it as Record<string, unknown>;
+        const illustration = typeof o.illustration === 'string' ? o.illustration : undefined;
+        const label = typeof o.label === 'string' ? o.label : undefined;
+        if (!illustration && !label) return null;
+        return { ...(illustration ? { illustration } : {}), ...(label ? { label } : {}) };
+      }
+      return null;
+    })
+    .filter((x): x is { illustration?: string; label?: string } => x !== null)
+    .slice(0, 5);
 }
 
 /** Coerce a loose param into an array of {text, mark} rows (checklist/list). */
@@ -838,6 +857,42 @@ export const TEMPLATES: EffectTemplate[] = [
               ctx.dur,
             ),
             transform: { position: constant<Vec3>(pos) },
+          },
+        ],
+      };
+    },
+  },
+  {
+    id: 'flow',
+    version: '1.0',
+    name: 'Flow / process diagram',
+    whenToUse:
+      'Show a PROCESS or CHAIN as connected nodes with arrows — e.g. "gift → $ → more gifts", a funnel, input → output, or step → step → step. Each node is an illustration icon and/or a short label; nodes pop in and arrows draw between them in sequence. Use when the speaker describes how something flows, converts, or leads to a result.',
+    renderer: 'remotion',
+    parameters: [
+      { name: 'nodes', type: 'list', default: [], description: 'Array of { illustration, label } (2–5 steps). illustration is an illustration id.' },
+      { name: 'direction', type: 'enum', default: 'horizontal', options: ['horizontal', 'vertical'], semanticRole: 'layout' },
+      { name: 'connector', type: 'enum', default: 'arrow', options: ['arrow', 'line'], semanticRole: 'style' },
+      { name: 'color', type: 'color', default: undefined, description: 'Arrow/accent color (defaults to brand accent).', semanticRole: 'brand' },
+      { name: 'position', type: 'enum', default: 'center', options: ['center', 'lower'], semanticRole: 'layout' },
+    ],
+    build: (p, ctx) => {
+      const { portrait } = orientation(ctx.canvas);
+      const nodes = asNodes(p.nodes);
+      if (nodes.length < 2) return { layers: [{ id: `${ctx.idPrefix}_empty`, type: 'group', start: 0, duration: ctx.dur, children: [] }] };
+      const direction = asStr(p.direction, 'horizontal') as 'horizontal' | 'vertical';
+      const vertical = direction === 'vertical' || portrait;
+      const size: Vec2 = vertical ? [portrait ? 0.6 : 0.4, 0.72] : [0.86, 0.34];
+      const cy = asStr(p.position, 'center') === 'lower' ? 0.72 : 0.46;
+      return {
+        layers: [
+          {
+            ...flowLayer(
+              `${ctx.idPrefix}_flow`,
+              { nodes, direction: vertical ? 'vertical' : 'horizontal', connector: asStr(p.connector, 'arrow') as 'arrow' | 'line', color: asStr(p.color) || undefined, size },
+              ctx.dur,
+            ),
+            transform: { position: constant<Vec3>([0.5, cy, 0]) },
           },
         ],
       };
