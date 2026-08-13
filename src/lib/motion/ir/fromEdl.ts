@@ -38,7 +38,7 @@ const round = (n: number): number => Math.round(n * 1000) / 1000;
 /** Map a non-caption EDL op to the effect template + params that realize it.
  * Per-project effectStyle overrides are merged in (they win over EDL values).
  * (Captions are generated densely from the transcript, not per-op.) */
-function templateForOp(op: EditOp, effectStyle?: EffectStyle): { templateId: string; params: Record<string, unknown> } {
+export function templateForOp(op: EditOp, effectStyle?: EffectStyle): { templateId: string; params: Record<string, unknown> } {
   switch (op.type) {
     case 'zoom_punch':
       return { templateId: 'camera_punch', params: { scale: op.scale, focus: op.focus } };
