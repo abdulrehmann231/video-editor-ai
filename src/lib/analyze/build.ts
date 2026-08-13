@@ -94,6 +94,11 @@ ${buildCatalogText()}
 
 RULES:
 - All times in SECONDS, between 0 and ${Math.round(dur)}. Keep start < end; never exceed duration.
+- DATA OPS MUST BE COMPLETE — if you use one of these, you MUST fully populate its data (an op
+  without its data is discarded): chart → "data" (2–8 {label,value} points); checklist → "items"
+  (2–5 {text,mark:check|cross|dot}); stack_list → "listItems" (2–6 strings); comparison →
+  "leftItems" AND "rightItems"; progress timeline/scale → "ticks". If you don't have concrete
+  values for one, pick a simpler op instead (e.g. stat_callout, caption) — never emit an empty one.
 - Prefer the beats' plan, but you MAY add/adjust for a professional result. Be rich yet tasteful;
   don't stack two big effects on the exact same instant.
 - Use 3D (three) sparingly — a couple of standout moments at most.
