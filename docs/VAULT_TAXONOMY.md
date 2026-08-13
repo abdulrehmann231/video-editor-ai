@@ -14,12 +14,17 @@ Regenerate with the classifier snippet in git history (commit that added this fi
 
 ## Coverage headline
 
+_Updated after backlog items 1–3 + 5 (chart primitive, progress timeline/scale/
+slider, portrait tuning, 18-icon illustration library)._
+
 | Bucket | Refs | Share |
 |---|---|---|
-| ✅ **Covered now** (good quality) | ~250 | **~55%** |
-| ⚠️ **Partial** (works for a subset; gaps remain) | ~39 | ~9% |
-| ❌ **Not covered** (needs a future phase / asset system) | ~157 | **~35%** |
+| ✅ **Covered now** (good quality) | ~296 | **~66%** |
+| ⚠️ **Partial** (works for a subset; gaps remain) | ~111 | ~25% |
+| ❌ **Not covered** (needs a future phase / asset system) | ~39 | **~9%** |
 | Uncategorized | ~5 | ~1% |
+
+_Prior (before items 1–3, 5): 55% covered / 9% partial / 35% not covered._
 
 **Reading:** the current system does the *talking-head overlay* family well. The
 remaining ~35% — illustrated scenes, charts, flow diagrams, arbitrary 3D — is the
@@ -32,12 +37,12 @@ part that needs Phases 6/8/13 **plus an asset library that does not exist yet**.
 | Family | ~Refs | Status | Renders it today | To reach vault parity |
 |---|---|---|---|---|
 | **Kinetic typography / caption / word pop** | ~126 | ✅ good | `kinetic_text` + `caption` (12 styles) | Phase 3/4 **done**. Polish: more entrance variety. |
-| **Illustrated scene / character / mascot** | ~96 | ❌ none | — | **Asset library (vector/illustration) + Phase 6** to compose scenes. Biggest single gap. |
+| **Illustrated scene / character / mascot** | ~96 | ⚠️ partial | `illustration` (18-icon library) | Single-concept icons/stickers ✅. Full multi-element **scenes** (mascots, layered illustrations) still need **more assets + Phase 6** composition. Biggest remaining gap. |
 | **Stat / metric callout / badge** | ~34 | ✅ good | `metric_pop`, `three:stat_orb` | Done; 3D orb variant needs GPU/Lambda. |
 | **Checklist / numbered list / steps** | ~29 | ✅ good | `checklist`, `stack_list` (Phase F) | Done. |
 | **Comparison / vs / two-column** | ~28 | ✅ good | `comparison` (Phase F) | Done; add split-screen video variant. |
-| **Progress / meter / gauge / timeline / scale** | ~24 | ⚠️ partial | `progress` (bar/gauge/counter, Phase F) | **Add**: horizontal timeline, number-line/scale, slider. Phase 3 extend. |
-| **Chart / graph (bar, line, curve)** | ~22 | ❌ none | — | **New chart primitive/renderer** (animated bars/lines/area) — Phase 2/3. High ROI, self-contained. |
+| **Progress / meter / gauge / timeline / scale** | ~24 | ✅ good | `progress` (bar/gauge/counter/timeline/scale/slider) | Done (item 2). |
+| **Chart / graph (bar, line, curve)** | ~22 | ✅ good | `chart` (bar/line/area/donut) | Done (item 1). |
 | **Flow / process / connector diagram** | ~21 | ❌ none | — | **Connector primitive + Phase 6** (multi-node layout). |
 | **3D scene / object (orb, product, room, block)** | ~18 | ⚠️ partial | `three` (only `stat_orb`, `card_3d`) | **Phase 13**: 3D asset/scene pipeline (Blender worker); GPU. |
 | **Transition (glitch / wipe / zoom / shake)** | ~11 | ✅ basic | `transition` (glitch/flash/zoom_blur) | Add wipe/whip-pan/parallax match-cut. Phase 3. |
@@ -64,20 +69,25 @@ the illustrated/flow/chart families.
 
 ---
 
-## Prioritized backlog (highest value first)
+## Prioritized backlog
 
-1. **Chart/graph primitive** (~22 refs, ❌→✅) — animated bar/line/area/curve renderer.
-   Self-contained (like the `meter` layer), no Phase 6 dependency. **Best ROI.**
-2. **Extend `progress`** with timeline / number-line / slider (~part of 24). Cheap.
-3. **Portrait/Shorts tuning** of all Phase-F templates (correctness, not new effects).
-4. **Phase 6 — Creative Director** (unlocks illustrated + flow + complex compositions,
-   ~130+ refs). Largest lever; largest effort. Prereq for the illustration/asset work.
-5. **Asset/illustration library** (vector scenes, mascots, UI mockups) — pairs with #4;
-   nothing renders the ~96 illustrated refs without it.
-6. **Phase 13 — 3D pipeline** (~18 refs) — only after a GPU/Lambda render path is default.
-7. **Phase 10 — Visual-QA loop** — the quality *guarantee* (auto-verify a render matches
-   the intended look); currently pixel goldens are skipped in CI.
+Done:
+1. ✅ **Chart/graph primitive** — `chart` (bar/line/area/donut).
+2. ✅ **Extend `progress`** — timeline / number-line scale / slider.
+3. ✅ **Portrait/Shorts tuning** — orientation-aware templates + renderers.
+5. ✅ **Illustration library** — 18 animated vector icons/stickers (extensible).
 
-**Net:** ~55% of the vault is reproducible at good quality today. Reaching ~90% is a
-Phase-6 + chart-primitive + asset-library program; the last ~10% (arbitrary 3D, heavy
-illustration) is Phase-13 + a real asset pipeline.
+Next:
+4. **Phase 6 — Creative Director** — the AI *composes* multi-element scenes
+   (icon + arrow + label + graph) instead of picking one op → one template.
+   Unlocks the ~96 illustrated + ~21 flow refs (pairs with growing the asset
+   library). Largest remaining lever.
+6. **Grow the illustration/asset library** (mascots, UI/phone mockups, more scenes)
+   — feeds Phase 6.
+7. **Phase 13 — 3D pipeline** (~18 refs) — after a GPU/Lambda render path is default.
+8. **Phase 10 — Visual-QA loop** — the quality *guarantee* (auto-verify a render
+   matches intent); pixel goldens are currently skipped in CI.
+
+**Net:** ~66% of the vault is reproducible at good quality now (up from ~55%).
+Reaching ~90% is mainly **Phase 6 + a bigger asset library**; the last ~9%
+(arbitrary 3D, heavy multi-element illustration) is Phase-13 + a real asset pipeline.

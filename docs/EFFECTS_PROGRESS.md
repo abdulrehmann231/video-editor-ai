@@ -81,6 +81,25 @@ match its signature look:
 - [x] Dev tool: `scripts/render-templates.mjs` renders each template to a still
       for visual review against the vault frames.
 
+## Phase G — Backlog items 1–3 + 5 (toward vault parity)   ✅ DONE
+From the vault taxonomy (`docs/VAULT_TAXONOMY.md`), knocked out the highest-ROI
+self-contained gaps (coverage ~55% → ~66%):
+- [x] 1 — **Chart primitive**: `chart` IR layer + ChartRenderer (bar/line/area/
+      donut; gradient rounded bars grow + count-up, lines draw on with area fill,
+      donut sweeps). ~22 refs.
+- [x] 2 — **Progress extensions**: timeline (milestones), scale (number-line +
+      pointer), slider (knob) added to the meter widget. ~24 refs now fully done.
+- [x] 3 — **Portrait/Shorts tuning**: `orientation()` factor (fs=1.5 portrait,
+      landscape byte-identical); comparison stacks vertically, chart/meter widen;
+      renderers self-tune from W/H. Verified every template at 720×1280.
+- [x] 5 — **Illustration library**: `illustration` IR layer + IllustrationRenderer
+      + 18 animated vector icons/stickers (money/growth/rocket/target/idea/…),
+      brand-tintable, pop/float/draw. Extensible (drop a component + registry
+      entry). Seeds the ~96 illustrated refs.
+All wired to the AI (EDL ops + catalog + Gemini response schema + prompt) and
+covered by tests (198 total). Next: **Phase 6 — Creative Director** (compose
+multi-element scenes), then grow assets / 3D / Visual-QA.
+
 ## Notes / decisions
 - Installed: `@remotion/google-fonts`. Fonts: Anton (display) + Inter (body).
 - Asset licensing: only bundle CC0 / free-for-commercial Lottie/3D assets; log sources here.
