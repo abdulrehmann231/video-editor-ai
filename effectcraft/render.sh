@@ -13,7 +13,7 @@ SRC=${SRC:-$WORK/src.mp4}
 PROJ=$WORK/recovery.ecproj
 OUT=${OUT:-$WORK/recovery_final.mp4}
 FPS=30; FRAMES=1674          # 55.8 s
-CHUNK=${CHUNK:-140}          # frames per render job
+CHUNK=${CHUNK:-35}           # frames per render job (heavy sections need ~2 GB per job)
 JOBS=${JOBS:-1}              # parallel effectcraft-cli renders
 MUSIC=${MUSIC:-$HERE/../public/music/ambient.m4a}
 
@@ -73,6 +73,6 @@ done
 
 echo "== assemble"
 "$FF" -v error -y -f concat -safe 0 -i "$WORK/chunks/list.txt" -i "$A/mix.wav" \
-  -map 0:v -map 1:a -c:v libx264 -preset slow -crf 17 -pix_fmt yuv420p -r $FPS \
+  -map 0:v -map 1:a -vf "setpts=N/($FPS*TB)" -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p -r $FPS \
   -c:a aac -b:a 192k -shortest -movflags +faststart "$OUT"
 echo "done -> $OUT"

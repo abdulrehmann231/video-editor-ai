@@ -14,7 +14,9 @@ render chunks and to mix the audio.
 
 ## Output
 
-`recovery_final.mp4`: 55.8 s, 1920×1080, 30 fps. It uses the first 47.6 s of the clip, then
+[`output/recovery_final.mp4`](output/recovery_final.mp4): 55.8 s, 1920×1080, 30 fps
+(see also [`output/contact_sheet.jpg`](output/contact_sheet.jpg), one frame per second, and the
+generated project [`output/recovery.ecproj`](output/recovery.ecproj)). It uses the first 47.6 s of the clip, then
 jumps to source 80.3 s ("Sign number one, persistent soreness").
 
 | Time | Scene | Vault reference |
@@ -53,8 +55,13 @@ EffectCraft desktop app to tweak by hand.
   `Shape`, text animators, expressions with `seedRandom`/`wiggle`), CC Particle World, Glow,
   Fractal Noise, Grid, Tint, Offset, Mosaic, Directional Blur, layer motion blur and precomps.
   It also renders frames fast enough to iterate on stills (about 50–250 ms per frame).
-- **Render speed:** about 4–5 fps at 1080p on one core. The CLI renders one comp single-threaded,
-  so `render.sh` splits the timeline into frame-aligned chunks and renders 12 at once.
+- **Render speed:** one `effectcraft-cli render` runs on a single thread. That is about 4–5 fps at 1080p
+  for simple comps and about 1 fps for this edit (glows, particles, motion blur, precomps).
+  `render.sh` splits the timeline into frame-aligned chunks (`CHUNK` frames each, `--end` is
+  exclusive) and runs `JOBS` of them in parallel. Finished chunks are kept, so a re-run resumes.
+- **Memory:** heavy sections (a motion-blurred precomp with glows) peaked at about 2 GB per
+  process. This sandbox had 1 CPU and 3 GB, so the edit was rendered with `JOBS=1` (about 30 min).
+  On a real machine, set `JOBS` to roughly min(cores, RAM in GB / 2).
 - **Gotchas found:**
   - `String.prototype.substr` silently fails inside expressions. Use `substring`.
   - In scripts (not expressions), `array + array` is string concatenation, as in real ExtendScript.
